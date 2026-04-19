@@ -46,13 +46,24 @@ export default function MonitoringList() {
     if (!window.confirm('⚠️ PERINGATAN: Anda akan menghapus SELURUH data laporan. Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
     if (!window.confirm('KONFIRMASI TERAKHIR: Hapus semua data laporan sekarang?')) return;
     
-    await deleteAllReports();
+    const result = await deleteAllReports();
+    if (result.success) {
+      alert('✅ Berhasil: Semua data laporan telah dibersihkan.');
+      fetchActivityReports();
+    } else {
+      alert('❌ Gagal: ' + result.error);
+    }
   };
 
   const handleDeleteReport = async (id) => {
     if (!window.confirm('Hapus laporan ini?')) return;
     setActionLoading(id);
-    await deleteReportById(id);
+    const result = await deleteReportById(id);
+    if (!result.success) {
+      alert('❌ Gagal menghapus: ' + result.error);
+    } else {
+      fetchActivityReports();
+    }
     setActionLoading(null);
   };
 

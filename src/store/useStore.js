@@ -335,6 +335,27 @@ export const useStore = create((set, get) => ({
     return { success: true, data: data[0] };
   },
 
+  deleteAllReports: async () => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    set({ isMarketingLoading: true });
+    // Menghapus semua baris menggunakan filter yang menjangkau semua UUID
+    const { error } = await supabase
+      .from('activity_reports')
+      .delete()
+      .not('id', 'is', null);
+
+    if (!error) {
+      set({ activityReports: [], isMarketingLoading: false });
+      return { success: true };
+    } else {
+      console.error('Gagal hapus semua laporan:', error);
+      set({ isMarketingLoading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
   fetchActivityReports: async () => {
     set({ isMarketingLoading: true });
     const { data, error } = await supabase
