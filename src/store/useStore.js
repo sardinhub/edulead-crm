@@ -342,7 +342,7 @@ export const useStore = create((set, get) => ({
     set({ isMarketingLoading: true });
     const { data, error } = await supabase
       .from('activity_reports')
-      .select('*, marketing_staff(name)')
+      .select('*, system_users(name)')
       .order('report_date', { ascending: false })
       .order('created_at', { ascending: false });
     if (!error && data) {
