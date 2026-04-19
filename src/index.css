@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+/* Custom Kanban styles to ensure smooth scrolling and dragging visual */
+.kanban-column {
+  min-width: 320px;
+}
