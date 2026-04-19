@@ -122,6 +122,47 @@ export default function Settings() {
         </div>
 
       </div>
+
+      {/* Zona Bahaya / Pembersihan Data (Manager Only) */}
+      {user?.role === 'Manager' && (
+        <div className="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden mt-8">
+          <div className="p-6 md:p-8 bg-red-50/50">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-red-900">Manajemen Data Base Utama</h2>
+                <p className="text-sm text-red-700">Bersihkan data dashboard, scheduler, dan student database.</p>
+              </div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-red-100 mb-4 max-w-2xl">
+              <p className="text-sm text-slate-700 leading-relaxed font-medium mb-3">
+                <span className="font-bold text-red-600">Perhatian:</span> Tombol di bawah ini akan menghapus <strong>seluruh data siswa (Leads), progress follow-up, penjadwalan, dan riwayat aktivitas yang ada di Dashboard & Scheduler.</strong>
+              </p>
+              <p className="text-xs text-slate-500">Tindakan ini tidak bisa dibatalkan. Gunakan ini hanya untuk mereset aplikasi dari data ujicoba menjadi kosong sebelum memberikan akses ke tim Anda.</p>
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!window.confirm('⚠️ PERINGATAN KERAS: Semua data Leads, Scheduler, dan Dashboard akan hangus. Anda yakin?')) return;
+                if (!window.confirm('KONFIRMASI TERAKHIR: Hapus sekarang?')) return;
+                
+                const { deleteAllStudents } = useStore.getState();
+                const result = await deleteAllStudents();
+                if (result.success) {
+                  alert("✅ Berhasil: Database utama telah dibersihkan.");
+                } else {
+                  alert("❌ Gagal membersihkan data: " + result.error);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-3 text-sm font-bold shadow-md shadow-red-200 transition-colors"
+            >
+              Kosongkan Database Master (Reset)
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

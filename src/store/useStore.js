@@ -173,6 +173,30 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  deleteAllStudents: async () => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    set({ isLoading: true });
+    // Menghapus semua baris dengan trick datetime (seperti pada activity_reports)
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .gte('created_at', '1970-01-01'); // Filter universal
+      
+    // Karena cascade off secara manual, kita juga sekalian bersihkan activity_logs-nya
+    await supabase.from('activity_logs').delete().gte('date', '1970-01-01');
+
+    if (!error) {
+      set({ students: [], isLoading: false });
+      return { success: true };
+    } else {
+      console.error('Gagal hapus semua data leads:', error);
+      set({ isLoading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
   updateStudentStatus: async (id, newStatus) => {
     // Optimistic UI Update - Perubahan instan di layar
     set((state) => ({
