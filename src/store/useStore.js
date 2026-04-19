@@ -340,11 +340,11 @@ export const useStore = create((set, get) => ({
     if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
 
     set({ isMarketingLoading: true });
-    // Menghapus semua baris menggunakan filter yang menjangkau semua UUID
+    // Menghapus semua baris dengan filter tanggal yang pasti mencakup semua data
     const { error } = await supabase
       .from('activity_reports')
       .delete()
-      .not('id', 'is', null);
+      .gte('report_date', '1970-01-01');
 
     if (!error) {
       set({ activityReports: [], isMarketingLoading: false });
