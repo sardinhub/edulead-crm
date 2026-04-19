@@ -113,7 +113,7 @@ export default function ActivityForm() {
 
   useEffect(() => {
     fetchMarketingStaff();
-  }, []);
+  }, [fetchMarketingStaff]);
 
   // Untuk non-Manager: otomatis isi staff dari akun yang login
   useEffect(() => {

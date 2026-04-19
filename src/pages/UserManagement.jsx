@@ -38,7 +38,7 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchSystemUsers();
-  }, []);
+  }, [fetchSystemUsers]);
 
   /* ── Form submit ─────────────────────────────────────────────────────── */
   const handleRegister = async (e) => {
