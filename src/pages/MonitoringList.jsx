@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart2, Users, MessageCircle, CheckCircle2,
-  RefreshCw, Filter, TrendingUp, Award, Calendar, Lock
+  RefreshCw, Filter, TrendingUp, Award, Calendar, Lock,
+  Trash2, Database
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import StaffMonitorCard from '../components/StaffMonitorCard';
@@ -35,8 +36,25 @@ export default function MonitoringList() {
     user,
     marketingStaff, fetchMarketingStaff,
     activityReports, fetchActivityReports,
+    deleteReportById, deleteAllReports,
     isMarketingLoading
   } = useStore();
+
+  const [actionLoading, setActionLoading] = useState(null);
+
+  const handleClearAll = async () => {
+    if (!window.confirm('⚠️ PERINGATAN: Anda akan menghapus SELURUH data laporan. Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
+    if (!window.confirm('KONFIRMASI TERAKHIR: Hapus semua data laporan sekarang?')) return;
+    
+    await deleteAllReports();
+  };
+
+  const handleDeleteReport = async (id) => {
+    if (!window.confirm('Hapus laporan ini?')) return;
+    setActionLoading(id);
+    await deleteReportById(id);
+    setActionLoading(null);
+  };
 
   const isManager = user?.role === 'Manager';
 
@@ -274,10 +292,21 @@ export default function MonitoringList() {
                     filterStaff === s.id ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   )}
                 >
-                  {s.name.split(' ')[0]}
+                  {s.name}
                 </button>
               ))}
             </div>
+
+            {/* Hapus Semua — Manager Only */}
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+            <button
+              onClick={handleClearAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-100"
+              title="Hapus seluruh data laporan harian"
+            >
+              <Database className="w-3.5 h-3.5" />
+              Bersihkan Semua Laporan
+            </button>
           </>
         )}
 
@@ -357,7 +386,8 @@ export default function MonitoringList() {
                     'Tanggal',
                     ...(isManager ? ['Staff'] : []),
                     'Follow-up', 'Merespon', 'Konversi',
-                    'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana'
+                    'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana',
+                    ...(isManager ? ['Aksi'] : [])
                   ].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
@@ -406,6 +436,18 @@ export default function MonitoringList() {
                       <td className="px-4 py-3 max-w-[160px]">
                         <p className="text-xs text-slate-500 truncate">{r.next_day_plan || '—'}</p>
                       </td>
+                      {isManager && (
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleDeleteReport(r.id)}
+                            disabled={actionLoading === r.id}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center"
+                            title="Hapus baris ini"
+                          >
+                            <Trash2 className={cn("w-4 h-4", actionLoading === r.id && "animate-pulse")} />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
