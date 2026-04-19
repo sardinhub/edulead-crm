@@ -428,8 +428,6 @@ export default function ActivityForm() {
           </div>
         </div>
       </form>
-
-      <AddStaffModal isOpen={showAddStaff} onClose={() => { setShowAddStaff(false); fetchMarketingStaff(); }} />
     </div>
   );
 }
