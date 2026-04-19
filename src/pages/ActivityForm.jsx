@@ -6,7 +6,7 @@ import {
   UserPlus, Loader2, CheckCheck, ChevronDown
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import AddStaffModal from '../components/AddStaffModal';
+// Removed AddStaffModal import in favor of unified User Management
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -107,7 +107,6 @@ export default function ActivityForm() {
 
   const isManager = user?.role === 'Manager';
   const [form, setForm] = useState(initialForm);
-  const [showAddStaff, setShowAddStaff] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -238,18 +237,12 @@ export default function ActivityForm() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <UserCheck className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-slate-700">Identitas Staff</span>
+                  <span className="text-sm font-semibold text-slate-700">Identitas Staf</span>
                 </div>
-                {/* Tombol Tambah Staff hanya untuk Manager */}
-                {isManager && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddStaff(true)}
-                    className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    Tambah
-                  </button>
+                {!isManager && (
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 uppercase tracking-wider">
+                    Auto-Locked
+                  </span>
                 )}
               </div>
 
@@ -269,8 +262,8 @@ export default function ActivityForm() {
                         onChange={handleStaffChange}
                         className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                       >
-                        <option value="">-- Pilih Staff --</option>
-                        {marketingStaff.filter(s => s.is_active).map(s => (
+                        <option value="">-- Pilih Staf --</option>
+                        {marketingStaff.map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>

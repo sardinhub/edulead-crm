@@ -57,14 +57,6 @@ export const useStore = create((set, get) => ({
       return { success: false, error: msg };
     }
 
-    // 2. Jika role Marketing, otomatis tambah ke marketing_staff juga
-    if (role === 'Marketing') {
-      const { error: staffErr } = await supabase
-        .from('marketing_staff')
-        .insert([{ name }]);
-      if (staffErr) console.warn('marketing_staff sync warning:', staffErr.message);
-    }
-
     // 3. Update local list
     set((state) => ({
       systemUsers: [...state.systemUsers, newUser],
@@ -310,29 +302,19 @@ export const useStore = create((set, get) => ({
   isMarketingLoading: false,
 
   fetchMarketingStaff: async () => {
+    // Ambil staff marketing aktif dari tabel system_users (Daftar Karyawan)
     const { data, error } = await supabase
-      .from('marketing_staff')
-      .select('*')
+      .from('system_users')
+      .select('id, name, is_active')
+      .eq('role', 'Marketing')
       .eq('is_active', true)
-      .order('created_at', { ascending: true });
+      .order('name', { ascending: true });
+    
     if (!error && data) {
       set({ marketingStaff: data });
     } else {
-      console.error('Gagal fetch marketing staff:', error);
+      console.error('Gagal fetch staff:', error);
     }
-  },
-
-  addMarketingStaff: async (name) => {
-    const { data, error } = await supabase
-      .from('marketing_staff')
-      .insert([{ name }])
-      .select();
-    if (error) {
-      console.error('Gagal tambah staff:', error);
-      return { success: false, error: error.message };
-    }
-    set((state) => ({ marketingStaff: [...state.marketingStaff, data[0]] }));
-    return { success: true, data: data[0] };
   },
 
   deleteAllReports: async () => {
