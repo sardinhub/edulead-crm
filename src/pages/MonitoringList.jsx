@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import {
   BarChart2, Users, MessageCircle, CheckCircle2,
   RefreshCw, Filter, TrendingUp, Award, Calendar, Lock,
-  Trash2, Database
+  Trash2, Database, Download, FileText, FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { useStore } from '../store/useStore';
 import StaffMonitorCard from '../components/StaffMonitorCard';
 import { clsx } from 'clsx';
@@ -65,6 +68,55 @@ export default function MonitoringList() {
       fetchActivityReports();
     }
     setActionLoading(null);
+  };
+
+  const handleExportExcel = () => {
+    const dataToExport = tableRows.map(r => ({
+      Tanggal: new Date(r.report_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+      Staff: r.staff_name,
+      'Follow-up': r.leads_followed_up,
+      Merespon: r.leads_responded,
+      Konversi: r.leads_converted,
+      Hambatan: r.obstacles || '',
+      Rencana: r.next_day_plan || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
+    XLSX.writeFile(workbook, `Laporan_Marketing.xlsx`);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF('landscape');
+    doc.setFontSize(16);
+    doc.text("Laporan Aktivitas Marketing", 14, 20);
+    
+    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Hambatan", "Rencana"];
+    const tableRowsData = [];
+
+    tableRows.forEach(r => {
+      const rowData = [
+        new Date(r.report_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+        r.staff_name,
+        r.leads_followed_up,
+        r.leads_responded,
+        r.leads_converted,
+        r.obstacles || '',
+        r.next_day_plan || ''
+      ];
+      tableRowsData.push(rowData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRowsData,
+      startY: 25,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229] } // indigo-600
+    });
+    
+    doc.save(`Laporan_Marketing.pdf`);
   };
 
   const isManager = user?.role === 'Manager';
@@ -308,15 +360,34 @@ export default function MonitoringList() {
               ))}
             </div>
 
-            {/* Hapus Semua — Manager Only */}
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+            {/* Hapus Semua & Export Buttons — Manager Only */}
+            <div className="h-5 w-px bg-slate-200 hidden sm:block mx-1" />
+            
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all border border-emerald-100"
+              title="Download Excel"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              Excel
+            </button>
+            
+            <button
+              onClick={handleExportPDF}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-50 text-sky-700 hover:bg-sky-100 transition-all border border-sky-100"
+              title="Download PDF"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              PDF
+            </button>
+
             <button
               onClick={handleClearAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-100"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-100 ml-1"
               title="Hapus seluruh data laporan harian"
             >
               <Database className="w-3.5 h-3.5" />
-              Bersihkan Semua Laporan
+              Bersihkan Data
             </button>
           </>
         )}
