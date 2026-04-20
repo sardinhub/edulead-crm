@@ -511,15 +511,15 @@ export const useStore = create((set, get) => ({
     return { success: false, error: error?.message };
   },
 
-  updateLeadRecapStatus: async (id, status) => {
+  updateLeadRecapStatus: async (id, updates) => {
     const { error } = await supabase
       .from('leads_recap')
-      .update({ status })
+      .update(updates)
       .eq('id', id);
 
     if (!error) {
       set((state) => ({
-        leadsRecap: state.leadsRecap.map(l => l.id === id ? { ...l, status } : l)
+        leadsRecap: state.leadsRecap.map(l => l.id === id ? { ...l, ...updates } : l)
       }));
       return { success: true };
     }

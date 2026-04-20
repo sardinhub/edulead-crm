@@ -56,8 +56,15 @@ export default function LeadsRecap() {
     }
   };
 
-  const handleUpdateStatus = async (id, status) => {
-    await updateLeadRecapStatus(id, status);
+  const handleUpdateStatus = async (id, newStatus) => {
+    if (newStatus === 'Selesai') {
+      if (window.confirm('Apakah siswa ini akan diproses pelunasan? Jika Ya, status akan berubah jadi DONE dan keterangan menjadi PANGKAL LUNAS.')) {
+        await updateLeadRecapStatus(id, { status: 'DONE', note: 'PANGKAL LUNAS' });
+      }
+      return;
+    }
+    
+    await updateLeadRecapStatus(id, { status: newStatus });
   };
 
   const handleConvert = async (lead) => {
@@ -345,6 +352,7 @@ export default function LeadsRecap() {
                       <option value="Tertarik">Tertarik</option>
                       <option value="Janji Datang">Janji Datang</option>
                       <option value="Tidak Tertarik">Tidak Tertarik</option>
+                      <option value="Selesai">Selesai (Pelunasan)</option>
                     </select>
                   </td>
                   <td className="px-6 py-4">
