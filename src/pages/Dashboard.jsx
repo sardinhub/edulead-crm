@@ -77,7 +77,7 @@ const TargetWidget = ({ current, target, userName }) => {
 };
 
 export default function Dashboard() {
-  const { students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
+  const { user, students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
 
   React.useEffect(() => {
