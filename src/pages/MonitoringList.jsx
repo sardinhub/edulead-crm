@@ -486,7 +486,15 @@ export default function MonitoringList() {
                     'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana',
                     ...(isManager ? ['Aksi'] : [])
                   ].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th 
+                      key={h} 
+                      className={cn(
+                        "px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap",
+                        h === 'Aksi' && "sticky right-0 bg-slate-50 z-10 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.1)]"
+                      )}
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -545,11 +553,11 @@ export default function MonitoringList() {
                         <p className="text-xs text-slate-500 truncate">{r.next_day_plan || '—'}</p>
                       </td>
                       {isManager && (
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 sticky right-0 bg-white z-10 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.1)]">
                           <button
                             onClick={() => handleDeleteReport(r.id)}
                             disabled={actionLoading === r.id}
-                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center border border-transparent hover:border-red-100"
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center border border-transparent hover:border-red-100 mx-auto"
                             title="Hapus baris ini"
                           >
                             <Trash2 className={cn("w-4 h-4", actionLoading === r.id && "animate-pulse")} />
