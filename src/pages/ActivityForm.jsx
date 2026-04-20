@@ -92,6 +92,7 @@ const initialForm = {
   leads_followed_up: '',
   leads_responded: '',
   leads_converted: '',
+  responded_leads_details: [], // Array of { name, phone, school, note }
   response_notes: '',
   follow_up_actions: '',
   obstacles: '',
@@ -150,8 +151,37 @@ export default function ActivityForm() {
   };
 
   const handleChange = (field, value) => {
-    setForm(f => ({ ...f, [field]: value }));
+    setForm(f => {
+      const newForm = { ...f, [field]: value };
+      
+      // Auto-sync leads detail rows
+      if (field === 'leads_responded') {
+        const count = Math.max(0, parseInt(value) || 0);
+        const currentDetails = [...f.responded_leads_details];
+        
+        if (count > currentDetails.length) {
+          // Add rows
+          for (let i = currentDetails.length; i < count; i++) {
+            currentDetails.push({ name: '', phone: '', school: '', note: '' });
+          }
+        } else if (count < currentDetails.length) {
+          // Remove rows
+          currentDetails.splice(count);
+        }
+        newForm.responded_leads_details = currentDetails;
+      }
+      
+      return newForm;
+    });
     setErrors(e => ({ ...e, [field]: undefined }));
+  };
+
+  const handleLeadDetailChange = (index, field, value) => {
+    setForm(f => {
+      const newDetails = [...f.responded_leads_details];
+      newDetails[index] = { ...newDetails[index], [field]: value };
+      return { ...f, responded_leads_details: newDetails };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -360,6 +390,86 @@ export default function ActivityForm() {
                 </motion.div>
               );
             })}
+
+            {/* Dynamic Responsive Leads Details */}
+            <AnimatePresence>
+              {form.responded_leads_details.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4 pt-4"
+                >
+                   <div className="flex items-center gap-2 mb-2 px-1">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest">Detail Leads Merespon</h3>
+                  </div>
+
+                  {form.responded_leads_details.map((lead, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
+                      <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                        <span className="text-[10px] font-black text-emerald-600 uppercase">Leads Responsif #{idx + 1}</span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Nama Lengkap</label>
+                            <input
+                              type="text"
+                              value={lead.name}
+                              onChange={e => handleLeadDetailChange(idx, 'name', e.target.value)}
+                              placeholder="Ketik nama..."
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">No. HP / WA</label>
+                            <input
+                              type="tel"
+                              value={lead.phone}
+                              onChange={e => handleLeadDetailChange(idx, 'phone', e.target.value)}
+                              placeholder="08..."
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Asal Sekolah</label>
+                          <input
+                            type="text"
+                            value={lead.school}
+                            onChange={e => handleLeadDetailChange(idx, 'school', e.target.value)}
+                            placeholder="Contoh: SMA N 1"
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Isi Respon / Keterangan</label>
+                          <textarea
+                            rows={2}
+                            value={lead.note}
+                            onChange={e => handleLeadDetailChange(idx, 'note', e.target.value)}
+                            placeholder="Tulis singkat hasil komunikasinya..."
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Right Column — Text Fields */}

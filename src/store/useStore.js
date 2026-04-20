@@ -386,6 +386,7 @@ export const useStore = create((set, get) => ({
       leads_followed_up: formData.leads_followed_up,
       leads_responded: formData.leads_responded,
       leads_converted: formData.leads_converted,
+      responded_leads_details: formData.responded_leads_details || [],
       response_notes: formData.response_notes || null,
       follow_up_actions: formData.follow_up_actions || null,
       obstacles: formData.obstacles || null,
