@@ -9,6 +9,7 @@ import UserManagement from './pages/UserManagement';
 import Login from './pages/Login';
 import ActivityForm from './pages/ActivityForm';
 import MonitoringList from './pages/MonitoringList';
+import LeadsRecap from './pages/LeadsRecap';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -34,6 +35,7 @@ function App() {
         <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
         <Route path="/activity" element={<ProtectedRoute><ActivityForm /></ProtectedRoute>} />
         <Route path="/monitoring" element={<ProtectedRoute><MonitoringList /></ProtectedRoute>} />
+        <Route path="/recap" element={<ProtectedRoute><LeadsRecap /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

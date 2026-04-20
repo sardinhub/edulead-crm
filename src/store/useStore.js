@@ -430,4 +430,59 @@ export const useStore = create((set, get) => ({
     }));
     return { success: true };
   },
-}));
+
+  // ─── Leads Recap ───────────────────────────────────────────────────
+  leadsRecap: [],
+  
+  fetchLeadsRecap: async () => {
+    const { user } = get();
+    if (!user) return;
+
+    let query = supabase
+      .from('leads_recap')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    // Jika staff, hanya lihat miliknya sendiri
+    if (user.role !== 'Manager') {
+      query = query.eq('staff_name', user.name);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+      set({ leadsRecap: data });
+    } else if (error) {
+      console.error('Gagal fetch rekap leads:', error);
+    }
+  },
+
+  importLeadsRecap: async (leadsArray) => {
+    // leadsArray: [{ student_name, school, phone, program, note, staff_id, staff_name }]
+    const { error } = await supabase
+      .from('leads_recap')
+      .insert(leadsArray);
+
+    if (error) {
+      console.error('Gagal import leads:', error);
+      return { success: false, error: error.message };
+    }
+
+    get().fetchLeadsRecap();
+    return { success: true };
+  },
+
+  deleteLeadRecap: async (id) => {
+    const { error } = await supabase
+      .from('leads_recap')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        leadsRecap: state.leadsRecap.filter(l => l.id !== id)
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
+});
