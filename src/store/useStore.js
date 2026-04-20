@@ -206,6 +206,34 @@ export const useStore = create((set, get) => ({
     return { success: false, error: error.message };
   },
 
+  syncMonevWithRecap: async (studentData) => {
+    const { nama, telepon, asal_sekolah, status_pembayaran } = studentData;
+    
+    // Hanya sinkron jika status adalah salah satu dari tipe Lunas (WON)
+    const isLunas = status_pembayaran === 'Pangkal Full' || status_pembayaran === 'Pendaftaran+Pangkal Full';
+    if (!isLunas) return;
+
+    // Cari data di leads_recap yang cocok
+    // Menggunakan ilike untuk nama/sekolah agar lebih fleksibel dengan huruf besar/kecil
+    const { data: matchedLeads, error: searchError } = await supabase
+      .from('leads_recap')
+      .select('id')
+      .ilike('student_name', nama.trim())
+      .eq('phone', telepon.trim())
+      .ilike('school', asal_sekolah.trim());
+
+    if (!searchError && matchedLeads && matchedLeads.length > 0) {
+      // Update semua data yang cocok (biasanya satu) menjadi DONE
+      for (const lead of matchedLeads) {
+        await get().updateLeadRecapStatus(lead.id, { 
+          status: 'DONE', 
+          note: 'PANGKAL LUNAS' 
+        });
+      }
+      console.log(`✅ Sinkronisasi Berhasil: ${nama} ditandai DONE di Rekap Leads.`);
+    }
+  },
+
   deleteAllStudents: async () => {
     const { user } = get();
     if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };

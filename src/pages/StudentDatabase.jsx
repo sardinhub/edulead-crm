@@ -10,7 +10,10 @@ function cn(...inputs) {
 }
 
 export default function StudentDatabase() {
-  const { students, addStudent, updateStudent, deleteStudent, user, marketingStaff, fetchMarketingStaff } = useStore();
+  const { 
+    students, addStudent, updateStudent, deleteStudent, syncMonevWithRecap,
+    user, marketingStaff, fetchMarketingStaff 
+  } = useStore();
   
   useEffect(() => {
     fetchMarketingStaff();
@@ -47,6 +50,9 @@ export default function StudentDatabase() {
     } else {
       await addStudent(formData);
     }
+
+    // Jalankan Sinkronisasi Otomatis ke Rekap Leads Marketing
+    await syncMonevWithRecap(formData);
     
     // Reset form after submit
     setFormData({ 
