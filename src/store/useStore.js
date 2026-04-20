@@ -410,4 +410,24 @@ export const useStore = create((set, get) => ({
     syncReportToSheets({ ...payload }).catch(e => console.warn('Sheets sync error:', e));
     return { success: true, data: data[0] };
   },
+
+  deleteReportById: async (id) => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('activity_reports')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Gagal hapus laporan:', error);
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      activityReports: state.activityReports.filter(r => r.id !== id)
+    }));
+    return { success: true };
+  },
 }));

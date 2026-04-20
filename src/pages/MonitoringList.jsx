@@ -549,7 +549,7 @@ export default function MonitoringList() {
                           <button
                             onClick={() => handleDeleteReport(r.id)}
                             disabled={actionLoading === r.id}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center"
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center border border-transparent hover:border-red-100"
                             title="Hapus baris ini"
                           >
                             <Trash2 className={cn("w-4 h-4", actionLoading === r.id && "animate-pulse")} />
@@ -625,13 +625,26 @@ export default function MonitoringList() {
                 ))}
               </div>
               
-              <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
                  <button 
                   onClick={() => setSelectedReportDetails(null)}
-                  className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                  className="flex-1 px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors"
                  >
-                   Tutup Rincian
+                   Tutup
                  </button>
+                 {isManager && (
+                   <button 
+                    onClick={() => {
+                      const id = selectedReportDetails.id;
+                      setSelectedReportDetails(null);
+                      handleDeleteReport(id);
+                    }}
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 border border-red-100 rounded-xl font-bold text-sm hover:bg-red-600 hover:text-white transition-all"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                     Hapus Laporan
+                   </button>
+                 )}
               </div>
             </motion.div>
           </div>
