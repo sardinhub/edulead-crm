@@ -485,4 +485,20 @@ export const useStore = create((set, get) => ({
     }
     return { success: false, error: error?.message };
   },
+
+  deleteAllLeadsRecap: async () => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('leads_recap')
+      .delete()
+      .gte('created_at', '1970-01-01'); // Menghapus semua data dari awal waktu
+
+    if (!error) {
+      set({ leadsRecap: [] });
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
 }));

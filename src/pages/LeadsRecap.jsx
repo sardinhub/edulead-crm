@@ -15,7 +15,7 @@ function cn(...inputs) { return twMerge(clsx(inputs)); }
 export default function LeadsRecap() {
   const { 
     user, leadsRecap, fetchLeadsRecap, importLeadsRecap, deleteLeadRecap,
-    marketingStaff, fetchMarketingStaff
+    marketingStaff, fetchMarketingStaff, deleteAllLeadsRecap
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +31,21 @@ export default function LeadsRecap() {
     fetchLeadsRecap();
     if (isManager) fetchMarketingStaff();
   }, [user]);
+
+  const handleClearAll = async () => {
+    if (!window.confirm('⚠️ PERINGATAN: Anda akan menghapus SELURUH data Rekap Leads. Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
+    if (!window.confirm('KONFIRMASI TERAKHIR: Hapus semua data leads sekarang?')) return;
+    
+    setImportLoading(true);
+    const result = await deleteAllLeadsRecap();
+    setImportLoading(false);
+    
+    if (result.success) {
+      alert('✅ Berhasil: Semua data leads telah dibersihkan.');
+    } else {
+      alert('❌ Gagal: ' + result.error);
+    }
+  };
 
   // Handler: Parsing Excel
   const handleFileUpload = (e) => {
@@ -125,13 +140,23 @@ export default function LeadsRecap() {
         </div>
 
         {isManager && (
-          <button 
-            onClick={() => setIsImportModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Import Excel
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleClearAll}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all outline-none"
+              title="Hapus Seluruh Data"
+            >
+              <Trash2 className="w-4 h-4" />
+              Bersihkan Data
+            </button>
+            <button 
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Import Excel
+            </button>
+          </div>
         )}
       </div>
 
