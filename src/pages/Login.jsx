@@ -44,10 +44,10 @@ export default function Login() {
         className="w-full max-w-md bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10 z-10 mx-4"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 mb-6 flex items-center justify-center">
+          <div className="w-full max-w-[280px] h-24 mb-6 flex items-center justify-center">
             <img 
               src="/logo.png" 
-              alt="Triesakti Logo" 
+              alt="Triesakti Institute of Airlines" 
               className="w-full h-full object-contain"
               onError={(e) => {
                 e.target.onerror = null; 
