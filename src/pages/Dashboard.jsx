@@ -32,14 +32,26 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
 );
 
 export default function Dashboard() {
-  const { students, logActivity } = useStore();
+  const { students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
 
-  // Kalkulasi Dinamis
-  const totalLeads = students.length;
+  React.useEffect(() => {
+    fetchLeadsRecap();
+  }, []);
+
+  // Kalkulasi Dinamis dari Students Database
+  const totalStudents = students.length;
   const convertedLeads = students.filter(s => s.status_current === 'DP Pangkal' || s.status_current === 'Pangkal Lunas').length;
-  const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
+  const conversionRate = totalStudents > 0 ? ((convertedLeads / totalStudents) * 100).toFixed(1) : 0;
   const pendingFollowUps = students.filter(s => s.status_current === 'Pendaftaran').length;
+
+  // Kalkulasi Pipeline dari Rekap Leads (Marketing)
+  const pipelineStats = {
+    pendaftaran: leadsRecap.filter(l => l.note?.toUpperCase().includes('PENDAFTARAN')).length,
+    dpPangkal: leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL 1')).length,
+    pangkalLunas: leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS')).length,
+    total: leadsRecap.length
+  };
 
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
@@ -124,16 +136,18 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-lg font-bold text-slate-900 mb-6">Pipeline Overview</h2>
           <div className="space-y-4">
-            {['Pendaftaran', 'DP Pangkal', 'Pangkal Lunas'].map((stage, idx) => {
-              const count = students.filter(s => s.status_current === stage).length;
-              const total = students.length;
-              const percentage = total > 0 ? (count / total) * 100 : 0;
+            {[
+              { label: 'Pendaftaran', count: pipelineStats.pendaftaran },
+              { label: 'DP Pangkal', count: pipelineStats.dpPangkal },
+              { label: 'Pangkal Lunas', count: pipelineStats.pangkalLunas }
+            ].map((stage, idx) => {
+              const percentage = pipelineStats.total > 0 ? (stage.count / pipelineStats.total) * 100 : 0;
               
               return (
-                <div key={stage}>
+                <div key={stage.label}>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium text-slate-700">{stage}</span>
-                    <span className="font-bold text-slate-900">{count} Leads</span>
+                    <span className="font-medium text-slate-700">{stage.label}</span>
+                    <span className="font-bold text-slate-900">{stage.count} Siswa</span>
                   </div>
                   <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                     <motion.div 
