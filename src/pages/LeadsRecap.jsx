@@ -34,15 +34,17 @@ export default function LeadsRecap() {
   }, [user]);
 
   const handleClearAll = async () => {
-    if (!window.confirm('⚠️ PERINGATAN: Anda akan menghapus SELURUH data Rekap Leads. Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
-    if (!window.confirm('KONFIRMASI TERAKHIR: Hapus semua data leads sekarang?')) return;
+    const targetName = filterStaff === 'all' ? 'SELURUH data Rekap Leads' : `data milik staff "${filterStaff}"`;
+    
+    if (!window.confirm(`⚠️ PERINGATAN: Anda akan menghapus ${targetName}. Tindakan ini tidak bisa dibatalkan. Lanjutkan?`)) return;
+    if (!window.confirm(`KONFIRMASI TERAKHIR: Hapus ${targetName} sekarang?`)) return;
     
     setImportLoading(true);
-    const result = await deleteAllLeadsRecap();
+    const result = await deleteAllLeadsRecap(filterStaff);
     setImportLoading(false);
     
     if (result.success) {
-      alert('✅ Berhasil: Semua data leads telah dibersihkan.');
+      alert(`✅ Berhasil: ${targetName} telah dibersihkan.`);
     } else {
       alert('❌ Gagal: ' + result.error);
     }

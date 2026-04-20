@@ -486,17 +486,26 @@ export const useStore = create((set, get) => ({
     return { success: false, error: error?.message };
   },
 
-  deleteAllLeadsRecap: async () => {
+  deleteAllLeadsRecap: async (staffName = null) => {
     const { user } = get();
     if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
 
-    const { error } = await supabase
-      .from('leads_recap')
-      .delete()
-      .gte('created_at', '1970-01-01'); // Menghapus semua data dari awal waktu
+    let query = supabase.from('leads_recap').delete().gte('created_at', '1970-01-01');
+
+    if (staffName && staffName !== 'all') {
+      query = query.eq('staff_name', staffName);
+    }
+
+    const { error } = await query;
 
     if (!error) {
-      set({ leadsRecap: [] });
+      if (staffName && staffName !== 'all') {
+        set((state) => ({
+          leadsRecap: state.leadsRecap.filter(l => l.staff_name !== staffName)
+        }));
+      } else {
+        set({ leadsRecap: [] });
+      }
       return { success: true };
     }
     return { success: false, error: error?.message };
