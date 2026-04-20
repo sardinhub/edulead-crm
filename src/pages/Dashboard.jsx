@@ -119,7 +119,11 @@ export default function Dashboard() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-slate-900 font-outfit">Welcome back, {user?.name}! 👋</h1>
-          <p className="text-slate-500 mt-1">Sistem siap membantu Anda mencapai target hari ini.</p>
+          <p className="text-slate-500 mt-1">
+            {user?.role === 'Manager' 
+              ? 'Berikut adalah ringkasan performa marketing institusi hari ini.' 
+              : 'Sistem siap membantu Anda mencapai target hari ini.'}
+          </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
             <StatCard 
@@ -143,13 +147,15 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <div className="lg:w-96 flex-shrink-0">
-          <TargetWidget 
-            current={myLunasCount} 
-            target={15} 
-            userName={user?.name} 
-          />
-        </div>
+        {user?.role !== 'Manager' && (
+          <div className="lg:w-96 flex-shrink-0">
+            <TargetWidget 
+              current={myLunasCount} 
+              target={15} 
+              userName={user?.name} 
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
