@@ -44,8 +44,16 @@ export default function Login() {
         className="w-full max-w-md bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10 z-10 mx-4"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/30 mb-6">
-            <span className="text-white font-bold text-3xl">E</span>
+          <div className="w-20 h-20 mb-6 flex items-center justify-center">
+            <img 
+              src="/logo.png" 
+              alt="Triesakti Logo" 
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = "https://api.dicebear.com/7.x/initials/svg?seed=TIA&backgroundColor=4f46e5";
+              }}
+            />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 text-center tracking-tight mb-2">Welcome Back!</h1>
           <p className="text-slate-500 text-center text-sm md:text-base">Masuk ke EduLead CRM untuk melanjutkan pekerjaan Anda.</p>
@@ -66,7 +74,7 @@ export default function Login() {
               </span>
               <input 
                 type="email" 
-                placeholder="sardindamis.smi@gmail.com"
+                placeholder="email@triesakti.ac.id"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium placeholder:font-normal placeholder:text-slate-400"
@@ -110,6 +118,13 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        <div className="mt-10 pt-6 border-t border-slate-50">
+          <p className="text-center text-[11px] text-slate-400 font-medium tracking-wide flex flex-col gap-1">
+            <span>Copyright &copy; 2026</span>
+            <span className="text-slate-500">Triesakti Institute of Airlines</span>
+          </p>
+        </div>
       </motion.div>
     </div>
   );
