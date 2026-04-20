@@ -24,6 +24,7 @@ export default function LeadsRecap() {
   const [importLoading, setImportLoading] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState('');
   const [previewData, setPreviewData] = useState([]);
+  const [filterStaff, setFilterStaff] = useState('all');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [staffToClear, setStaffToClear] = useState('all');
 
