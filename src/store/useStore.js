@@ -173,6 +173,39 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  updateStudent: async (id, formData) => {
+    const { error } = await supabase
+      .from('students')
+      .update(formData)
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        students: state.students.map(s => s.id === id ? { ...s, ...formData } : s)
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error.message };
+  },
+
+  deleteStudent: async (id) => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        students: state.students.filter(s => s.id !== id)
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error.message };
+  },
+
   deleteAllStudents: async () => {
     const { user } = get();
     if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };

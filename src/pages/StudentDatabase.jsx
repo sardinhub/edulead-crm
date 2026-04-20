@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ClipboardEdit, CheckCircle2 } from 'lucide-react';
+import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export default function StudentDatabase() {
-  const { students, addStudent, user, marketingStaff, fetchMarketingStaff } = useStore();
+  const { students, addStudent, updateStudent, deleteStudent, user, marketingStaff, fetchMarketingStaff } = useStore();
   
   useEffect(() => {
     fetchMarketingStaff();
@@ -27,13 +27,20 @@ export default function StudentDatabase() {
   });
 
   const [isSuccess, setIsSuccess] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // Ambil 5 data terbaru untuk riwayat (berdasarkan urutan input terakhir)
-  const recentMonev = [...students].reverse().slice(0, 5);
+  const recentMonev = [...students].slice(0, 7);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addStudent(formData);
+    
+    if (editingId) {
+      await updateStudent(editingId, formData);
+      setEditingId(null);
+    } else {
+      await addStudent(formData);
+    }
     
     // Reset form after submit
     setFormData({ 
@@ -47,6 +54,43 @@ export default function StudentDatabase() {
     
     setIsSuccess(true);
     setTimeout(() => setIsSuccess(false), 3000);
+  };
+
+  const handleEdit = (item) => {
+    setFormData({
+      nama: item.nama,
+      telepon: item.telepon,
+      asal_sekolah: item.asal_sekolah,
+      tanggal_daftar: item.tanggal_daftar,
+      status_pembayaran: item.status_pembayaran,
+      pic_staff: item.pic_staff,
+      nominal_pembayaran: item.nominal_pembayaran,
+      catatan: item.catatan || '',
+      program_interest: item.program_interest || 'Reguler',
+      priority_level: item.priority_level || 'Medium',
+      priority_score: item.priority_score || 50,
+      status_current: item.status_current || 'Pendaftaran'
+    });
+    setEditingId(item.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data monev ini selamanya?')) {
+      await deleteStudent(id);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ 
+      ...formData, 
+      nama: '', 
+      telepon: '', 
+      asal_sekolah: '', 
+      nominal_pembayaran: '', 
+      catatan: '' 
+    });
   };
 
   return (
@@ -191,15 +235,30 @@ export default function StudentDatabase() {
               />
             </div>
 
-            <div className="md:col-span-2 pt-6">
+            <div className="md:col-span-2 pt-6 flex flex-col sm:flex-row gap-4">
               <button 
                 type="submit" 
-                className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] font-black text-xl shadow-2xl shadow-indigo-200 transition-all flex items-center justify-center gap-4 active:scale-[0.97]"
+                className={cn(
+                  "flex-1 py-5 rounded-[1.5rem] font-black text-xl shadow-2xl transition-all flex items-center justify-center gap-4 active:scale-[0.97]",
+                  editingId 
+                    ? "bg-amber-500 hover:bg-amber-600 shadow-amber-200 text-white" 
+                    : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 text-white"
+                )}
               >
-                <Plus className="w-7 h-7" />
-                SIMPAN DATA MONEV
+                {editingId ? <Save className="w-7 h-7" /> : <Plus className="w-7 h-7" />}
+                {editingId ? 'PERBARUI DATA MONEV' : 'SIMPAN DATA MONEV'}
               </button>
-              <p className="text-center text-slate-400 text-[10px] mt-4 font-medium uppercase tracking-widest">Pastikan data nominal sudah sesuai dengan bukti transfer siswa</p>
+
+              {editingId && (
+                <button 
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-8 py-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[1.5rem] font-bold flex items-center justify-center gap-2 transition-all"
+                >
+                  <XCircle className="w-6 h-6" />
+                  BATAL
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -216,8 +275,9 @@ export default function StudentDatabase() {
             <thead>
               <tr className="text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-50 bg-slate-50/10">
                 <th className="px-8 py-5">Nama Siswa / Almamater</th>
-                <th className="px-8 py-5">Status Akhir</th>
+                <th className="px-8 py-5 text-center">Status</th>
                 <th className="px-8 py-5 text-right">Nominal Tunai</th>
+                <th className="px-8 py-5 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -225,9 +285,9 @@ export default function StudentDatabase() {
                 <tr key={item.id} className="hover:bg-indigo-50/30 transition-colors group">
                   <td className="px-8 py-5">
                     <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{item.nama}</p>
-                    <p className="text-[11px] text-slate-400 font-medium">{item.asal_sekolah}</p>
+                    <p className="text-[11px] text-slate-400 font-medium italic">{item.asal_sekolah}</p>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-8 py-5 text-center">
                     <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black shadow-sm uppercase">
                       {item.status_pembayaran}
                     </span>
@@ -237,6 +297,26 @@ export default function StudentDatabase() {
                       Rp {Number(item.nominal_pembayaran).toLocaleString()}
                     </p>
                     <p className="text-[10px] text-slate-300 font-bold uppercase">{item.pic_staff}</p>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => handleEdit(item)}
+                        className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                        title="Edit Data"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      {user?.role === 'Manager' && (
+                        <button 
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          title="Hapus Data"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
