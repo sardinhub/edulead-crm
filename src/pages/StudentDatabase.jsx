@@ -114,15 +114,15 @@ export default function StudentDatabase() {
     <div className="p-6 md:p-8 h-[calc(100vh-4rem)] flex flex-col relative">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Student Pipeline</h1>
-          <p className="text-slate-500 mt-1">Manage leads from registration to full payment.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Progress Monev Leads</h1>
+          <p className="text-slate-500 mt-1">Input data konversi leads menuju DP Pangkal atau Pangkal Lunas.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" />
-          Add Lead
+          Tambah Data Monev
         </button>
       </div>
 
@@ -243,7 +243,7 @@ export default function StudentDatabase() {
               className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
             >
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-shrink-0">
-                <h3 className="font-bold text-lg text-slate-900">Add New Lead</h3>
+                <h3 className="font-bold text-lg text-slate-900">Input Data Monev Baru</h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white shadow-sm p-1.5 rounded-full border border-slate-200">
                   <X className="w-4 h-4" />
                 </button>
@@ -326,7 +326,7 @@ export default function StudentDatabase() {
                       Batal
                     </button>
                     <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2.5 font-medium transition-colors">
-                      Simpan Lead Baru
+                      Simpan Data Monev
                     </button>
                   </div>
                 </form>

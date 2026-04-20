@@ -13,7 +13,7 @@ function cn(...inputs) {
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, managerOnly: true },
-  { name: 'Student Database', path: '/database', icon: Users, managerOnly: true },
+  { name: 'Progress Monev Leads', path: '/database', icon: Users, managerOnly: true },
   { name: 'Scheduler', path: '/scheduler', icon: CalendarDays, managerOnly: true },
   { name: 'Daftar Karyawan', path: '/users', icon: Shield, managerOnly: true },
   { name: 'Settings', path: '/settings', icon: Settings, managerOnly: true },
