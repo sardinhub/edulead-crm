@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 
 export default function StudentDatabase() {
   const { students, addStudent, updateStudent, deleteStudent, user, marketingStaff, fetchMarketingStaff } = useStore();
@@ -29,8 +35,8 @@ export default function StudentDatabase() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Ambil 5 data terbaru untuk riwayat (berdasarkan urutan input terakhir)
-  const recentMonev = [...students].slice(0, 7);
+  // Ambil data terbaru untuk riwayat
+  const recentMonev = [...students].slice(0, 10);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -120,8 +126,8 @@ export default function StudentDatabase() {
                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-lg">Transaksi Berhasil Disimpan!</p>
-                  <p className="text-sm font-normal opacity-80">Data otomatis sinkron ke Dashboard Utama.</p>
+                  <p className="text-lg">Berhasil!</p>
+                  <p className="text-sm font-normal opacity-80">Data telah diperbarui di database utama.</p>
                 </div>
               </motion.div>
             )}
@@ -267,51 +273,48 @@ export default function StudentDatabase() {
       {/* Recent History Table */}
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-8 py-5 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
-          <h3 className="font-bold text-slate-900 text-sm italic">5 Laporan Monev Terbaru</h3>
-          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full uppercase">Real-time Sync</span>
+          <h3 className="font-bold text-slate-900 text-sm italic py-2">Daftar Monev Terbaru</h3>
+          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full uppercase">Live Sync Active</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
-              <tr className="text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-50 bg-slate-50/10">
-                <th className="px-8 py-5">Nama Siswa / Almamater</th>
-                <th className="px-8 py-5 text-center">Status</th>
-                <th className="px-8 py-5 text-right">Nominal Tunai</th>
-                <th className="px-8 py-5 text-center">Aksi</th>
+              <tr className="text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-50 bg-slate-50/10 text-center">
+                <th className="px-8 py-5 text-left">Nama Siswa</th>
+                <th className="px-8 py-5">Status</th>
+                <th className="px-8 py-5 text-right">Nominal</th>
+                <th className="px-8 py-5">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {recentMonev.map((item) => (
                 <tr key={item.id} className="hover:bg-indigo-50/30 transition-colors group">
                   <td className="px-8 py-5">
-                    <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{item.nama}</p>
-                    <p className="text-[11px] text-slate-400 font-medium italic">{item.asal_sekolah}</p>
+                    <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{item.nama}</p>
+                    <p className="text-[10px] text-slate-400 font-semibold">{item.asal_sekolah}</p>
                   </td>
                   <td className="px-8 py-5 text-center">
-                    <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black shadow-sm uppercase">
+                    <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-600 text-[9px] font-black shadow-sm uppercase tracking-tighter">
                       {item.status_pembayaran}
                     </span>
                   </td>
-                  <td className="px-8 py-5 text-right">
-                    <p className="font-black text-indigo-600 text-base">
-                      Rp {Number(item.nominal_pembayaran).toLocaleString()}
-                    </p>
-                    <p className="text-[10px] text-slate-300 font-bold uppercase">{item.pic_staff}</p>
+                  <td className="px-8 py-5 text-right font-black text-indigo-600 text-base">
+                    Rp {Number(item.nominal_pembayaran).toLocaleString()}
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleEdit(item)}
-                        className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
-                        title="Edit Data"
+                        className="p-2.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-all hover:scale-110"
+                        title="Edit Data Ini"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       {user?.role === 'Manager' && (
                         <button 
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title="Hapus Data"
+                          className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all hover:scale-110"
+                          title="Hapus Data Ini"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -322,7 +325,7 @@ export default function StudentDatabase() {
               ))}
               {recentMonev.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-8 py-12 text-center text-slate-300 italic font-medium">Bapak belum menginput data monev hari ini.</td>
+                  <td colSpan={4} className="px-8 py-16 text-center text-slate-300 italic font-medium">Bapak belum memiliki riwayat penginputan monev.</td>
                 </tr>
               )}
             </tbody>
