@@ -16,23 +16,12 @@ const columns = [
 ];
 
 export default function StudentDatabase() {
-  const { students, addStudent, updateStudentStatus, logActivity, user, recordPayment, updateFollowUp, marketingStaff, fetchMarketingStaff } = useStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const { students, addStudent, user, marketingStaff, fetchMarketingStaff } = useStore();
+  
   useEffect(() => {
     fetchMarketingStaff();
   }, [fetchMarketingStaff]);
-  
-  // Payment Modal State
-  const [paymentStudent, setPaymentStudent] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentType, setPaymentType] = useState('DP Pembayaran Pangkal');
 
-  // Follow Up Modal State
-  const [followUpStudent, setFollowUpStudent] = useState(null);
-  const [followUpResult, setFollowUpResult] = useState('');
-  const [followUpPromise, setFollowUpPromise] = useState('');
-  
   // Form State
   const [formData, setFormData] = useState({
     nama: '',
@@ -43,72 +32,233 @@ export default function StudentDatabase() {
     pic_staff: user?.name || '',
     nominal_pembayaran: '',
     catatan: '',
-    // Nilai default lain agar sinkron
     program_interest: 'Reguler',
     priority_level: 'Medium',
     priority_score: 50,
     status_current: 'Pendaftaran'
   });
 
-  const getStudentsByStatus = (status) => students.filter(s => s.status_current === status);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleWhatsApp = (e, studentId, telepon) => {
-    e.stopPropagation();
-    logActivity(studentId, 'WhatsApp', 'Pengiriman pesan follow-up via WhatsApp Web');
-    const formattedNum = telepon.replace(/^0/, '62');
-    window.open(`https://wa.me/${formattedNum}`, '_blank');
-  };
-
-  const handlePhoneCall = (e, studentId, telepon) => {
-    e.stopPropagation();
-    logActivity(studentId, 'Telepon', 'Melakukan panggilan suara');
-    const formattedNum = telepon.replace(/^0/, '62');
-    window.location.href = `tel:+${formattedNum}`;
-  };
-
-  const handleMoveStatus = (e, studentId, currentStatus) => {
-    e.stopPropagation();
-    const currentIndex = columns.findIndex(c => c.id === currentStatus);
-    if (currentIndex < columns.length - 1) {
-      updateStudentStatus(studentId, columns[currentIndex + 1].id);
-    }
-  };
+  // Ambil 5 data terbaru untuk riwayat
+  const recentMonev = students.slice(0, 5);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     addStudent(formData);
-    setIsModalOpen(false);
-    setFormData({ ...formData, nama: '', telepon: '', asal_sekolah: '' }); // reset some fields
-  };
-
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    if (!paymentStudent) return;
     
-    // Tentukan kolom mana dia harus loncat
-    let newColumn = 'Pendaftaran';
-    if (paymentType.includes('DP')) newColumn = 'DP Pangkal';
-    if (paymentType.includes('Full') || paymentType.includes('Lunas')) newColumn = 'Pangkal Lunas';
-
-    // Hitung akumulasi
-    const currentTotal = Number(paymentStudent.nominal_pembayaran) || 0;
-    const newTotal = currentTotal + Number(paymentAmount);
-
-    recordPayment(paymentStudent.id, newTotal, paymentType, newColumn);
+    // Reset form after submit
+    setFormData({ 
+      ...formData, 
+      nama: '', 
+      telepon: '', 
+      asal_sekolah: '', 
+      nominal_pembayaran: '', 
+      catatan: '' 
+    });
     
-    setPaymentStudent(null);
-    setPaymentAmount('');
+    setIsSuccess(true);
+    setTimeout(() => setIsSuccess(false), 3000);
   };
 
-  const handleFollowUpSubmit = (e) => {
-    e.preventDefault();
-    if (!followUpStudent) return;
+  return (
+    <div className="p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <ClipboardEdit className="w-7 h-7 text-indigo-600" />
+            Input Progress Monev Leads
+          </h1>
+          <p className="text-slate-500 mt-1">Lengkapi data konversi leads untuk proses administrasi selanjutnya.</p>
+        </div>
+      </div>
 
-    updateFollowUp(followUpStudent.id, followUpResult, followUpPromise);
-    setFollowUpStudent(null);
-    setFollowUpResult('');
-    setFollowUpPromise('');
-  };
+      {/* Main Form Card */}
+      <div className="bg-white rounded-[2rem] shadow-xl shadow-indigo-100/50 border border-slate-100 overflow-hidden">
+        <div className="p-8">
+          {isSuccess && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 flex items-center gap-3 font-medium"
+            >
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              </div>
+              Data Monev Berhasil Disimpan!
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Nama Siswa</label>
+              <input 
+                required 
+                placeholder="Masukkan nama lengkap..." 
+                value={formData.nama} 
+                onChange={e => setFormData({...formData, nama: e.target.value})} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">WhatsApp / Telepon</label>
+              <input 
+                required 
+                type="tel" 
+                placeholder="0812..." 
+                value={formData.telepon} 
+                onChange={e => setFormData({...formData, telepon: e.target.value})} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Asal Sekolah</label>
+              <input 
+                required 
+                placeholder="SMA/SMK..." 
+                value={formData.asal_sekolah} 
+                onChange={e => setFormData({...formData, asal_sekolah: e.target.value})} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Tanggal Konversi</label>
+              <input 
+                required 
+                type="date" 
+                value={formData.tanggal_daftar} 
+                onChange={e => setFormData({...formData, tanggal_daftar: e.target.value})} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-slate-600"
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-1">
+              <label className="text-sm font-bold text-slate-700 ml-1">Status Pembayaran</label>
+              <select 
+                value={formData.status_pembayaran} 
+                onChange={e => setFormData({...formData, status_pembayaran: e.target.value})} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-slate-600"
+              >
+                <option value="Baru mendaftar">Pendaftaran Baru</option>
+                <option value="DP Pembayaran Pangkal">DP Pembayaran Pangkal (Awal)</option>
+                <option value="Pangkal Full">Pangkal Lunas (Full)</option>
+                <option value="Pendaftaran+DP Pangkal">Daftar + DP Pangkal</option>
+                <option value="Pendaftaran+Pangkal Full">Daftar + Lunas</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Nominal (Rp)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Rp</span>
+                <input 
+                  required 
+                  type="number" 
+                  placeholder="0" 
+                  value={formData.nominal_pembayaran} 
+                  onChange={e => setFormData({...formData, nominal_pembayaran: e.target.value})} 
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">PIC Penanggung Jawab</label>
+              {user?.role === 'Manager' ? (
+                <select
+                  required
+                  value={formData.pic_staff}
+                  onChange={e => setFormData({...formData, pic_staff: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-slate-600"
+                >
+                  <option value="">-- Pilih Nama Staff Marketing --</option>
+                  {marketingStaff.map(staff => (
+                    <option key={staff.id} value={staff.name}>{staff.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <input 
+                   disabled 
+                   value={formData.pic_staff} 
+                   className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-400 cursor-not-allowed font-medium" 
+                />
+              )}
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Catatan Tambahan</label>
+              <textarea 
+                rows={3}
+                placeholder="Misal: Janji pelunasan tanggal 20..." 
+                value={formData.catatan} 
+                onChange={e => setFormData({...formData, catatan: e.target.value})} 
+                className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none" 
+              />
+            </div>
+
+            <div className="md:col-span-2 pt-4">
+              <button 
+                type="submit" 
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                <Plus className="w-6 h-6" />
+                Simpan Transaksi Monev
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Recent History Table */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/50">
+          <h3 className="font-bold text-slate-900 text-sm">5 Entri Terakhir Hari Ini</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead>
+              <tr className="text-[10px] text-slate-400 font-bold uppercase tracking-widest border-b border-slate-50">
+                <th className="px-6 py-4">Nama Siswa</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Nominal</th>
+                <th className="px-6 py-4">PIC</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentMonev.map((item) => (
+                <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-slate-900">{item.nama}</p>
+                    <p className="text-[10px] text-slate-400">{item.asal_sekolah}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-100 truncate inline-block">
+                      {item.status_pembayaran}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-700">
+                    Rp {Number(item.nominal_pembayaran).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-slate-400 text-xs">
+                    {item.pic_staff}
+                  </td>
+                </tr>
+              ))}
+              {recentMonev.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-400 italic">Belum ada data input terbaru.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="p-6 md:p-8 h-[calc(100vh-4rem)] flex flex-col relative">
