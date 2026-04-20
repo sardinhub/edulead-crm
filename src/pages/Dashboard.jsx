@@ -20,9 +20,9 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
         <Icon className="w-6 h-6" />
       </div>
     </div>
-    {trend && (
+    {trend !== undefined && (
       <div className="mt-4 flex items-center gap-2 text-sm">
-        <span className={trend > 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
+        <span className={trend >= 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
           {trend > 0 ? '+' : ''}{trend}%
         </span>
         <span className="text-slate-400">{trendLabel}</span>
@@ -30,6 +30,51 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
     )}
   </div>
 );
+
+const TargetWidget = ({ current, target, userName }) => {
+  const percentage = Math.min(Math.round((current / target) * 100), 100);
+  const remaining = Math.max(target - current, 0);
+
+  return (
+    <div className="bg-indigo-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden h-full">
+      {/* Decor */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/20 rounded-full -ml-12 -mb-12 blur-xl" />
+
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className="space-y-2">
+          <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Premium Incentive Tracker</p>
+          <h2 className="text-2xl font-bold">Halo, {userName}! 🚀</h2>
+          <p className="text-indigo-100/70 text-sm">
+            {remaining > 0 
+              ? `Tinggal ${remaining} "Pangkal Lunas" lagi untuk klaim bonus insentif premium Anda!` 
+              : "Selamat! Target tercapai. Ambil insentif premium Anda sekarang! 🔥"}
+          </p>
+        </div>
+
+        <div className="py-6">
+          <div className="flex justify-between items-end mb-2">
+            <span className="text-3xl font-bold">{percentage}%</span>
+            <span className="text-xs text-indigo-300 font-medium">{current} / {target} Lunas</span>
+          </div>
+          <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${percentage}%` }}
+              className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full"
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-white/10">
+          <p className="text-[11px] italic text-indigo-200 leading-relaxed">
+            "Keberuntungan adalah titik temu antara persiapan dan kesempatan. Teruslah mengetuk pintu kesuksesan!"
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Dashboard() {
   const { students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
@@ -56,6 +101,12 @@ export default function Dashboard() {
 
   const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
+  // Perkembangan Target Lunas Pribadi (Target: 15)
+  const myLunasCount = leadsRecap.filter(l => 
+    l.staff_name === user?.name && 
+    l.note?.toUpperCase().includes('PANGKAL LUNAS')
+  ).length;
+
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
     // Format nomor untuk memastikan aman (opsional: validasi nomor)
@@ -65,34 +116,40 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 md:p-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back, Staff!</h1>
-        <p className="text-slate-500 mt-1">Here is what's happening with your leads today.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title="Total Leads (Marketing)" 
-          value={totalLeadsMarketing} 
-          icon={Users} 
-          trend={12.5} 
-          trendLabel="vs last week"
-          colorClass="bg-blue-50 text-blue-600"
-        />
-        <StatCard 
-          title="Conversion Rate" 
-          value={`${conversionRateMarketing}%`} 
-          icon={TrendingUp} 
-          trend={0} 
-          trendLabel="Closing vs Total Leads"
-          colorClass="bg-emerald-50 text-emerald-600"
-        />
-        <StatCard 
-          title="Leads Belum Dihubungi" 
-          value={pendingFollowUps} 
-          icon={Clock} 
-          colorClass="bg-amber-50 text-amber-600"
-        />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-slate-900 font-outfit">Welcome back, {user?.name}! 👋</h1>
+          <p className="text-slate-500 mt-1">Sistem siap membantu Anda mencapai target hari ini.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+            <StatCard 
+              title="Total Leads (Marketing)" 
+              value={totalLeadsMarketing} 
+              icon={Users} 
+              colorClass="bg-blue-50 text-blue-600"
+            />
+            <StatCard 
+              title="Conversion Rate" 
+              value={`${conversionRateMarketing}%`} 
+              icon={TrendingUp} 
+              colorClass="bg-emerald-50 text-emerald-600"
+            />
+            <StatCard 
+              title="Leads Baru" 
+              value={pendingFollowUps} 
+              icon={Clock} 
+              colorClass="bg-amber-50 text-amber-600"
+            />
+          </div>
+        </div>
+        
+        <div className="lg:w-96 flex-shrink-0">
+          <TargetWidget 
+            current={myLunasCount} 
+            target={15} 
+            userName={user?.name} 
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
