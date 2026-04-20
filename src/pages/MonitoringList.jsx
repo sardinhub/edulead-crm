@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart2, Users, MessageCircle, CheckCircle2,
   RefreshCw, Filter, TrendingUp, Award, Calendar, Lock,
