@@ -72,23 +72,23 @@ export default function Guidance() {
   const scripts = [
     {
       title: "Orang Tua Sedang Mengumpulkan Biaya",
-      condition: "Potensial",
-      script: `Halo Kak [Nama Siswa], apa kabar? 😊\n\nMenyambung obrolan kita kemarin, kami sangat mengerti kondisi Kakak/Orang tua yang sedang mengusahakan biaya. Semangat terus ya Kak!\n\nPerlu diinformasikan, kuota kelas Triesakti semakin menipis. Jika Kakak ingin kami bantu 'lock' kursinya sementara sambil menunggu biaya terkumpul, kabari kami ya. Kami ingin sekali melihat Kakak sukses di dunia penerbangan bersama kami. ✈️👍`
+      condition: "Closing Strategy",
+      script: `Halo Kak [Nama Siswa], apa kabar? 😊 Saya paham sekali, investasi untuk masa depan memang butuh perjuangan besar dari Orang Tua. \n\nNamun, kabar kurang baiknya, kuota kelas kita tersisa sangat sedikit karena tingginya peminat bulan ini. Sayang sekali jika perjuangan Orang Tua tertunda hanya karena kursi Kakak diambil orang lain. \n\nBagaimana jika kita amankan kursinya dulu dengan cicilan minimal agar impian Kakak sukses di penerbangan tetap terjaga? Kami ingin sekali melihat Kakak sukses bersama kami. ✈️👍`
     },
     {
       title: "Menunggu Beasiswa Pemerintah",
-      condition: "Potensial",
-      script: `Selamat pagi Kak [Nama Siswa]!\n\nSemoga pengurusan beasiswanya lancar ya. Kami di Triesakti sangat mendukung ambisi Kakak. Sekedar info, kami bisa bantu siapkan dokumen pendukung dari kampus jika dibutuhkan untuk syarat beasiswanya.\n\nSambil menunggu beasiswa, yuk tetap update info seputar dunia aviasi di grup kami. Kabari kami ya jika ada perkembangan! 🙏`
+      condition: "Plan B Tactics",
+      script: `Selamat pagi Kak [Nama Siswa]! Luar biasa semangat Kakak mengejar beasiswa. 🎓 \n\nSekedar saran dari pengalaman kami: Banyak yang akhirnya tertunda satu tahun hanya karena tidak punya 'Plan B' yang pasti. Sambil menunggu pengumuman beasiswa, saran saya Kakak resmi 'mengunci' kursi di Triesakti dulu. \n\nJika beasiswanya tembus, Kakak tetap punya bekal mental dari kami. Jika belum rejeki, Kakak sudah punya tempat aman untuk masa depan. Mana yang menurut Kakak lebih tenang: Menunggu dalam ketidakpastian atau melangkah dengan persiapan? 😊`
     },
     {
       title: "Prioritas: Konversi Pendaftaran ke Pangkal",
-      condition: "High Priority",
-      script: `Halo Kak [Nama Siswa]! Selamat ya, berkas Pendaftaran Kakak sudah kami verifikasi dan dinyatakan LULUS Tes Seleksi! 🥳🎉\n\nLangkah terakhir agar Kakak resmi menjadi Taruna/Taruni Triesakti adalah Cicilan Uang Pangkal pertama. Setelah itu, Kakak akan langsung mendapatkan:\n1. Seragam Resmi Kampus\n2. Atribut & ID Card\n3. Jadwal Orientasi\n\nYuk segera difinalkan sebelum kelas penuh. Hubungi kami jika ada kendala ya Kak!`
+      condition: "Identity Shift",
+      script: `Halo Kak [Nama Siswa]! Tinggal satu langkah kecil lagi untuk mengubah status Kakak dari 'Pendaftar' menjadi 'Taruna Resmi' Triesakti. ✈️ \n\nSetelah pembayaran Pangkal ini, Kakak bukan lagi sekedar calon, tapi sudah masuk dalam daftar pengukuran Seragam dan Atribut resmi kampus. Inilah saatnya Kakak membanggakan orang tua dengan status Taruna Penerbangan yang sebenarnya. \n\nKami sudah siapkan berkas atributnya, tinggal menunggu konfirmasi dari Kakak. Siap untuk menjemput seragam Kakak hari ini? 🥳🎉`
     },
     {
       title: "Mencari Biaya / Masih Diusahakan",
-      condition: "Potensial",
-      script: `Halo Kak [Nama Siswa], selamat pagi!\n\nKami sangat menghargai tekad Kakak untuk bergabung di Triesakti. Jangan patah semangat ya, banyak taruna kami juga berangkat dari kerja keras yang sama.\n\nJika Kakak ingin diskusi mengenai simulasi cicilan yang lebih fleksibel agar terasa lebih ringan, kami sangat terbuka untuk membantu solusinya. Kabari kami ya Kak! 😊`
+      condition: "Solution Selling",
+      script: `Halo Kak [Nama Siswa]! Saya sangat mengapresiasi kegigihan Kakak untuk bergabung. \n\nBiasanya, kendala 'masih diusahakan' itu hanya soal skema pembayaran yang kurang cocok saja. Bagaimana kalau kita bedah bareng solusinya? Kami punya skema cicilan khusus yang mungkin jauh lebih ringan dan masuk akal untuk kondisi Kakak saat ini. \n\nJangan biarkan kendala teknis mematikan impian besar Kakak. Bisa kita telepon sebentar sore ini untuk cari jalan keluarnya? 😊`
     }
   ];
 
