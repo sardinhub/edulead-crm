@@ -501,4 +501,58 @@ export const useStore = create((set, get) => ({
     }
     return { success: false, error: error?.message };
   },
+
+  updateLeadRecapStatus: async (id, status) => {
+    const { error } = await supabase
+      .from('leads_recap')
+      .update({ status })
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        leadsRecap: state.leadsRecap.map(l => l.id === id ? { ...l, status } : l)
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
+
+  convertLeadToStudent: async (lead) => {
+    // lead: data dari tabel leads_recap
+    // Map ke format tabel students
+    const studentData = {
+      nama: lead.student_name,
+      telepon: lead.phone,
+      asal_sekolah: lead.school,
+      tanggal_daftar: new Date().toISOString().split('T')[0],
+      status_pembayaran: 'Baru mendaftar (via Leads)',
+      pic_staff: lead.staff_name,
+      nominal_pembayaran: 0,
+      catatan: lead.note,
+      program_interest: lead.program || 'Reguler',
+      priority_level: 'Medium',
+      priority_score: 50,
+      status_current: 'Pendaftaran'
+    };
+
+    const { data, error } = await supabase
+      .from('students')
+      .insert([studentData])
+      .select();
+
+    if (error) {
+      console.error('Gagal konversi ke siswa:', error);
+      return { success: false, error: error.message };
+    }
+
+    // Jika berhasil masuk database utama, hapus dari rekap leads
+    await get().deleteLeadRecap(lead.id);
+    
+    // Log aktivitas otomatis di database utama
+    if (data?.[0]) {
+       get().logActivity(data[0].id, 'Konversi', `Siswa didaftarkan otomatis dari Rekap Leads (PIC: ${lead.staff_name})`);
+    }
+
+    return { success: true };
+  },
 }));

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileSpreadsheet, Download, Search, Trash2, 
   Phone, MessageCircle, Filter, X, Upload, CheckCircle2, AlertCircle,
-  Users, UserPlus, Clock, ExternalLink
+  Users, UserPlus, Clock, ExternalLink, UserCheck
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useStore } from '../store/useStore';
@@ -15,7 +15,8 @@ function cn(...inputs) { return twMerge(clsx(inputs)); }
 export default function LeadsRecap() {
   const { 
     user, leadsRecap, fetchLeadsRecap, importLeadsRecap, deleteLeadRecap,
-    marketingStaff, fetchMarketingStaff, deleteAllLeadsRecap
+    marketingStaff, fetchMarketingStaff, deleteAllLeadsRecap,
+    updateLeadRecapStatus, convertLeadToStudent
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +45,23 @@ export default function LeadsRecap() {
       alert('✅ Berhasil: Semua data leads telah dibersihkan.');
     } else {
       alert('❌ Gagal: ' + result.error);
+    }
+  };
+
+  const handleUpdateStatus = async (id, status) => {
+    await updateLeadRecapStatus(id, status);
+  };
+
+  const handleConvert = async (lead) => {
+    if (window.confirm(`Konversi ${lead.student_name} menjadi SISWA RESMI? Data akan dipindahkan ke Database Utama.`)) {
+      setImportLoading(true);
+      const result = await convertLeadToStudent(lead);
+      setImportLoading(false);
+      if (result.success) {
+        alert('🎉 Berhasil! Siswa telah didaftarkan ke Database Utama.');
+      } else {
+        alert('Gagal konversi: ' + result.error);
+      }
     }
   };
 
@@ -214,13 +232,13 @@ export default function LeadsRecap() {
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-6 py-4 font-bold text-slate-900">Nama Siswa</th>
-                <th className="px-6 py-4 font-bold text-slate-900">Asal Sekolah</th>
-                <th className="px-6 py-4 font-bold text-slate-900">Telepon</th>
-                <th className="px-6 py-4 font-bold text-slate-900">Program</th>
-                <th className="px-6 py-4 font-bold text-slate-900">Keterangan</th>
-                {isManager && <th className="px-6 py-4 font-bold text-slate-900">PIC Staff</th>}
-                <th className="px-6 py-4 font-bold text-slate-900 text-center">Aksi</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Nama Siswa</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Telepon & Sekolah</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Status Follow-up</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Program</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Keterangan</th>
+                {isManager && <th className="px-6 py-4 font-bold text-slate-900 text-sm">PIC Staff</th>}
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -234,40 +252,69 @@ export default function LeadsRecap() {
                 >
                   <td className="px-6 py-4">
                     <p className="font-bold text-slate-900">{lead.student_name}</p>
-                    <p className="text-[10px] text-slate-400 font-medium tracking-tight">DITAMBAHKAN PADA {new Date(lead.created_at).toLocaleDateString('id-ID')}</p>
+                    <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">Added {new Date(lead.created_at).toLocaleDateString('id-ID')}</p>
                   </td>
-                  <td className="px-6 py-4 text-slate-600 italic">{lead.school || '—'}</td>
                   <td className="px-6 py-4">
-                    <button 
-                      onClick={() => handleWhatsApp(lead.phone)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-600 hover:text-white transition-all font-semibold group-hover:scale-105 active:scale-95 shadow-sm"
+                    <div className="flex flex-col gap-1.5">
+                      <button 
+                        onClick={() => handleWhatsApp(lead.phone)}
+                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors font-bold text-xs"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        {lead.phone}
+                      </button>
+                      <p className="text-[11px] text-slate-500 italic flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {lead.school || '—'}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select 
+                      value={lead.status || 'Belum Dihubungi'}
+                      onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold border-none outline-none ring-1 appearance-none cursor-pointer transition-all",
+                        lead.status === 'Tertarik' && "bg-emerald-50 text-emerald-700 ring-emerald-100",
+                        lead.status === 'Janji Datang' && "bg-blue-50 text-blue-700 ring-blue-100",
+                        lead.status === 'Tidak Tertarik' && "bg-slate-100 text-slate-600 ring-slate-200",
+                        (lead.status === 'Belum Dihubungi' || !lead.status) && "bg-amber-50 text-amber-700 ring-amber-100"
+                      )}
                     >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      {lead.phone}
-                    </button>
+                      <option value="Belum Dihubungi">Belum Dihubungi</option>
+                      <option value="Tertarik">Tertarik</option>
+                      <option value="Janji Datang">Janji Datang</option>
+                      <option value="Tidak Tertarik">Tidak Tertarik</option>
+                    </select>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 bg-violet-50 text-violet-700 rounded-full text-xs font-bold ring-1 ring-violet-100 italic">
+                    <span className="px-2.5 py-1 bg-violet-50 text-violet-700 rounded-full text-[10px] font-bold ring-1 ring-violet-100 italic">
                       {lead.program || 'N/A'}
                     </span>
                   </td>
                   <td className="px-6 py-4 max-w-xs">
-                    <p className="text-xs text-slate-500 line-clamp-2" title={lead.note}>{lead.note || '—'}</p>
+                    <p className="text-[11px] text-slate-400 line-clamp-1 italic" title={lead.note}>{lead.note || '—'}</p>
                   </td>
                   {isManager && (
                     <td className="px-6 py-4">
-                       <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                          <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                       <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                          <Users className="w-3 h-3 text-violet-400" />
                           {lead.staff_name}
                        </span>
                     </td>
                   )}
                   <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => handleConvert(lead)}
+                        className="p-2 text-violet-600 hover:bg-violet-600 hover:text-white transition-all bg-violet-50 rounded-lg shadow-sm group/btn"
+                        title="Daftarkan Siswa ke Database Utama"
+                      >
+                        <UserCheck className="w-4 h-4" />
+                      </button>
                       <button 
                         onClick={() => handleDelete(lead.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 transition-colors bg-white border border-slate-100 rounded-lg shadow-sm"
-                        title="Hapus Data"
+                        className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                        title="Hapus Lead"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
