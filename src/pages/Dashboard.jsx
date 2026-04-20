@@ -41,17 +41,20 @@ export default function Dashboard() {
 
   // Kalkulasi Dinamis dari Students Database
   const totalStudents = students.length;
-  const convertedLeads = students.filter(s => s.status_current === 'DP Pangkal' || s.status_current === 'Pangkal Lunas').length;
-  const conversionRate = totalStudents > 0 ? ((convertedLeads / totalStudents) * 100).toFixed(1) : 0;
-  const pendingFollowUps = students.filter(s => s.status_current === 'Pendaftaran').length;
-
+  
   // Kalkulasi Pipeline dari Rekap Leads (Marketing)
   const pipelineStats = {
     pendaftaran: leadsRecap.filter(l => l.note?.toUpperCase().includes('PENDAFTARAN')).length,
     dpPangkal: leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL 1')).length,
     pangkalLunas: leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS')).length,
-    total: leadsRecap.length
   };
+
+  const totalLeadsMarketing = pipelineStats.pendaftaran + pipelineStats.dpPangkal + pipelineStats.pangkalLunas;
+  const conversionRateMarketing = totalLeadsMarketing > 0 
+    ? ((pipelineStats.pangkalLunas / totalLeadsMarketing) * 100).toFixed(1) 
+    : 0;
+
+  const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
@@ -69,8 +72,8 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
-          title="Total Leads" 
-          value={students.length} 
+          title="Total Leads (Marketing)" 
+          value={totalLeadsMarketing} 
           icon={Users} 
           trend={12.5} 
           trendLabel="vs last week"
@@ -78,14 +81,14 @@ export default function Dashboard() {
         />
         <StatCard 
           title="Conversion Rate" 
-          value={`${conversionRate}%`} 
+          value={`${conversionRateMarketing}%`} 
           icon={TrendingUp} 
           trend={0} 
-          trendLabel="Berdasarkan leads bulan ini"
+          trendLabel="Closing vs Total Leads"
           colorClass="bg-emerald-50 text-emerald-600"
         />
         <StatCard 
-          title="Pending Follow-ups" 
+          title="Leads Belum Dihubungi" 
           value={pendingFollowUps} 
           icon={Clock} 
           colorClass="bg-amber-50 text-amber-600"
@@ -141,7 +144,7 @@ export default function Dashboard() {
               { label: 'DP Pangkal', count: pipelineStats.dpPangkal },
               { label: 'Pangkal Lunas', count: pipelineStats.pangkalLunas }
             ].map((stage, idx) => {
-              const percentage = pipelineStats.total > 0 ? (stage.count / pipelineStats.total) * 100 : 0;
+              const percentage = totalLeadsMarketing > 0 ? (stage.count / totalLeadsMarketing) * 100 : 0;
               
               return (
                 <div key={stage.label}>
