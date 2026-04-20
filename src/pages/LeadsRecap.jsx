@@ -242,44 +242,58 @@ export default function LeadsRecap() {
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.map((lead, idx) => (
+              {filteredLeads.map((lead, idx) => {
+                const isLunas = lead.note?.toUpperCase().includes('PANGKAL LUNAS');
+                
+                return (
                 <motion.tr 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
                   key={lead.id} 
-                  className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group"
+                  className={cn(
+                    "hover:bg-slate-50/50 transition-colors border-b border-slate-50 group",
+                    isLunas && "bg-slate-50/80"
+                  )}
                 >
                   <td className="px-6 py-4">
-                    <p className="font-bold text-slate-900">{lead.student_name}</p>
+                    <p className={cn("font-bold", isLunas ? "text-slate-400" : "text-slate-900")}>{lead.student_name}</p>
                     <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">Added {new Date(lead.created_at).toLocaleDateString('id-ID')}</p>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1.5">
                       <button 
                         onClick={() => handleWhatsApp(lead.phone)}
-                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors font-bold text-xs"
+                        disabled={isLunas}
+                        className={cn(
+                          "flex items-center gap-2 font-bold text-xs transition-colors",
+                          isLunas ? "text-slate-400" : "text-emerald-600 hover:text-emerald-700"
+                        )}
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
                         {lead.phone}
                       </button>
-                      <p className="text-[11px] text-slate-500 italic flex items-center gap-1">
+                      <p className="text-[11px] text-slate-400 italic flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {lead.school || '—'}
                       </p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <select 
-                      value={lead.status || 'Belum Dihubungi'}
+                      value={isLunas ? 'DONE' : (lead.status || 'Belum Dihubungi')}
+                      disabled={isLunas}
                       onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-bold border-none outline-none ring-1 appearance-none cursor-pointer transition-all",
-                        lead.status === 'Tertarik' && "bg-emerald-50 text-emerald-700 ring-emerald-100",
-                        lead.status === 'Janji Datang' && "bg-blue-50 text-blue-700 ring-blue-100",
-                        lead.status === 'Tidak Tertarik' && "bg-slate-100 text-slate-600 ring-slate-200",
-                        (lead.status === 'Belum Dihubungi' || !lead.status) && "bg-amber-50 text-amber-700 ring-amber-100"
+                        isLunas ? "bg-slate-600 text-white ring-slate-700" : (
+                          lead.status === 'Tertarik' && "bg-emerald-50 text-emerald-700 ring-emerald-100" ||
+                          lead.status === 'Janji Datang' && "bg-blue-50 text-blue-700 ring-blue-100" ||
+                          lead.status === 'Tidak Tertarik' && "bg-slate-100 text-slate-600 ring-slate-200" ||
+                          (lead.status === 'Belum Dihubungi' || !lead.status) && "bg-amber-50 text-amber-700 ring-amber-100"
+                        )
                       )}
                     >
+                      {isLunas && <option value="DONE">DONE</option>}
                       <option value="Belum Dihubungi">Belum Dihubungi</option>
                       <option value="Tertarik">Tertarik</option>
                       <option value="Janji Datang">Janji Datang</option>
@@ -287,17 +301,25 @@ export default function LeadsRecap() {
                     </select>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 bg-violet-50 text-violet-700 rounded-full text-[10px] font-bold ring-1 ring-violet-100 italic">
+                    <span className={cn(
+                      "px-2.5 py-1 rounded-full text-[10px] font-bold ring-1 italic",
+                      isLunas ? "bg-slate-200 text-slate-500 ring-slate-300" : "bg-violet-50 text-violet-700 ring-violet-100"
+                    )}>
                       {lead.program || 'N/A'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 max-w-xs">
-                    <p className="text-[11px] text-slate-400 line-clamp-1 italic" title={lead.note}>{lead.note || '—'}</p>
+                  <td className="px-6 py-4 max-w-xs transition-all">
+                    <p className={cn(
+                      "text-[11px] line-clamp-1 italic",
+                      isLunas ? "text-emerald-600 font-bold" : "text-slate-400"
+                    )} title={lead.note}>
+                      {lead.note || '—'}
+                    </p>
                   </td>
                   {isManager && (
                     <td className="px-6 py-4">
-                       <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                          <Users className="w-3 h-3 text-violet-400" />
+                       <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                          <Users className="w-3 h-3 text-slate-300" />
                           {lead.staff_name}
                        </span>
                     </td>
@@ -306,14 +328,22 @@ export default function LeadsRecap() {
                     <div className="flex items-center justify-center gap-2">
                       <button 
                         onClick={() => handleConvert(lead)}
-                        className="p-2 text-violet-600 hover:bg-violet-600 hover:text-white transition-all bg-violet-50 rounded-lg shadow-sm group/btn"
-                        title="Daftarkan Siswa ke Database Utama"
+                        disabled={isLunas}
+                        className={cn(
+                          "p-2 transition-all rounded-lg shadow-sm",
+                          isLunas ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "text-violet-600 bg-violet-50 hover:bg-violet-600 hover:text-white"
+                        )}
+                        title={isLunas ? "Sudah Jadi Siswa/Lunas" : "Daftarkan Siswa ke Database Utama"}
                       >
                         <UserCheck className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(lead.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                        disabled={isLunas}
+                        className={cn(
+                          "p-2 transition-colors",
+                          isLunas ? "text-slate-200 cursor-not-allowed" : "text-slate-300 hover:text-red-500"
+                        )}
                         title="Hapus Lead"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -321,7 +351,8 @@ export default function LeadsRecap() {
                     </div>
                   </td>
                 </motion.tr>
-              ))}
+                );
+              })}
               {filteredLeads.length === 0 && (
                 <tr>
                   <td colSpan={isManager ? 7 : 6} className="px-6 py-20 text-center text-slate-400 italic">
