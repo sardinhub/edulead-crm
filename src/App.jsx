@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import ActivityForm from './pages/ActivityForm';
 import MonitoringList from './pages/MonitoringList';
 import LeadsRecap from './pages/LeadsRecap';
+import Guidance from './pages/Guidance';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -36,6 +37,7 @@ function App() {
         <Route path="/activity" element={<ProtectedRoute><ActivityForm /></ProtectedRoute>} />
         <Route path="/monitoring" element={<ProtectedRoute><MonitoringList /></ProtectedRoute>} />
         <Route path="/recap" element={<ProtectedRoute><LeadsRecap /></ProtectedRoute>} />
+        <Route path="/guidance" element={<ProtectedRoute><Guidance /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
