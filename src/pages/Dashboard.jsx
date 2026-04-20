@@ -32,8 +32,14 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
 );
 
 export default function Dashboard() {
-  const { students, kpiData, logActivity } = useStore();
+  const { students, logActivity } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
+
+  // Kalkulasi Dinamis
+  const totalLeads = students.length;
+  const convertedLeads = students.filter(s => s.status_current === 'DP Pangkal' || s.status_current === 'Pangkal Lunas').length;
+  const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
+  const pendingFollowUps = students.filter(s => s.status_current === 'Pendaftaran').length;
 
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
@@ -60,15 +66,15 @@ export default function Dashboard() {
         />
         <StatCard 
           title="Conversion Rate" 
-          value={`${kpiData.conversionRate}%`} 
+          value={`${conversionRate}%`} 
           icon={TrendingUp} 
-          trend={2.4} 
-          trendLabel="vs last month"
+          trend={0} 
+          trendLabel="Berdasarkan leads bulan ini"
           colorClass="bg-emerald-50 text-emerald-600"
         />
         <StatCard 
           title="Pending Follow-ups" 
-          value={kpiData.pendingFollowUps} 
+          value={pendingFollowUps} 
           icon={Clock} 
           colorClass="bg-amber-50 text-amber-600"
         />
