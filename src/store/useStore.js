@@ -485,4 +485,4 @@ export const useStore = create((set, get) => ({
     }
     return { success: false, error: error?.message };
   },
-});
+}));
