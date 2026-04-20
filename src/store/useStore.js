@@ -209,12 +209,21 @@ export const useStore = create((set, get) => ({
   syncMonevWithRecap: async (studentData) => {
     const { nama, telepon, asal_sekolah, status_pembayaran } = studentData;
     
-    // Hanya sinkron jika status adalah salah satu dari tipe Lunas (WON)
-    const isLunas = status_pembayaran === 'Pangkal Full' || status_pembayaran === 'Pendaftaran+Pangkal Full';
-    if (!isLunas) return;
+    let updates = null;
+    
+    // Kondisi 1: Pangkal Lunas (WON)
+    if (status_pembayaran === 'Pangkal Full' || status_pembayaran === 'Pendaftaran+Pangkal Full') {
+      updates = { status: 'DONE', note: 'PANGKAL LUNAS' };
+    } 
+    // Kondisi 2: DP Pangkal (Convert to DP)
+    else if (status_pembayaran === 'DP Pembayaran Pangkal' || status_pembayaran === 'Pendaftaran+DP Pangkal') {
+      updates = { note: 'PANGKAL 1' };
+    }
+
+    // Jika tidak ada status yang cocok untuk disinkron, berhenti
+    if (!updates) return;
 
     // Cari data di leads_recap yang cocok
-    // Menggunakan ilike untuk nama/sekolah agar lebih fleksibel dengan huruf besar/kecil
     const { data: matchedLeads, error: searchError } = await supabase
       .from('leads_recap')
       .select('id')
@@ -223,14 +232,10 @@ export const useStore = create((set, get) => ({
       .ilike('school', asal_sekolah.trim());
 
     if (!searchError && matchedLeads && matchedLeads.length > 0) {
-      // Update semua data yang cocok (biasanya satu) menjadi DONE
       for (const lead of matchedLeads) {
-        await get().updateLeadRecapStatus(lead.id, { 
-          status: 'DONE', 
-          note: 'PANGKAL LUNAS' 
-        });
+        await get().updateLeadRecapStatus(lead.id, updates);
       }
-      console.log(`✅ Sinkronisasi Berhasil: ${nama} ditandai DONE di Rekap Leads.`);
+      console.log(`✅ Sinkronisasi Berhasil: ${nama} diperbarui ke ${updates.note}`);
     }
   },
 
