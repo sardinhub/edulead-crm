@@ -136,6 +136,13 @@ export default function ActivityForm() {
     if (form.leads_converted === '' || Number(form.leads_converted) < 0) e.leads_converted = 'Wajib diisi (min 0)';
     if (Number(form.leads_responded) > Number(form.leads_followed_up)) e.leads_responded = 'Tidak boleh melebihi jumlah follow-up';
     if (Number(form.leads_converted) > Number(form.leads_responded)) e.leads_converted = 'Tidak boleh melebihi jumlah yang merespon';
+
+    // Validasi Detail Leads Respon
+    if (form.responded_leads_details && form.responded_leads_details.length > 0) {
+      const anyEmpty = form.responded_leads_details.some(l => !l.name || !l.phone || !l.school);
+      if (anyEmpty) e.general = 'Mohon lengkapi seluruh kolom Nama, HP, dan Sekolah pada detail leads yang merespon.';
+    }
+
     return e;
   };
 
@@ -157,7 +164,7 @@ export default function ActivityForm() {
       // Auto-sync leads detail rows
       if (field === 'leads_responded') {
         const count = Math.max(0, parseInt(value) || 0);
-        const currentDetails = [...f.responded_leads_details];
+        const currentDetails = [...(f.responded_leads_details || [])];
         
         if (count > currentDetails.length) {
           // Add rows
@@ -391,20 +398,28 @@ export default function ActivityForm() {
               );
             })}
 
-            {/* Dynamic Responsive Leads Details */}
+            {/* Dynamic Responsive Leads Details Section */}
             <AnimatePresence>
-              {form.responded_leads_details.length > 0 && (
+              {(form.responded_leads_details || []).length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-4 pt-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="space-y-4 pt-6 border-t-2 border-indigo-100/50"
                 >
-                   <div className="flex items-center gap-2 mb-2 px-1">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <MessageCircle className="w-4 h-4 text-emerald-600" />
+                   <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+                        <UserPlus className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800">DATA DETAIL LEADS RESPONSIVE</h3>
+                        <p className="text-[10px] text-indigo-500 font-medium tracking-wide">WAJIB DIISI UNTUK TIAP LEAD YANG MERESPON</p>
+                      </div>
                     </div>
-                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest">Detail Leads Merespon</h3>
+                    <span className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                      {form.responded_leads_details.length} Data Siswa
+                    </span>
                   </div>
 
                   {form.responded_leads_details.map((lead, idx) => (
