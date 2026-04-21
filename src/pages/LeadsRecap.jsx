@@ -217,6 +217,10 @@ export default function LeadsRecap() {
   // Calculate Stats
   const stats = {
     total: filteredLeads.length,
+    pencapaian: filteredLeads.filter(l => 
+      l.staff_name && l.referral && 
+      l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase()
+    ).length,
     pendaftaran: filteredLeads.filter(l => l.note?.toUpperCase().includes('PENDAFTARAN')).length,
     lunas: filteredLeads.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS')).length,
     pangkal1: filteredLeads.filter(l => l.note?.toUpperCase().includes('PANGKAL 1')).length,
@@ -269,7 +273,12 @@ export default function LeadsRecap() {
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
           <div className="flex items-end justify-between">
-            <h3 className="text-xl font-bold text-slate-900">{stats.total}</h3>
+            <div className="flex flex-col">
+              <h3 className="text-xl font-bold text-slate-900">{stats.total}</h3>
+              <p className="text-[9px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-md mt-1 w-fit">
+                ACH: {stats.pencapaian}
+              </p>
+            </div>
             <div className="p-1.5 bg-slate-50 rounded-lg">
               <Users className="w-3.5 h-3.5 text-slate-400" />
             </div>
