@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book, FileSearch } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { clsx } from 'clsx';
@@ -16,6 +16,7 @@ const navItems = [
   { name: 'Progress Monev Leads', path: '/database', icon: Users },
   { name: 'Scheduler', path: '/scheduler', icon: CalendarDays, managerOnly: true },
   { name: 'Daftar Karyawan', path: '/users', icon: Shield, managerOnly: true },
+  { name: 'Rekap Monev', path: '/monev-recap', icon: FileSearch, managerOnly: true },
   { name: 'Settings', path: '/settings', icon: Settings, managerOnly: true },
 ];
 
