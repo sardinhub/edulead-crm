@@ -32,6 +32,17 @@ export const useStore = create((set, get) => ({
     }
 
     set({ isAuthenticated: true, user: data });
+
+    // Record Login Activity
+    const deviceInfo = navigator.userAgent;
+    await supabase.from('login_logs').insert([{
+      user_id: data.id,
+      user_name: data.name,
+      email: data.email,
+      role: data.role,
+      device_info: deviceInfo
+    }]);
+
     return { success: true };
   },
 
@@ -633,5 +644,21 @@ export const useStore = create((set, get) => ({
     }
 
     return { success: true };
+  },
+
+  // ─── Login Logs ────────────────────────────────────────────────────
+  loginLogs: [],
+  fetchLoginLogs: async () => {
+    const { data, error } = await supabase
+      .from('login_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (!error && data) {
+      set({ loginLogs: data });
+    } else {
+      console.error('Gagal fetch login logs:', error);
+    }
   },
 }));

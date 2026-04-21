@@ -12,6 +12,7 @@ import MonitoringList from './pages/MonitoringList';
 import LeadsRecap from './pages/LeadsRecap';
 import Guidance from './pages/Guidance';
 import MonevRecap from './pages/MonevRecap';
+import LoginLogs from './pages/LoginLogs';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -39,6 +40,7 @@ function App() {
         <Route path="/monitoring" element={<ProtectedRoute><MonitoringList /></ProtectedRoute>} />
         <Route path="/recap" element={<ProtectedRoute><LeadsRecap /></ProtectedRoute>} />
         <Route path="/monev-recap" element={<ProtectedRoute><MonevRecap /></ProtectedRoute>} />
+        <Route path="/login-logs" element={<ProtectedRoute><LoginLogs /></ProtectedRoute>} />
         <Route path="/guidance" element={<ProtectedRoute><Guidance /></ProtectedRoute>} />
       </Routes>
     </Router>
