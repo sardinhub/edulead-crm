@@ -219,7 +219,8 @@ export default function LeadsRecap() {
     total: filteredLeads.length,
     pencapaian: filteredLeads.filter(l => 
       l.staff_name && l.referral && 
-      l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase()
+      l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase() &&
+      l.note?.toUpperCase().includes('PANGKAL LUNAS')
     ).length,
     pendaftaran: filteredLeads.filter(l => l.note?.toUpperCase().includes('PENDAFTARAN')).length,
     lunas: filteredLeads.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS')).length,
