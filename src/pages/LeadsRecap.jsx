@@ -40,6 +40,7 @@ export default function LeadsRecap() {
     referral: ''
   });
   const [selectedManualStaff, setSelectedManualStaff] = useState('');
+  const [staffToClear, setStaffToClear] = useState('all');
 
   const isManager = user?.role === 'Manager';
 
@@ -757,6 +758,65 @@ export default function LeadsRecap() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: Bersihkan Data (Pilih PIC) */}
+      <AnimatePresence>
+        {isClearModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                  Bersihkan Data Leads
+                </h3>
+                <button onClick={() => setIsClearModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                    Data yang sudah dihapus tidak dapat dikembalikan. Silakan pilih kategori data yang ingin dibersihkan.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700">Pilih Data Milik:</label>
+                  <select 
+                    value={staffToClear}
+                    onChange={(e) => setStaffToClear(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 outline-none transition-all font-medium"
+                  >
+                    <option value="all">Keluaran: SEMUA STAFF</option>
+                    {marketingStaff.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-6 bg-slate-50 flex gap-3">
+                <button 
+                  onClick={() => setIsClearModalOpen(false)}
+                  className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleConfirmClear}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                >
+                  Hapus Data
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
