@@ -269,18 +269,23 @@ export default function LeadsRecap() {
       </div>
 
       {/* Stats Quick View (Summary) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Leads</p>
           <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3 className="text-xl font-bold text-slate-900">{stats.total}</h3>
-              <p className="text-[9px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-md mt-1 w-fit">
-                ACH: {stats.pencapaian}
-              </p>
-            </div>
+            <h3 className="text-xl font-bold text-slate-900">{stats.total}</h3>
             <div className="p-1.5 bg-slate-50 rounded-lg">
               <Users className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border-2 border-violet-100 shadow-md shadow-violet-100/50 flex flex-col justify-between">
+          <p className="text-[10px] font-bold text-violet-600 uppercase tracking-wider mb-1">Pencapaian (ACH)</p>
+          <div className="flex items-end justify-between">
+            <h3 className="text-xl font-bold text-violet-700">{stats.pencapaian}</h3>
+            <div className="p-1.5 bg-violet-50 rounded-lg">
+              <CheckCircle2 className="w-3.5 h-3.5 text-violet-500" />
             </div>
           </div>
         </div>
