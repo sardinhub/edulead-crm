@@ -467,12 +467,12 @@ export default function LeadsRecap() {
                     <div className="flex items-center justify-center gap-2">
                       <button 
                         onClick={() => handleConvert(lead)}
-                        disabled={isLunas}
+                        disabled={isLunas || !isManager}
                         className={cn(
                           "p-2 transition-all rounded-lg shadow-sm",
-                          isLunas ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "text-violet-600 bg-violet-50 hover:bg-violet-600 hover:text-white"
+                          (isLunas || !isManager) ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "text-violet-600 bg-violet-50 hover:bg-violet-600 hover:text-white"
                         )}
-                        title={isLunas ? "Sudah Jadi Siswa/Lunas" : "Daftarkan Siswa ke Database Utama"}
+                        title={isLunas ? "Sudah Jadi Siswa/Lunas" : !isManager ? "Hanya Manager yang dapat mendaftarkan siswa" : "Daftarkan Siswa ke Database Utama"}
                       >
                         <UserCheck className="w-4 h-4" />
                       </button>
