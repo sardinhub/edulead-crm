@@ -1,9 +1,12 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 import { kpiData as initialKpi } from './mockData';
 import { syncReportToSheets } from '../lib/googleSheets';
 
-export const useStore = create((set, get) => ({
+export const useStore = create(
+  persist(
+    (set, get) => ({
   isAuthenticated: false,
   user: null,
 
@@ -16,7 +19,7 @@ export const useStore = create((set, get) => ({
     const { data, error } = await supabase
       .from('system_users')
       .select('id, name, email, role, is_active')
-      .eq('email', email.trim())
+      .ilike('email', email.trim()) // Gunakan ilike agar case-insensitive (Fix Login iPad)
       .eq('password', password)
       .eq('is_active', true)
       .maybeSingle();
@@ -661,4 +664,10 @@ export const useStore = create((set, get) => ({
       console.error('Gagal fetch login logs:', error);
     }
   },
+}), {
+  name: 'edulead-auth-storage',
+  partialize: (state) => ({ 
+    isAuthenticated: state.isAuthenticated, 
+    user: state.user 
+  }),
 }));

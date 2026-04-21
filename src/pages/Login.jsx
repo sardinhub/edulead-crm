@@ -67,16 +67,22 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-700 block">Email Address</label>
+            <label htmlFor="email" className="text-sm font-medium text-slate-700 block">Email Address</label>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <Mail className="w-5 h-5" />
               </span>
               <input 
+                id="email"
+                name="email"
                 type="email" 
                 placeholder="email@triesakti.ac.id"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                autoComplete="email"
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium placeholder:font-normal placeholder:text-slate-400"
               />
             </div>
@@ -84,17 +90,23 @@ export default function Login() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-slate-700 block">Password</label>
+              <label htmlFor="password" className="text-sm font-medium text-slate-700 block">Password</label>
             </div>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <Lock className="w-5 h-5" />
               </span>
               <input 
+                id="password"
+                name="password"
                 type="password" 
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                autoComplete="current-password"
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium placeholder:font-normal placeholder:text-slate-400"
               />
             </div>

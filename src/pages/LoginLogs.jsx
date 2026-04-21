@@ -17,6 +17,15 @@ export default function LoginLogs() {
     fetchLoginLogs();
   }, []);
 
+  // Secure: Only Manager can access Log Status
+  if (user?.role !== 'Manager') {
+    return (
+      <div className="p-20 text-center text-slate-500 italic">
+        Halaman ini hanya dapat diakses oleh Manager untuk kebutuhan monitoring keamanan.
+      </div>
+    );
+  }
+
   const filteredLogs = loginLogs.filter(log => 
     log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
