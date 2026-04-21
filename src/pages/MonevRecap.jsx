@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileSearch, Search, Download, Filter, User } from 'lucide-react';
+import { FileSearch, Search, Download, Filter, User, Printer } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -36,9 +36,39 @@ export default function MonevRecap() {
     });
   }, [students, searchTerm, filterStaff]);
 
-  const handleExport = () => {
-    // Simple alert for now, real export would be CSV or Excel
-    alert('Fungsi Ekspor Data akan segera tersedia!');
+  const handleExportCSV = () => {
+    if (filteredStudents.length === 0) return alert('Tidak ada data untuk diekspor.');
+
+    const headers = ['Nama Siswa', 'Asal Sekolah', 'Telepon', 'Status Pembayaran', 'Nominal', 'PIC Staff', 'Catatan', 'Tanggal'];
+    const rows = filteredStudents.map(s => [
+      s.nama?.replace(/,/g, ' '), 
+      s.asal_sekolah?.replace(/,/g, ' '), 
+      s.telepon, 
+      s.status_pembayaran, 
+      s.nominal_pembayaran, 
+      s.pic_staff, 
+      s.catatan?.replace(/,/g, '.').replace(/\n/g, ' '), 
+      s.tanggal_daftar || s.created_at?.split('T')[0]
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Rekap_Monev_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -54,13 +84,20 @@ export default function MonevRecap() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 print:hidden">
           <button 
-            onClick={handleExport}
+            onClick={handlePrint}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+          >
+            <Printer className="w-4 h-4" />
+            Cetak PDF
+          </button>
+          <button 
+            onClick={handleExportCSV}
             className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
           >
             <Download className="w-4 h-4" />
-            Ekspor CSV
+            Ekspor Excel
           </button>
         </div>
       </div>
@@ -161,6 +198,21 @@ export default function MonevRecap() {
           </table>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body { background: white !important; font-size: 10px; }
+          .print\\:hidden { display: none !important; }
+          aside, header, nav, .bg-indigo-50, .bg-violet-50 { display: none !important; }
+          .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+          .shadow-xl, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+          .rounded-[2.5rem], .rounded-3xl, .rounded-2xl { border-radius: 0 !important; }
+          table { width: 100% !important; }
+          th { background: #f8fafc !important; color: #475569 !important; font-weight: 800 !important; }
+          td { border-bottom: 1px solid #f1f5f9 !important; }
+          .line-clamp-2 { -webkit-line-clamp: initial !important; }
+          .p-6, .p-8 { padding: 10px !important; }
+        }
+      `}} />
     </div>
   );
 }
