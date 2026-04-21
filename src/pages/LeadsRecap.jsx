@@ -36,7 +36,8 @@ export default function LeadsRecap() {
     phone: '',
     school: '',
     program: 'AVSEC',
-    note: 'PENDAFTARAN'
+    note: 'PENDAFTARAN',
+    referral: ''
   });
   const [selectedManualStaff, setSelectedManualStaff] = useState('');
 
@@ -107,7 +108,8 @@ export default function LeadsRecap() {
         school: item['Asal Sekolah'] || item['Sekolah'] || '',
         phone: String(item['No. Telepon'] || item['Telepon'] || item['WhatsApp'] || ''),
         program: item['Program'] || item['Tujuan'] || '',
-        note: item['Keterangan'] || item['Catatan'] || ''
+        note: item['Keterangan'] || item['Catatan'] || '',
+        referral: item['Referral'] || item['Referal'] || item['Referensi'] || item['Sumber'] || ''
       })).filter(item => item.student_name);
       
       setPreviewData(mapped);
@@ -176,7 +178,8 @@ export default function LeadsRecap() {
         phone: '',
         school: '',
         program: 'AVSEC',
-        note: 'PENDAFTARAN'
+        note: 'PENDAFTARAN',
+        referral: ''
       });
       setSelectedManualStaff('');
       alert('✅ Lead berhasil didaftarkan secara manual!');
@@ -349,6 +352,7 @@ export default function LeadsRecap() {
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Telepon & Sekolah</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Status Follow-up</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Program</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Referral</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Keterangan</th>
                 {isManager && <th className="px-6 py-4 font-bold text-slate-900 text-sm">PIC Staff</th>}
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm text-center">Aksi</th>
@@ -421,6 +425,11 @@ export default function LeadsRecap() {
                     )}>
                       {lead.program || 'N/A'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-[11px] font-bold text-indigo-600 uppercase">
+                      {lead.referral || '—'}
+                    </p>
                   </td>
                   <td className="px-6 py-4 max-w-xs transition-all">
                     <p className={cn(
@@ -690,6 +699,19 @@ export default function LeadsRecap() {
                         <option value="GROUND STAFF">GROUND STAFF</option>
                       </select>
                     </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase ml-1">Referral</label>
+                      <input 
+                        type="text"
+                        value={manualLead.referral}
+                        onChange={(e) => setManualLead({...manualLead, referral: e.target.value.toUpperCase()})}
+                        placeholder="SUMBER DATA"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
                     {isManager && (
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-500 uppercase ml-1">PIC Staff</label>
