@@ -139,8 +139,10 @@ export const useStore = create((set, get) => ({
       .select('*')
       .order('created_at', { ascending: false });
 
-    // Segregasi Data: Staff biasa hanya melihat miliknya
-    if (user && user.role !== 'Manager') {
+    // Segregasi Data: Staff biasa hanya melihat miliknya (Kecuali Ayu dengan privilege khusus)
+    const isPrivileged = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
+    
+    if (user && !isPrivileged) {
       query = query.eq('pic_staff', user?.name);
     }
       
@@ -509,8 +511,10 @@ export const useStore = create((set, get) => ({
       .select('*')
       .order('created_at', { ascending: false });
 
-    // Jika staff, hanya lihat miliknya sendiri
-    if (user.role !== 'Manager') {
+    // Jika staff, hanya lihat miliknya sendiri (Kecuali Ayu dengan privilege khusus)
+    const isPrivileged = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
+
+    if (!isPrivileged) {
       query = query.eq('staff_name', user.name);
     }
 
