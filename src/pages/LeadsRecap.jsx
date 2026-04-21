@@ -35,8 +35,8 @@ export default function LeadsRecap() {
     student_name: '',
     phone: '',
     school: '',
-    program: '',
-    note: ''
+    program: 'AVSEC',
+    note: 'PENDAFTARAN'
   });
   const [selectedManualStaff, setSelectedManualStaff] = useState('');
 
@@ -175,8 +175,8 @@ export default function LeadsRecap() {
         student_name: '',
         phone: '',
         school: '',
-        program: '',
-        note: ''
+        program: 'AVSEC',
+        note: 'PENDAFTARAN'
       });
       setSelectedManualStaff('');
       alert('✅ Lead berhasil didaftarkan secara manual!');
@@ -648,9 +648,9 @@ export default function LeadsRecap() {
                       required
                       type="text"
                       value={manualLead.student_name}
-                      onChange={(e) => setManualLead({...manualLead, student_name: e.target.value})}
-                      placeholder="Contoh: Budi Santoso"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                      onChange={(e) => setManualLead({...manualLead, student_name: e.target.value.toUpperCase()})}
+                      placeholder="CONTOH: BUDI SANTOSO"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all font-bold"
                     />
                   </div>
 
@@ -671,8 +671,8 @@ export default function LeadsRecap() {
                     <input 
                       type="text"
                       value={manualLead.school}
-                      onChange={(e) => setManualLead({...manualLead, school: e.target.value})}
-                      placeholder="Contoh: SMA Negeri 1 Jakarta"
+                      onChange={(e) => setManualLead({...manualLead, school: e.target.value.toUpperCase()})}
+                      placeholder="CONTOH: SMA NEGERI 1 JAKARTA"
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
                     />
                   </div>
@@ -680,13 +680,15 @@ export default function LeadsRecap() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-500 uppercase ml-1">Program</label>
-                      <input 
-                        type="text"
+                      <select 
                         value={manualLead.program}
                         onChange={(e) => setManualLead({...manualLead, program: e.target.value})}
-                        placeholder="Contoh: Reguler"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
-                      />
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-sm font-bold"
+                      >
+                        <option value="AVSEC">AVSEC</option>
+                        <option value="Flight Attendant">Flight Attendant</option>
+                        <option value="GROUND STAFF">GROUND STAFF</option>
+                      </select>
                     </div>
                     {isManager && (
                       <div className="space-y-1">
@@ -706,12 +708,11 @@ export default function LeadsRecap() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Keterangan</label>
-                    <textarea 
-                      rows={3}
+                    <input 
+                      disabled
+                      type="text"
                       value={manualLead.note}
-                      onChange={(e) => setManualLead({...manualLead, note: e.target.value})}
-                      placeholder="Tambahkan catatan jika ada..."
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all resize-none"
+                      className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none cursor-not-allowed font-bold"
                     />
                   </div>
                 </div>
