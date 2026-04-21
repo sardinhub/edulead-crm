@@ -30,7 +30,15 @@ export default function LeadsRecap() {
   const [previewData, setPreviewData] = useState([]);
   const [filterStaff, setFilterStaff] = useState('all');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [staffToClear, setStaffToClear] = useState('all');
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [manualLead, setManualLead] = useState({
+    student_name: '',
+    phone: '',
+    school: '',
+    program: '',
+    note: ''
+  });
+  const [selectedManualStaff, setSelectedManualStaff] = useState('');
 
   const isManager = user?.role === 'Manager';
 
@@ -135,6 +143,48 @@ export default function LeadsRecap() {
     }
   };
 
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    if (!manualLead.student_name || !manualLead.phone) {
+      alert('Nama Siswa dan No. Telepon wajib diisi!');
+      return;
+    }
+
+    if (isManager && !selectedManualStaff) {
+      alert('Silakan pilih PIC Staff untuk lead ini');
+      return;
+    }
+
+    setImportLoading(true);
+    const staffObj = isManager 
+      ? marketingStaff.find(s => s.id === selectedManualStaff)
+      : user;
+
+    const newLead = {
+      ...manualLead,
+      staff_id: isManager ? selectedManualStaff : user.id,
+      staff_name: staffObj?.name || user.name
+    };
+
+    const result = await importLeadsRecap([newLead]);
+    setImportLoading(false);
+
+    if (result.success) {
+      setIsManualModalOpen(false);
+      setManualLead({
+        student_name: '',
+        phone: '',
+        school: '',
+        program: '',
+        note: ''
+      });
+      setSelectedManualStaff('');
+      alert('✅ Lead berhasil didaftarkan secara manual!');
+    } else {
+      alert('❌ Gagal mendaftarkan lead: ' + result.error);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Hapus data lead ini?')) {
       await deleteLeadRecap(id);
@@ -180,25 +230,34 @@ export default function LeadsRecap() {
           <p className="text-slate-500 text-sm">Kelola dan pelajari progres konversi leads</p>
         </div>
 
-        {isManager && (
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setIsClearModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all outline-none"
-              title="Hapus Seluruh Data"
-            >
-              <Trash2 className="w-4 h-4" />
-              Bersihkan Data
-            </button>
-            <button 
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Import Excel
-            </button>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isManager && (
+            <>
+              <button 
+                onClick={() => setIsClearModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all outline-none"
+                title="Hapus Seluruh Data"
+              >
+                <Trash2 className="w-4 h-4" />
+                Bersihkan Data
+              </button>
+              <button 
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all outline-none shadow-sm"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Import Excel
+              </button>
+            </>
+          )}
+          <button 
+            onClick={() => setIsManualModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
+          >
+            <UserPlus className="w-4 h-4" />
+            Daftar Manual
+          </button>
+        </div>
       </div>
 
       {/* Stats Quick View (Summary) */}
@@ -559,60 +618,122 @@ export default function LeadsRecap() {
         )}
       </AnimatePresence>
 
-      {/* MODAL: Bersihkan Data (Pilih PIC) */}
+      {/* MODAL: Daftar Manual */}
       <AnimatePresence>
-        {isClearModalOpen && (
+        {isManualModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
             >
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                  <Trash2 className="w-5 h-5 text-red-500" />
-                  Bersihkan Data Leads
-                </h3>
-                <button onClick={() => setIsClearModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-xl">Daftar Manual Siswa</h3>
+                </div>
+                <button onClick={() => setIsManualModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                    Data yang sudah dihapus tidak dapat dikembalikan. Silakan pilih kategori data yang ingin dibersihkan.
-                  </p>
+              <form onSubmit={handleManualSubmit} className="p-6 space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nama Siswa</label>
+                    <input 
+                      required
+                      type="text"
+                      value={manualLead.student_name}
+                      onChange={(e) => setManualLead({...manualLead, student_name: e.target.value})}
+                      placeholder="Contoh: Budi Santoso"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">No. Telepon (WhatsApp)</label>
+                    <input 
+                      required
+                      type="tel"
+                      value={manualLead.phone}
+                      onChange={(e) => setManualLead({...manualLead, phone: e.target.value})}
+                      placeholder="Contoh: 08123456789"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Asal Sekolah</label>
+                    <input 
+                      type="text"
+                      value={manualLead.school}
+                      onChange={(e) => setManualLead({...manualLead, school: e.target.value})}
+                      placeholder="Contoh: SMA Negeri 1 Jakarta"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase ml-1">Program</label>
+                      <input 
+                        type="text"
+                        value={manualLead.program}
+                        onChange={(e) => setManualLead({...manualLead, program: e.target.value})}
+                        placeholder="Contoh: Reguler"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all"
+                      />
+                    </div>
+                    {isManager && (
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">PIC Staff</label>
+                        <select 
+                          required
+                          value={selectedManualStaff}
+                          onChange={(e) => setSelectedManualStaff(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-sm font-medium"
+                        >
+                          <option value="">Pilih Staff...</option>
+                          {marketingStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Keterangan</label>
+                    <textarea 
+                      rows={3}
+                      value={manualLead.note}
+                      onChange={(e) => setManualLead({...manualLead, note: e.target.value})}
+                      placeholder="Tambahkan catatan jika ada..."
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all resize-none"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Pilih Data Milik:</label>
-                  <select 
-                    value={staffToClear}
-                    onChange={(e) => setStaffToClear(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 outline-none transition-all font-medium"
+                <div className="pt-4 flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsManualModalOpen(false)}
+                    className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
                   >
-                    <option value="all">Keluaran: SEMUA STAFF</option>
-                    {marketingStaff.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                  </select>
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={importLoading}
+                    className="flex-[2] py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 shadow-lg shadow-violet-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    {importLoading ? 'Menyimpan...' : 'Simpan Data'}
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
-
-              <div className="p-6 bg-slate-50 flex gap-3">
-                <button 
-                  onClick={() => setIsClearModalOpen(false)}
-                  className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
-                >
-                  Batal
-                </button>
-                <button 
-                  onClick={handleConfirmClear}
-                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
-                >
-                  Hapus Data
-                </button>
-              </div>
+              </form>
             </motion.div>
           </div>
         )}
