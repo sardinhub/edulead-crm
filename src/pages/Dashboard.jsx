@@ -95,6 +95,16 @@ export default function Dashboard() {
   };
 
   const totalLeadsMarketing = pipelineStats.pendaftaran + pipelineStats.dpPangkal + pipelineStats.pangkalLunas;
+  
+  // Perhitungan Pencapaian (ACH) - Harus SAMA dengan di LeadsRecap.jsx
+  const calculateACH = (leads) => leads.filter(l => 
+    l.staff_name && l.referral && 
+    l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase() &&
+    l.note?.toUpperCase().includes('PANGKAL LUNAS')
+  ).length;
+
+  const totalACH = calculateACH(leadsRecap);
+
   const conversionRateMarketing = totalLeadsMarketing > 0 
     ? ((pipelineStats.pangkalLunas / totalLeadsMarketing) * 100).toFixed(1) 
     : 0;
@@ -102,17 +112,7 @@ export default function Dashboard() {
   const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
   // Perkembangan Target Pencapaian (Target: 15)
-  // Syarat: staff_name == referral AND note contains PANGKAL LUNAS
-  const getAchievementCount = (leads, name) => {
-    return leads.filter(l => 
-      l.staff_name === name && 
-      l.referral && 
-      l.staff_name?.trim().toUpperCase() === l.referral?.trim().toUpperCase() &&
-      l.note?.toUpperCase().includes('PANGKAL LUNAS')
-    ).length;
-  };
-
-  const myLunasCount = getAchievementCount(leadsRecap, user?.name);
+  const myLunasCount = user?.role === 'Manager' ? 0 : calculateACH(leadsRecap);
 
   // Untuk Manager: Ringkasan Pencapaian Tim
   const teamAchievements = user?.role === 'Manager' ? leadsRecap.reduce((acc, lead) => {
@@ -142,12 +142,18 @@ export default function Dashboard() {
               : 'Sistem siap membantu Anda mencapai target hari ini.'}
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             <StatCard 
-              title="Total Leads (Marketing)" 
+              title="Total Leads" 
               value={totalLeadsMarketing} 
               icon={Users} 
               colorClass="bg-blue-50 text-blue-600"
+            />
+            <StatCard 
+              title="Pencapaian (ACH)" 
+              value={totalACH} 
+              icon={TrendingUp} 
+              colorClass="bg-violet-50 text-violet-600"
             />
             <StatCard 
               title="Conversion Rate" 
