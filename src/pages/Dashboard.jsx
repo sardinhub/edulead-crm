@@ -101,11 +101,28 @@ export default function Dashboard() {
 
   const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
-  // Perkembangan Target Lunas Pribadi (Target: 15)
-  const myLunasCount = leadsRecap.filter(l => 
-    l.staff_name === user?.name && 
-    l.note?.toUpperCase().includes('PANGKAL LUNAS')
-  ).length;
+  // Perkembangan Target Pencapaian (Target: 15)
+  // Syarat: staff_name == referral AND note contains PANGKAL LUNAS
+  const getAchievementCount = (leads, name) => {
+    return leads.filter(l => 
+      l.staff_name === name && 
+      l.referral && 
+      l.staff_name?.trim().toUpperCase() === l.referral?.trim().toUpperCase() &&
+      l.note?.toUpperCase().includes('PANGKAL LUNAS')
+    ).length;
+  };
+
+  const myLunasCount = getAchievementCount(leadsRecap, user?.name);
+
+  // Untuk Manager: Ringkasan Pencapaian Tim
+  const teamAchievements = user?.role === 'Manager' ? leadsRecap.reduce((acc, lead) => {
+    if (lead.staff_name && lead.referral && 
+        lead.staff_name.trim().toUpperCase() === lead.referral.trim().toUpperCase() &&
+        lead.note?.toUpperCase().includes('PANGKAL LUNAS')) {
+      acc[lead.staff_name] = (acc[lead.staff_name] || 0) + 1;
+    }
+    return acc;
+  }, {}) : {};
 
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
@@ -147,13 +164,47 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {user?.role !== 'Manager' && (
+        {user?.role !== 'Manager' ? (
           <div className="lg:w-96 flex-shrink-0">
             <TargetWidget 
               current={myLunasCount} 
               target={15} 
               userName={user?.name} 
             />
+          </div>
+        ) : (
+          <div className="lg:w-96 flex-shrink-0 bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+             <div className="mb-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Achievement</p>
+                <h3 className="text-lg font-bold text-slate-900">Progres Target Staff</h3>
+             </div>
+             <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
+                {Object.entries(teamAchievements).length > 0 ? Object.entries(teamAchievements).map(([name, count]) => {
+                  const percentage = Math.min(Math.round((count / 15) * 100), 100);
+                  return (
+                    <div key={name} className="space-y-1">
+                       <div className="flex justify-between text-xs font-bold">
+                          <span className="text-slate-600 uppercase">{name}</span>
+                          <span className="text-indigo-600">{count} / 15</span>
+                       </div>
+                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            className="h-full bg-indigo-500 rounded-full"
+                          />
+                       </div>
+                    </div>
+                  );
+                }) : (
+                   <div className="text-center py-8 text-slate-400 italic text-sm">Belum ada pencapaian dari tim.</div>
+                )}
+             </div>
+             <div className="mt-6 pt-4 border-t border-slate-50">
+                <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed">
+                   Target per staff: 15 leads (Self-Referral & Pangkal Lunas).
+                </p>
+             </div>
           </div>
         )}
       </div>
