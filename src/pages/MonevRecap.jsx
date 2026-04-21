@@ -14,8 +14,10 @@ export default function MonevRecap() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStaff, setFilterStaff] = useState('all');
 
-  // Authorize: Only Manager can see this (though route is protected, we double check)
-  if (user?.role !== 'Manager') {
+  // Authorize: Only Manager or specific privileged staff (Ayu)
+  const isAuthorized = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
+
+  if (!isAuthorized) {
     return (
       <div className="p-20 text-center text-slate-500 italic">
         Anda tidak memiliki otoritas untuk mengakses halaman ini.

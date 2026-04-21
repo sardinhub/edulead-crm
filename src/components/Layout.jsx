@@ -31,7 +31,9 @@ function Navigation({ user, location, onLinkClick }) {
   return (
     <nav className="space-y-1">
       {navItems.map((item) => {
-        if (item.managerOnly && user?.role !== 'Manager') return null;
+        const isAyu = user?.email === 'ayu@gmail.com';
+        const hasAccess = !item.managerOnly || user?.role === 'Manager' || (isAyu && item.path === '/monev-recap');
+        if (!hasAccess) return null;
         const isActive = location.pathname.startsWith(item.path);
         const Icon = item.icon;
         return (
