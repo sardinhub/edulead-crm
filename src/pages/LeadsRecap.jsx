@@ -78,11 +78,22 @@ export default function LeadsRecap() {
     if (reason === null) return; // Batal diklik
     
     let finalNote = lead.note || '';
+    const isSystemNote = finalNote.toUpperCase().includes('PENDAFTARAN') || finalNote.toUpperCase().includes('PANGKAL');
+    
+    // Ekstrak bagian sistem saja (sebelum ' | ') jika sudah pernah ada alasan sebelumnya
+    if (isSystemNote && finalNote.includes(' | ')) {
+       finalNote = finalNote.split(' | ')[0];
+    }
+
     if (reason.trim() !== '') {
-      if (finalNote.toUpperCase().includes('PENDAFTARAN') || finalNote.toUpperCase().includes('PANGKAL')) {
+      if (isSystemNote) {
         finalNote = `${finalNote} | ${reason}`;
       } else {
         finalNote = reason;
+      }
+    } else {
+      if (!isSystemNote) {
+        finalNote = '';
       }
     }
 
