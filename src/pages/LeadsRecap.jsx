@@ -66,15 +66,27 @@ export default function LeadsRecap() {
     }
   };
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  const handleUpdateStatus = async (lead, newStatus) => {
     if (newStatus === 'Selesai') {
       if (window.confirm('Apakah siswa ini akan diproses pelunasan? Jika Ya, status akan berubah jadi DONE dan keterangan menjadi PANGKAL LUNAS.')) {
-        await updateLeadRecapStatus(id, { status: 'DONE', note: 'PANGKAL LUNAS' });
+        await updateLeadRecapStatus(lead.id, { status: 'DONE', note: 'PANGKAL LUNAS' });
       }
       return;
     }
     
-    await updateLeadRecapStatus(id, { status: newStatus });
+    const reason = window.prompt(`Masukkan alasan singkat untuk status "${newStatus}":\n(Opsional, klik OK untuk melewati)`);
+    if (reason === null) return; // Batal diklik
+    
+    let finalNote = lead.note || '';
+    if (reason.trim() !== '') {
+      if (finalNote.toUpperCase().includes('PENDAFTARAN') || finalNote.toUpperCase().includes('PANGKAL')) {
+        finalNote = `${finalNote} | ${reason}`;
+      } else {
+        finalNote = reason;
+      }
+    }
+
+    await updateLeadRecapStatus(lead.id, { status: newStatus, note: finalNote });
   };
 
   const handleConvert = async (lead) => {
@@ -364,6 +376,7 @@ export default function LeadsRecap() {
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="px-6 py-4 font-bold text-slate-900 text-sm">Tanggal Daftar</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Nama Siswa</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Telepon & Sekolah</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-sm">Status Follow-up</th>
@@ -390,8 +403,12 @@ export default function LeadsRecap() {
                   )}
                 >
                   <td className="px-6 py-4">
+                    <p className="text-xs font-medium text-slate-500 whitespace-nowrap">
+                      {lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
                     <p className={cn("font-bold", isLunas ? "text-slate-400" : "text-slate-900")}>{lead.student_name}</p>
-                    <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">Added {new Date(lead.created_at).toLocaleDateString('id-ID')}</p>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1.5">
@@ -415,13 +432,14 @@ export default function LeadsRecap() {
                     <select 
                       value={isLunas ? 'DONE' : (lead.status || 'Belum Dihubungi')}
                       disabled={isLunas}
-                      onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                      onChange={(e) => handleUpdateStatus(lead, e.target.value)}
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-xs font-bold border-none outline-none ring-1 appearance-none cursor-pointer transition-all",
                         isLunas ? "bg-slate-600 text-white ring-slate-700" : (
                           lead.status === 'Tertarik' && "bg-emerald-50 text-emerald-700 ring-emerald-100" ||
                           lead.status === 'Janji Datang' && "bg-blue-50 text-blue-700 ring-blue-100" ||
                           lead.status === 'Tidak Tertarik' && "bg-slate-100 text-slate-600 ring-slate-200" ||
+                          lead.status === 'Tidak dapat dihubungi' && "bg-red-50 text-red-700 ring-red-100" ||
                           (lead.status === 'Belum Dihubungi' || !lead.status) && "bg-amber-50 text-amber-700 ring-amber-100"
                         )
                       )}
@@ -431,6 +449,7 @@ export default function LeadsRecap() {
                       <option value="Tertarik">Tertarik</option>
                       <option value="Janji Datang">Janji Datang</option>
                       <option value="Tidak Tertarik">Tidak Tertarik</option>
+                      <option value="Tidak dapat dihubungi">Tidak dapat dihubungi</option>
                       <option value="Selesai">Selesai (Pelunasan)</option>
                     </select>
                   </td>
@@ -494,7 +513,7 @@ export default function LeadsRecap() {
               })}
               {filteredLeads.length === 0 && (
                 <tr>
-                  <td colSpan={isManager ? 7 : 6} className="px-6 py-20 text-center text-slate-400 italic">
+                  <td colSpan={isManager ? 8 : 7} className="px-6 py-20 text-center text-slate-400 italic">
                     Belum ada data leads untuk ditampilkan.
                   </td>
                 </tr>
