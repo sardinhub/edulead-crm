@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book, FileSearch, History } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book, FileSearch, History, MessageCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { clsx } from 'clsx';
@@ -14,6 +14,7 @@ function cn(...inputs) {
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Progress Monev Leads', path: '/database', icon: Users },
+  { name: 'Team Chat', path: '/chat', icon: MessageCircle },
   { name: 'Scheduler', path: '/scheduler', icon: CalendarDays, managerOnly: true },
   { name: 'Daftar Karyawan', path: '/users', icon: Shield, managerOnly: true },
   { name: 'Rekap Monev', path: '/monev-recap', icon: FileSearch, managerOnly: true },
@@ -28,7 +29,7 @@ const marketingNavItems = [
   { name: 'Panduan', path: '/guidance', icon: Book },
 ];
 
-function Navigation({ user, location, onLinkClick }) {
+function Navigation({ user, location, onLinkClick, unreadCounts }) {
   return (
     <nav className="space-y-1">
       {navItems.map((item) => {
@@ -37,6 +38,10 @@ function Navigation({ user, location, onLinkClick }) {
         if (!hasAccess) return null;
         const isActive = location.pathname.startsWith(item.path);
         const Icon = item.icon;
+        // Hitung total unread untuk menu Team Chat
+        const totalUnread = item.path === '/chat'
+          ? Object.values(unreadCounts || {}).reduce((s, n) => s + n, 0)
+          : 0;
         return (
           <Link
             key={item.path}
@@ -50,7 +55,12 @@ function Navigation({ user, location, onLinkClick }) {
             )}
           >
             <Icon className={cn('w-5 h-5', isActive ? 'text-indigo-600' : 'text-slate-400')} />
-            {item.name}
+            <span className="flex-1">{item.name}</span>
+            {totalUnread > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
           </Link>
         );
       })}
@@ -106,7 +116,7 @@ function UserSection({ user, logout }) {
 
 export default function Layout({ children }) {
   const location = useLocation();
-  const { user, logout, fetchStudents, initRealtime } = useStore();
+  const { user, logout, fetchStudents, initRealtime, unreadCounts } = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   useEffect(() => {
@@ -154,7 +164,7 @@ export default function Layout({ children }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto px-4 py-6">
-                <Navigation user={user} location={location} onLinkClick={() => setIsSidebarOpen(false)} />
+                <Navigation user={user} location={location} onLinkClick={() => setIsSidebarOpen(false)} unreadCounts={unreadCounts} />
               </div>
               <UserSection user={user} logout={logout} />
             </motion.aside>
@@ -174,7 +184,7 @@ export default function Layout({ children }) {
         </div>
         
         <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <Navigation user={user} location={location} />
+          <Navigation user={user} location={location} unreadCounts={unreadCounts} />
         </div>
         
         <UserSection user={user} logout={logout} />

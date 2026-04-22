@@ -664,6 +664,149 @@ export const useStore = create(
       console.error('Gagal fetch login logs:', error);
     }
   },
+
+  // ─── Team Chat ────────────────────────────────────────────────────
+  chatMessages: [],
+  unreadCounts: {}, // { contactId: number }
+
+  fetchChatMessages: async (contact) => {
+    const { user } = get();
+    if (!user || !contact) return;
+
+    let query;
+    if (contact.isBroadcast) {
+      // Broadcast: semua pesan dengan recipient_id = null
+      query = supabase
+        .from('chat_messages')
+        .select('*')
+        .is('recipient_id', null)
+        .order('created_at', { ascending: true })
+        .limit(200);
+    } else {
+      // DM: pesan antara user saat ini dan kontak
+      query = supabase
+        .from('chat_messages')
+        .select('*')
+        .or(
+          `and(sender_id.eq.${user.id},recipient_id.eq.${contact.id}),and(sender_id.eq.${contact.id},recipient_id.eq.${user.id})`
+        )
+        .order('created_at', { ascending: true })
+        .limit(200);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+      set({ chatMessages: data });
+    } else {
+      console.error('Gagal fetch chat messages:', error);
+    }
+  },
+
+  sendChatMessage: async ({ contact, message, sender }) => {
+    if (!sender || !message?.trim()) return;
+
+    const payload = {
+      sender_id: sender.id,
+      sender_name: sender.name,
+      sender_role: sender.role,
+      message: message.trim(),
+      recipient_id: contact.isBroadcast ? null : contact.id,
+      recipient_name: contact.isBroadcast ? null : contact.name,
+      is_read: false,
+    };
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (!error && data) {
+      // Optimistic update: tambahkan pesan ke list lokal
+      set((state) => ({ chatMessages: [...state.chatMessages, data] }));
+    } else {
+      console.error('Gagal kirim pesan:', error);
+    }
+  },
+
+  markChatAsRead: async (contact, user) => {
+    if (!contact || !user) return;
+    // Tandai pesan yang diterima oleh user saat ini sebagai sudah dibaca
+    const updateQuery = contact.isBroadcast
+      ? supabase.from('chat_messages')
+          .update({ is_read: true })
+          .is('recipient_id', null)
+          .eq('is_read', false)
+          .neq('sender_id', user.id)
+      : supabase.from('chat_messages')
+          .update({ is_read: true })
+          .eq('sender_id', contact.id)
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+
+    await updateQuery;
+
+    // Reset unread count untuk kontak ini
+    set((state) => ({
+      unreadCounts: { ...state.unreadCounts, [contact.id]: 0 }
+    }));
+  },
+
+  initChatRealtime: (currentUser, activeContact, onNewMessage) => {
+    const channel = supabase
+      .channel('public:chat_messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        (payload) => {
+          const newMsg = payload.new;
+          const { chatMessages, unreadCounts } = get();
+          const myId = currentUser?.id;
+
+          // Periksa apakah pesan relevan untuk user ini
+          const isBroadcast = newMsg.recipient_id === null;
+          const isDMToMe = newMsg.recipient_id === myId;
+          const isDMFromMe = newMsg.sender_id === myId;
+          const isRelevant = isBroadcast || isDMToMe || isDMFromMe;
+
+          if (!isRelevant) return;
+
+          // Hindari duplikasi
+          const exists = chatMessages.find(m => m.id === newMsg.id);
+          if (exists) return;
+
+          // Update chatMessages jika percakapan aktif sesuai
+          const activeId = activeContact?.id;
+          const isActiveConversation =
+            (activeContact?.isBroadcast && isBroadcast) ||
+            (activeId === newMsg.sender_id) ||
+            (activeId === newMsg.recipient_id);
+
+          if (isActiveConversation) {
+            set((state) => ({ chatMessages: [...state.chatMessages, newMsg] }));
+          }
+
+          // Hitung unread jika bukan dari diri sendiri
+          if (newMsg.sender_id !== myId) {
+            const contactId = isBroadcast ? 'broadcast' : newMsg.sender_id;
+            set((state) => ({
+              unreadCounts: {
+                ...state.unreadCounts,
+                [contactId]: (state.unreadCounts[contactId] || 0) + 1,
+              }
+            }));
+
+            // Panggil callback (untuk suara notifikasi)
+            if (typeof onNewMessage === 'function') {
+              onNewMessage(newMsg);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return channel;
+  },
 }), {
   name: 'edulead-auth-storage',
   partialize: (state) => ({ 

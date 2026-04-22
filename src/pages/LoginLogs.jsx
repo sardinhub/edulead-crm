@@ -125,11 +125,11 @@ export default function LoginLogs() {
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-1.5 text-slate-700 font-bold">
                         <Calendar className="w-3 h-3 text-indigo-400" />
-                        {log.login_date}
+                        {log.created_at ? new Date(log.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : (log.login_date || '—')}
                       </div>
                       <div className="flex items-center gap-1.5 text-indigo-600 font-black text-[10px]">
                         <Clock className="w-3 h-3" />
-                        {log.login_time}
+                        {log.created_at ? new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : (log.login_time || '—')}
                       </div>
                     </div>
                   </td>
