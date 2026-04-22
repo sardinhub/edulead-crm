@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserPlus, Shield, Mail, Users, Loader2, CheckCircle2,
   UserX, UserCheck, Eye, EyeOff, AlertTriangle, RefreshCw,
-  Calendar, Crown
+  Calendar, Crown, KeyRound, X
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
@@ -26,15 +26,55 @@ export default function UserManagement() {
     registerStaff,
     deactivateUser,
     reactivateUser,
+    changePassword,
     isAuthLoading,
   } = useStore();
 
   const [form, setForm]               = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
-  const [formMsg, setFormMsg]         = useState(null); // { type: 'success'|'error', text }
-  const [actionLoading, setActionLoading] = useState(null); // userId being toggled
+  const [formMsg, setFormMsg]         = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
   const [filterRole, setFilterRole]   = useState('all');
   const [filterStatus, setFilterStatus] = useState('active');
+
+  // State modal ubah password (Manager only)
+  const [pwModal, setPwModal] = useState(null); // { userId, userName }
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [pwMsg, setPwMsg] = useState({ text: '', type: '' });
+  const [pwLoading, setPwLoading] = useState(false);
+
+  const openPwModal = (u) => {
+    setPwModal({ userId: u.id, userName: u.name });
+    setNewPw('');
+    setConfirmPw('');
+    setShowPw(false);
+    setPwMsg({ text: '', type: '' });
+  };
+
+  const handleManagerChangePw = async (e) => {
+    e.preventDefault();
+    if (newPw.length < 6) {
+      setPwMsg({ text: '❌ Kata sandi minimal 6 karakter.', type: 'error' });
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwMsg({ text: '❌ Konfirmasi kata sandi tidak cocok.', type: 'error' });
+      return;
+    }
+    setPwLoading(true);
+    const result = await changePassword(pwModal.userId, newPw);
+    setPwLoading(false);
+    if (result?.success) {
+      setPwMsg({ text: '✅ Kata sandi berhasil diubah!', type: 'success' });
+      setNewPw('');
+      setConfirmPw('');
+      setTimeout(() => setPwModal(null), 1500);
+    } else {
+      setPwMsg({ text: '❌ Gagal: ' + (result?.error || 'Coba lagi.'), type: 'error' });
+    }
+  };
 
   useEffect(() => {
     fetchSystemUsers();
@@ -401,28 +441,40 @@ export default function UserManagement() {
 
                       {/* Aksi toggle aktif */}
                       <td className="px-4 py-3">
-                        {u.id === currentUser?.id ? (
-                          <span className="text-xs text-slate-300 italic">—</span>
-                        ) : (
-                          <button
-                            onClick={() => handleToggleActive(u.id, u.is_active)}
-                            disabled={actionLoading === u.id}
-                            className={cn(
-                              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50',
-                              u.is_active
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                            )}
-                          >
-                            {actionLoading === u.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : u.is_active ? (
-                              <><UserX className="w-3.5 h-3.5" /> Nonaktifkan</>
-                            ) : (
-                              <><UserCheck className="w-3.5 h-3.5" /> Aktifkan</>
-                            )}
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Ubah Password (Manager only, bukan diri sendiri) */}
+                          {currentUser?.role === 'Manager' && (
+                            <button
+                              onClick={() => openPwModal(u)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" /> Ubah Sandi
+                            </button>
+                          )}
+                          {/* Aktif/Nonaktif — tidak bisa ke diri sendiri */}
+                          {u.id === currentUser?.id ? (
+                            <span className="text-xs text-slate-300 italic">—</span>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleActive(u.id, u.is_active)}
+                              disabled={actionLoading === u.id}
+                              className={cn(
+                                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50',
+                                u.is_active
+                                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              )}
+                            >
+                              {actionLoading === u.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : u.is_active ? (
+                                <><UserX className="w-3.5 h-3.5" /> Nonaktifkan</>
+                              ) : (
+                                <><UserCheck className="w-3.5 h-3.5" /> Aktifkan</>
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -449,6 +501,98 @@ export default function UserManagement() {
           </div>
         </motion.div>
       </div>
+
+      {/* ── Modal Ubah Password (Manager) ─────────────────────────────────── */}
+      <AnimatePresence>
+        {pwModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setPwModal(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+            >
+              {/* Header modal */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <KeyRound className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base">Ubah Kata Sandi</h3>
+                    <p className="text-xs text-slate-400 truncate max-w-[180px]">untuk {pwModal.userName}</p>
+                  </div>
+                </div>
+                <button onClick={() => setPwModal(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleManagerChangePw} className="space-y-4">
+                {/* Sandi Baru */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Sandi Baru <span className="text-slate-400 text-xs font-normal">(min. 6 karakter)</span></label>
+                  <div className="relative">
+                    <input
+                      required
+                      autoFocus
+                      type={showPw ? 'text' : 'password'}
+                      value={newPw}
+                      onChange={e => setNewPw(e.target.value)}
+                      placeholder="Masukkan sandi baru"
+                      className="w-full pr-10 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                    />
+                    <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                      {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                {/* Konfirmasi */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Konfirmasi Sandi Baru</label>
+                  <input
+                    required
+                    type="password"
+                    value={confirmPw}
+                    onChange={e => setConfirmPw(e.target.value)}
+                    placeholder="Ulangi sandi baru"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                  />
+                </div>
+
+                {pwMsg.text && (
+                  <p className={`text-sm font-medium ${pwMsg.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
+                    {pwMsg.text}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPwModal(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-indigo-200"
+                  >
+                    {pwLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</> : <><KeyRound className="w-4 h-4" /> Simpan</>}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

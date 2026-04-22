@@ -130,10 +130,10 @@ export const useStore = create(
       .update({ password: newPassword })
       .eq('id', userId);
     if (!error) {
-      // Jika user yang diubah adalah yang sedang login, update state lokal
+      // Jika user yang diubah adalah yang sedang login, update state lokal termasuk password
       const currentUser = get().user;
       if (currentUser?.id === userId) {
-        set({ user: { ...currentUser } });
+        set({ user: { ...currentUser, password: newPassword } });
       }
       return { success: true };
     }
