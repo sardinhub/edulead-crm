@@ -419,6 +419,18 @@ export default function LeadsRecap() {
             <tbody>
               {filteredLeads.map((lead, idx) => {
                 const isLunas = lead.note?.toUpperCase()?.includes('PANGKAL LUNAS');
+                let reasonText = null;
+                if (lead.note) {
+                  if (lead.note.includes(' | ')) {
+                    reasonText = lead.note.split(' | ').pop().trim();
+                  } else if (
+                    !lead.note.toUpperCase().includes('PENDAFTARAN') && 
+                    !lead.note.toUpperCase().includes('PANGKAL 1') && 
+                    !isLunas
+                  ) {
+                    reasonText = lead.note.trim();
+                  }
+                }
                 
                 return (
                 <motion.tr 
@@ -481,6 +493,14 @@ export default function LeadsRecap() {
                       <option value="Tidak dapat dihubungi">Tidak dapat dihubungi</option>
                       <option value="Selesai">Selesai (Pelunasan)</option>
                     </select>
+                    {reasonText && (
+                      <div className="mt-2 flex items-start gap-1.5 animate-in fade-in slide-in-from-top-1">
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full mt-1.5 shrink-0" />
+                        <p className="text-[11px] text-slate-500 italic leading-tight line-clamp-2" title={reasonText}>
+                          {reasonText}
+                        </p>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className={cn(
