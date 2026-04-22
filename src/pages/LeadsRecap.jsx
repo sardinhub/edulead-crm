@@ -110,20 +110,49 @@ export default function LeadsRecap() {
     const reader = new FileReader();
     reader.onload = (evt) => {
       const bstr = evt.target.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
+      const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
       const wsname = wb.SheetNames[0];
       const ws = wb.Sheets[wsname];
       const data = XLSX.utils.sheet_to_json(ws);
       
       // Mapping sederhana: Cari header yang mirip
-      const mapped = data.map(item => ({
-        student_name: item['Nama Siswa'] || item['Nama'] || '',
-        school: item['Asal Sekolah'] || item['Sekolah'] || '',
-        phone: String(item['No. Telepon'] || item['Telepon'] || item['WhatsApp'] || ''),
-        program: item['Program'] || item['Tujuan'] || '',
-        note: item['Keterangan'] || item['Catatan'] || '',
-        referral: item['Referral'] || item['Referal'] || item['Referensi'] || item['Sumber'] || ''
-      })).filter(item => item.student_name);
+      const mapped = data.map(item => {
+        let rawDate = item['Tanggal Daftar'] || item['Tanggal'] || item['Date'] || item['Waktu'];
+        let created_at = undefined;
+
+        if (rawDate) {
+          if (rawDate instanceof Date && !isNaN(rawDate)) {
+             created_at = rawDate.toISOString();
+          } else if (typeof rawDate === 'number') {
+             const dateObj = new Date((rawDate - (25567 + 1)) * 86400 * 1000);
+             if (!isNaN(dateObj)) created_at = dateObj.toISOString();
+          } else if (typeof rawDate === 'string') {
+             const parts = rawDate.split(/[-/]/);
+             if (parts.length === 3) {
+                let day = parts[0], month = parts[1], year = parts[2];
+                if (year.length === 2) year = '20' + year;
+                if (year.length === 4) {
+                   if (parts[0].length === 4) { year = parts[0]; month = parts[1]; day = parts[2]; }
+                   const dt = new Date(`${year}-${month}-${day}T12:00:00Z`);
+                   if (!isNaN(dt)) created_at = dt.toISOString();
+                }
+             } else {
+                const dt = new Date(rawDate);
+                if (!isNaN(dt)) created_at = dt.toISOString();
+             }
+          }
+        }
+
+        return {
+          student_name: item['Nama Siswa'] || item['Nama'] || '',
+          school: item['Asal Sekolah'] || item['Sekolah'] || '',
+          phone: String(item['No. Telepon'] || item['Telepon'] || item['WhatsApp'] || ''),
+          program: item['Program'] || item['Tujuan'] || '',
+          note: item['Keterangan'] || item['Catatan'] || '',
+          referral: item['Referral'] || item['Referal'] || item['Referensi'] || item['Sumber'] || '',
+          ...(created_at ? { created_at } : {})
+        };
+      }).filter(item => item.student_name);
       
       setPreviewData(mapped);
     };
@@ -540,7 +569,7 @@ export default function LeadsRecap() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900 text-xl">Import Leads dari Excel</h3>
-                    <p className="text-xs text-slate-500 italic">Dukung format: Nama, Sekolah, Telepon, Program, Keterangan</p>
+                    <p className="text-xs text-slate-500 italic">Dukung format: Tanggal, Nama, Sekolah, Telepon, Program, Keterangan</p>
                   </div>
                 </div>
                 <button onClick={() => setIsImportModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
