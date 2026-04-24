@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, UserCheck, CalendarDays, Users, MessageCircle,
   CheckCircle2, FileText, Zap, AlertTriangle, Sunrise,
-  UserPlus, Loader2, CheckCheck, ChevronDown
+  UserPlus, Loader2, CheckCheck, ChevronDown, Search, Check
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 // Removed AddStaffModal import in favor of unified User Management
@@ -85,6 +85,22 @@ const colorMap = {
   orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'focus:border-orange-500 focus:ring-orange-500/20', label: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
 };
 
+const KONVERSI_OPTIONS = [
+  { id: 'Pendaftaran',   label: 'Pendaftaran',    color: 'indigo' },
+  { id: 'DP Pangkal',    label: 'DP Pangkal',     color: 'amber' },
+  { id: 'Pangkal Lunas', label: 'Pangkal Lunas',  color: 'emerald' },
+  { id: 'Biaya Seragam', label: 'Biaya Seragam',  color: 'violet' },
+  { id: 'Biaya Asrama',  label: 'Biaya Asrama',   color: 'sky' },
+];
+
+const KONVERSI_COLORS = {
+  indigo:  { chip: 'bg-indigo-100 text-indigo-700 ring-indigo-200',  check: 'bg-indigo-600 border-indigo-600', unchecked: 'border-slate-300 hover:border-indigo-400' },
+  amber:   { chip: 'bg-amber-100 text-amber-700 ring-amber-200',    check: 'bg-amber-500 border-amber-500',   unchecked: 'border-slate-300 hover:border-amber-400' },
+  emerald: { chip: 'bg-emerald-100 text-emerald-700 ring-emerald-200', check: 'bg-emerald-600 border-emerald-600', unchecked: 'border-slate-300 hover:border-emerald-400' },
+  violet:  { chip: 'bg-violet-100 text-violet-700 ring-violet-200', check: 'bg-violet-600 border-violet-600', unchecked: 'border-slate-300 hover:border-violet-400' },
+  sky:     { chip: 'bg-sky-100 text-sky-700 ring-sky-200',          check: 'bg-sky-600 border-sky-600',       unchecked: 'border-slate-300 hover:border-sky-400' },
+};
+
 const initialForm = {
   staff_id: '',
   staff_name: '',
@@ -92,7 +108,7 @@ const initialForm = {
   leads_followed_up: '',
   leads_responded: '',
   leads_converted: '',
-  responded_leads_details: [], // Array of { name, phone, school, note }
+  responded_leads_details: [], // Array of { name, phone, school, konversi: [], note }
   response_notes: '',
   follow_up_actions: '',
   obstacles: '',
@@ -103,6 +119,7 @@ export default function ActivityForm() {
   const {
     user,
     marketingStaff, fetchMarketingStaff,
+    students, fetchStudents,
     submitActivityReport, isMarketingLoading
   } = useStore();
 
@@ -113,6 +130,7 @@ export default function ActivityForm() {
 
   useEffect(() => {
     fetchMarketingStaff();
+    fetchStudents();
   }, [fetchMarketingStaff]);
 
   // Untuk non-Manager: otomatis isi staff dari akun yang login
@@ -169,7 +187,7 @@ export default function ActivityForm() {
         if (count > currentDetails.length) {
           // Add rows
           for (let i = currentDetails.length; i < count; i++) {
-            currentDetails.push({ name: '', phone: '', school: '', note: '' });
+            currentDetails.push({ name: '', phone: '', school: '', konversi: [], note: '' });
           }
         } else if (count < currentDetails.length) {
           // Remove rows
@@ -187,6 +205,33 @@ export default function ActivityForm() {
     setForm(f => {
       const newDetails = [...f.responded_leads_details];
       newDetails[index] = { ...newDetails[index], [field]: value };
+      return { ...f, responded_leads_details: newDetails };
+    });
+  };
+
+  // Pilih siswa dari autocomplete → auto-fill phone & school
+  const handleSelectStudent = (index, student) => {
+    setForm(f => {
+      const newDetails = [...f.responded_leads_details];
+      newDetails[index] = {
+        ...newDetails[index],
+        name: student.nama,
+        phone: student.telepon || '',
+        school: student.asal_sekolah || '',
+      };
+      return { ...f, responded_leads_details: newDetails };
+    });
+  };
+
+  // Toggle checklist konversi
+  const handleToggleKonversi = (index, optionId) => {
+    setForm(f => {
+      const newDetails = [...f.responded_leads_details];
+      const current = newDetails[index].konversi || [];
+      const updated = current.includes(optionId)
+        ? current.filter(k => k !== optionId)
+        : [...current, optionId];
+      newDetails[index] = { ...newDetails[index], konversi: updated };
       return { ...f, responded_leads_details: newDetails };
     });
   };
@@ -422,7 +467,17 @@ export default function ActivityForm() {
                     </span>
                   </div>
 
-                  {form.responded_leads_details.map((lead, idx) => (
+                  {form.responded_leads_details.map((lead, idx) => {
+                    // Filter suggestions siswa berdasarkan ketikan
+                    const suggestions = lead.name && lead.name.length >= 2
+                      ? students.filter(s =>
+                          s.nama?.toLowerCase().includes(lead.name.toLowerCase()) ||
+                          s.telepon?.includes(lead.name)
+                        ).slice(0, 6)
+                      : [];
+                    const selectedKonversi = lead.konversi || [];
+
+                    return (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, scale: 0.95 }}
@@ -432,59 +487,144 @@ export default function ActivityForm() {
                       <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                       <div className="flex items-center justify-between border-b border-slate-50 pb-2">
                         <span className="text-[10px] font-black text-emerald-600 uppercase">Leads Responsif #{idx + 1}</span>
+                        {selectedKonversi.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {selectedKonversi.map(k => {
+                              const opt = KONVERSI_OPTIONS.find(o => o.id === k);
+                              if (!opt) return null;
+                              const c = KONVERSI_COLORS[opt.color];
+                              return (
+                                <span key={k} className={`px-2 py-0.5 rounded-full text-[9px] font-bold ring-1 ${c.chip}`}>
+                                  {opt.label}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                       
                       <div className="space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Nama Lengkap</label>
+                        {/* ── Nama Siswa (Autocomplete) ── */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
+                            Nama Siswa <span className="text-slate-300 normal-case font-normal">(ketik untuk cari dari database)</span>
+                          </label>
+                          <div className="relative">
+                            <Search className="w-3.5 h-3.5 text-slate-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               value={lead.name}
                               onChange={e => handleLeadDetailChange(idx, 'name', e.target.value)}
-                              placeholder="Ketik nama..."
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                              placeholder="Ketik nama atau HP untuk mencari..."
+                              className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                             />
+                            {/* Dropdown suggestions */}
+                            {suggestions.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+                                {suggestions.map(s => (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => handleSelectStudent(idx, s)}
+                                    className="w-full text-left px-3 py-2.5 hover:bg-emerald-50 transition-colors border-b border-slate-50 last:border-0"
+                                  >
+                                    <p className="font-bold text-slate-800 text-sm">{s.nama}</p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] text-emerald-600 font-medium">{s.telepon}</span>
+                                      <span className="text-[10px] text-slate-400">·</span>
+                                      <span className="text-[10px] text-slate-400">{s.asal_sekolah}</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
+                        </div>
+
+                        {/* ── No. HP & Sekolah (Auto-fill) ── */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">No. HP / WA</label>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
+                              No. HP / WA
+                              {lead.phone && <span className="ml-1 text-emerald-500 font-normal normal-case">✓ terisi otomatis</span>}
+                            </label>
                             <input
                               type="tel"
                               value={lead.phone}
                               onChange={e => handleLeadDetailChange(idx, 'phone', e.target.value)}
-                              placeholder="08..."
+                              placeholder="08... (otomatis terisi)"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
+                              Asal Sekolah
+                              {lead.school && <span className="ml-1 text-emerald-500 font-normal normal-case">✓ terisi otomatis</span>}
+                            </label>
+                            <input
+                              type="text"
+                              value={lead.school}
+                              onChange={e => handleLeadDetailChange(idx, 'school', e.target.value)}
+                              placeholder="SMA N 1... (otomatis terisi)"
                               className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                             />
                           </div>
                         </div>
 
+                        {/* ── Status Konversi (Checklist) ── */}
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Asal Sekolah</label>
-                          <input
-                            type="text"
-                            value={lead.school}
-                            onChange={e => handleLeadDetailChange(idx, 'school', e.target.value)}
-                            placeholder="Contoh: SMA N 1"
-                            className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                          />
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">
+                            Status Konversi <span className="text-slate-300 normal-case font-normal">(centang yang sesuai)</span>
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {KONVERSI_OPTIONS.map(opt => {
+                              const isChecked = selectedKonversi.includes(opt.id);
+                              const c = KONVERSI_COLORS[opt.color];
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => handleToggleKonversi(idx, opt.id)}
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all ${
+                                    isChecked
+                                      ? `${c.chip} ring-1 ${c.check} border-current shadow-sm`
+                                      : `bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:bg-slate-50`
+                                  }`}
+                                >
+                                  <span className={`w-4 h-4 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                                    isChecked ? c.check : 'border-slate-300'
+                                  }`}>
+                                    {isChecked && <Check className="w-2.5 h-2.5 text-white" />}
+                                  </span>
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {selectedKonversi.length === 0 && (
+                            <p className="text-[10px] text-slate-300 italic mt-1.5 ml-1">Belum ada status yang dipilih</p>
+                          )}
                         </div>
 
+                        {/* ── Keterangan Tambahan ── */}
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Isi Respon / Keterangan</label>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Keterangan Tambahan <span className="text-slate-300 font-normal normal-case">(opsional)</span></label>
                           <textarea
                             rows={2}
                             value={lead.note}
                             onChange={e => handleLeadDetailChange(idx, 'note', e.target.value)}
-                            placeholder="Tulis singkat hasil komunikasinya..."
+                            placeholder="Tulis singkat hasil komunikasi, janji, atau catatan lainnya..."
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none"
                           />
                         </div>
                       </div>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </motion.div>
               )}
             </AnimatePresence>
+
           </div>
 
           {/* Right Column — Text Fields */}
