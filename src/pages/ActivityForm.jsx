@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, UserCheck, CalendarDays, Users, MessageCircle,
   CheckCircle2, FileText, Zap, AlertTriangle, Sunrise,
-  UserPlus, Loader2, CheckCheck, ChevronDown, Search, Check
+  UserPlus, Loader2, CheckCheck, ChevronDown, Search
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 // Removed AddStaffModal import in favor of unified User Management
@@ -83,22 +83,6 @@ const colorMap = {
   amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'focus:border-amber-500 focus:ring-amber-500/20', label: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' },
   red: { bg: 'bg-red-50', text: 'text-red-600', border: 'focus:border-red-500 focus:ring-red-500/20', label: 'text-red-700', badge: 'bg-red-100 text-red-700' },
   orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'focus:border-orange-500 focus:ring-orange-500/20', label: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
-};
-
-const KONVERSI_OPTIONS = [
-  { id: 'Pendaftaran',   label: 'Pendaftaran',    color: 'indigo' },
-  { id: 'DP Pangkal',    label: 'DP Pangkal',     color: 'amber' },
-  { id: 'Pangkal Lunas', label: 'Pangkal Lunas',  color: 'emerald' },
-  { id: 'Biaya Seragam', label: 'Biaya Seragam',  color: 'violet' },
-  { id: 'Biaya Asrama',  label: 'Biaya Asrama',   color: 'sky' },
-];
-
-const KONVERSI_COLORS = {
-  indigo:  { chip: 'bg-indigo-100 text-indigo-700 ring-indigo-200',  check: 'bg-indigo-600 border-indigo-600', unchecked: 'border-slate-300 hover:border-indigo-400' },
-  amber:   { chip: 'bg-amber-100 text-amber-700 ring-amber-200',    check: 'bg-amber-500 border-amber-500',   unchecked: 'border-slate-300 hover:border-amber-400' },
-  emerald: { chip: 'bg-emerald-100 text-emerald-700 ring-emerald-200', check: 'bg-emerald-600 border-emerald-600', unchecked: 'border-slate-300 hover:border-emerald-400' },
-  violet:  { chip: 'bg-violet-100 text-violet-700 ring-violet-200', check: 'bg-violet-600 border-violet-600', unchecked: 'border-slate-300 hover:border-violet-400' },
-  sky:     { chip: 'bg-sky-100 text-sky-700 ring-sky-200',          check: 'bg-sky-600 border-sky-600',       unchecked: 'border-slate-300 hover:border-sky-400' },
 };
 
 const initialForm = {
@@ -219,19 +203,6 @@ export default function ActivityForm() {
         phone: student.telepon || '',
         school: student.asal_sekolah || '',
       };
-      return { ...f, responded_leads_details: newDetails };
-    });
-  };
-
-  // Toggle checklist konversi
-  const handleToggleKonversi = (index, optionId) => {
-    setForm(f => {
-      const newDetails = [...f.responded_leads_details];
-      const current = newDetails[index].konversi || [];
-      const updated = current.includes(optionId)
-        ? current.filter(k => k !== optionId)
-        : [...current, optionId];
-      newDetails[index] = { ...newDetails[index], konversi: updated };
       return { ...f, responded_leads_details: newDetails };
     });
   };
@@ -541,7 +512,7 @@ export default function ActivityForm() {
                           </div>
                         </div>
 
-                        {/* ── No. HP & Sekolah (Auto-fill) ── */}
+                        {/* ── No. HP & Sekolah (Auto-fill, disabled) ── */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
@@ -551,9 +522,9 @@ export default function ActivityForm() {
                             <input
                               type="tel"
                               value={lead.phone}
-                              onChange={e => handleLeadDetailChange(idx, 'phone', e.target.value)}
-                              placeholder="08... (otomatis terisi)"
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                              disabled
+                              placeholder="Otomatis terisi saat nama dipilih"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-500 cursor-not-allowed select-none"
                             />
                           </div>
                           <div>
@@ -564,46 +535,11 @@ export default function ActivityForm() {
                             <input
                               type="text"
                               value={lead.school}
-                              onChange={e => handleLeadDetailChange(idx, 'school', e.target.value)}
-                              placeholder="SMA N 1... (otomatis terisi)"
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                              disabled
+                              placeholder="Otomatis terisi saat nama dipilih"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-500 cursor-not-allowed select-none"
                             />
                           </div>
-                        </div>
-
-                        {/* ── Status Konversi (Checklist) ── */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">
-                            Status Konversi <span className="text-slate-300 normal-case font-normal">(centang yang sesuai)</span>
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {KONVERSI_OPTIONS.map(opt => {
-                              const isChecked = selectedKonversi.includes(opt.id);
-                              const c = KONVERSI_COLORS[opt.color];
-                              return (
-                                <button
-                                  key={opt.id}
-                                  type="button"
-                                  onClick={() => handleToggleKonversi(idx, opt.id)}
-                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all ${
-                                    isChecked
-                                      ? `${c.chip} ring-1 ${c.check} border-current shadow-sm`
-                                      : `bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:bg-slate-50`
-                                  }`}
-                                >
-                                  <span className={`w-4 h-4 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
-                                    isChecked ? c.check : 'border-slate-300'
-                                  }`}>
-                                    {isChecked && <Check className="w-2.5 h-2.5 text-white" />}
-                                  </span>
-                                  {opt.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {selectedKonversi.length === 0 && (
-                            <p className="text-[10px] text-slate-300 italic mt-1.5 ml-1">Belum ada status yang dipilih</p>
-                          )}
                         </div>
 
                         {/* ── Keterangan Tambahan ── */}
