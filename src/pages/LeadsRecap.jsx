@@ -1540,11 +1540,29 @@ export default function LeadsRecap() {
               </div>
 
               {/* Panel Footer */}
-              {filteredUnreg.length > 0 && (
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-3">
                   <p className="text-xs text-slate-500 font-medium">
-                    <span className="font-bold text-amber-600">{filteredUnreg.length}</span> siswa belum mendaftar tersedia
+                    <span className="font-bold text-amber-600">{filteredUnreg.length}</span> siswa belum mendaftar
                   </p>
+                  {/* Tombol Hapus Semua — aktif hanya Manager */}
+                  <button
+                    onClick={isManager ? handleDeleteAllUnreg : undefined}
+                    disabled={!isManager || unregImportLoading || unregisteredStudents.length === 0}
+                    title={!isManager ? 'Hanya Manager yang dapat menghapus semua data' : 'Hapus seluruh data siswa belum daftar'}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                      isManager && unregisteredStudents.length > 0
+                        ? 'bg-white border-red-200 text-red-500 hover:bg-red-600 hover:text-white hover:border-red-600 shadow-sm'
+                        : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Hapus Semua
+                    {!isManager && <span className="ml-0.5">🔒</span>}
+                  </button>
+                </div>
+
+                {filteredUnreg.length > 0 && (
                   <button
                     onClick={handleConvertAllUnregToLeads}
                     disabled={unregImportLoading}
@@ -1553,8 +1571,9 @@ export default function LeadsRecap() {
                     <ArrowRightCircle className="w-4 h-4" />
                     {unregImportLoading ? 'Memproses...' : `Pindahkan Semua (${filteredUnreg.length}) ke Leads`}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
+
             </motion.div>
           </>
         )}
