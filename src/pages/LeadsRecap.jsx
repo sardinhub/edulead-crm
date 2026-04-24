@@ -145,18 +145,48 @@ export default function LeadsRecap() {
       const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
       const wsname = wb.SheetNames[0];
       const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws);
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      // Helper: ambil nilai dari berbagai kemungkinan nama kolom
+      const pick = (item, ...keys) => {
+        for (const k of keys) {
+          const val = item[k];
+          if (val !== undefined && val !== null && String(val).trim() !== '') return val;
+        }
+        return '';
+      };
+
+      // Helper: normalisasi nomor HP (tangani format angka Excel yang besar)
+      const normalizePhone = (val) => {
+        if (!val && val !== 0) return '';
+        // Jika angka (Excel menyimpan HP sebagai number)
+        let str = String(val).trim();
+        // Tangani scientific notation: mis. 6.28e+11
+        if (str.includes('e') || str.includes('E')) {
+          str = Number(val).toFixed(0);
+        }
+        // Jika dimulai dengan 62, ganti jadi 0
+        if (str.startsWith('62')) str = '0' + str.slice(2);
+        return str;
+      };
+
       const mapped = data.map(item => ({
-        student_name: item['Nama Siswa'] || item['Nama'] || '',
-        school: item['Asal Sekolah'] || item['Sekolah'] || '',
-        phone: String(item['No. Telepon'] || item['Telepon'] || item['WhatsApp'] || ''),
-        program: item['Program'] || item['Tujuan'] || '',
-        referral: item['Referral'] || item['Referal'] || item['Sumber'] || '',
+        student_name: pick(item, 'Nama Siswa', 'Nama', 'NAMA', 'name', 'Name', 'NAMA SISWA'),
+        school: pick(item, 'Asal Sekolah', 'Sekolah', 'SEKOLAH', 'school', 'School', 'ASAL SEKOLAH', 'Asal', 'ASAL'),
+        phone: normalizePhone(pick(item,
+          'No. Telepon', 'Telepon', 'WhatsApp', 'No Telepon', 'Nomor Telepon',
+          'No HP', 'No. HP', 'Nomor HP', 'HP', 'Phone', 'No.Telepon',
+          'TELEPON', 'NO HP', 'NO. HP', 'NO TELEPON', 'WHATSAPP', 'No. Hp', 'no hp'
+        )),
+        program: pick(item, 'Program', 'Tujuan', 'PROGRAM', 'program', 'Jurusan'),
+        referral: pick(item, 'Referral', 'Referal', 'Sumber', 'REFERRAL', 'referral', 'Sumber Data'),
       })).filter(item => item.student_name);
+
       setUnregPreviewData(mapped);
     };
     reader.readAsBinaryString(file);
   };
+
 
   const handleUnregConfirmImport = async () => {
     if (isManager && !unregSelectedStaff) {
