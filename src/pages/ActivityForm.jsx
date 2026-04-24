@@ -104,6 +104,7 @@ export default function ActivityForm() {
     user,
     marketingStaff, fetchMarketingStaff,
     students, fetchStudents,
+    leadsRecap, fetchLeadsRecap,
     submitActivityReport, isMarketingLoading
   } = useStore();
 
@@ -115,6 +116,7 @@ export default function ActivityForm() {
   useEffect(() => {
     fetchMarketingStaff();
     fetchStudents();
+    fetchLeadsRecap();
   }, [fetchMarketingStaff]);
 
   // Untuk non-Manager: otomatis isi staff dari akun yang login
@@ -439,39 +441,35 @@ export default function ActivityForm() {
                   </div>
 
                   {form.responded_leads_details.map((lead, idx) => {
-                    // Filter suggestions siswa berdasarkan ketikan
+                    // Gabungkan students + leadsRecap sebagai sumber autocomplete
+                    const allNameSources = [
+                      ...(students || []).map(s => ({ id: s.id, nama: s.nama, telepon: s.telepon || '', asal_sekolah: s.asal_sekolah || '' })),
+                      ...(leadsRecap || []).map(l => ({ id: 'lr_' + l.id, nama: l.student_name, telepon: l.phone || '', asal_sekolah: l.school || '' })),
+                    ];
+                    // Deduplicate by nama
+                    const seen = new Set();
+                    const uniqueSources = allNameSources.filter(s => {
+                      if (!s.nama || seen.has(s.nama.toLowerCase())) return false;
+                      seen.add(s.nama.toLowerCase());
+                      return true;
+                    });
+                    // Filter berdasarkan ketikan
                     const suggestions = lead.name && lead.name.length >= 2
-                      ? students.filter(s =>
+                      ? uniqueSources.filter(s =>
                           s.nama?.toLowerCase().includes(lead.name.toLowerCase()) ||
                           s.telepon?.includes(lead.name)
-                        ).slice(0, 6)
+                        ).slice(0, 8)
                       : [];
-                    const selectedKonversi = lead.konversi || [];
 
                     return (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 relative overflow-hidden"
+                      className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-sm p-5 space-y-4 relative"
                     >
-                      <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                       <div className="flex items-center justify-between border-b border-slate-50 pb-2">
                         <span className="text-[10px] font-black text-emerald-600 uppercase">Leads Responsif #{idx + 1}</span>
-                        {selectedKonversi.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {selectedKonversi.map(k => {
-                              const opt = KONVERSI_OPTIONS.find(o => o.id === k);
-                              if (!opt) return null;
-                              const c = KONVERSI_COLORS[opt.color];
-                              return (
-                                <span key={k} className={`px-2 py-0.5 rounded-full text-[9px] font-bold ring-1 ${c.chip}`}>
-                                  {opt.label}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
                       </div>
                       
                       <div className="space-y-3">
