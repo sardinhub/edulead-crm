@@ -1,0 +1,12 @@
+Satu Syarat Penting:
+Setiap staff perlu:
+
+Daftar akun Fonnte (gratis) di fonnte.com
+Scan QR untuk hubungkan nomor WA mereka
+Copy Token dan paste di profil aplikasi (cukup sekali)
+Apakah ingin saya lanjutkan implementasinya sekarang? Yang akan saya kerjakan:
+
+✅ Tambah field Token Fonnte di halaman Settings/Profil masing-masing user
+✅ Simpan token ke Supabase (terenkripsi per-user)
+✅ Modifikasi tombol Broadcast → kirim via Fonnte API pakai token staff yang login
+✅ Tampilkan status pengiriman (berhasil/gagal per nomor)

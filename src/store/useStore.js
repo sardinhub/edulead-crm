@@ -610,6 +610,137 @@ export const useStore = create(
     return { success: false, error: error?.message };
   },
 
+  // ─── Unregistered Students (Siswa Belum Daftar) ─────────────────────────
+  unregisteredStudents: [],
+
+  fetchUnregisteredStudents: async () => {
+    const { user } = get();
+    if (!user) return;
+
+    let query = supabase
+      .from('unregistered_students')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const isPrivileged = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
+    if (!isPrivileged) {
+      query = query.eq('staff_name', user.name);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+      set({ unregisteredStudents: data });
+    } else if (error) {
+      console.error('Gagal fetch unregistered students:', error);
+    }
+  },
+
+  importUnregisteredStudents: async (studentsArray) => {
+    const { error } = await supabase
+      .from('unregistered_students')
+      .insert(studentsArray);
+
+    if (error) {
+      console.error('Gagal import unregistered students:', error);
+      return { success: false, error: error.message };
+    }
+
+    get().fetchUnregisteredStudents();
+    return { success: true };
+  },
+
+  deleteUnregisteredStudent: async (id) => {
+    const { error } = await supabase
+      .from('unregistered_students')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        unregisteredStudents: state.unregisteredStudents.filter(s => s.id !== id)
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
+
+  deleteAllUnregisteredStudents: async (staffName = null) => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    let query = supabase.from('unregistered_students').delete().gte('created_at', '1970-01-01');
+    if (staffName && staffName !== 'all') {
+      query = query.eq('staff_name', staffName);
+    }
+
+    const { error } = await query;
+    if (!error) {
+      if (staffName && staffName !== 'all') {
+        set((state) => ({
+          unregisteredStudents: state.unregisteredStudents.filter(s => s.staff_name !== staffName)
+        }));
+      } else {
+        set({ unregisteredStudents: [] });
+      }
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
+
+  convertUnregisteredToLead: async (student) => {
+    // Pindahkan dari unregistered_students ke leads_recap
+    const leadData = {
+      student_name: student.student_name,
+      school: student.school,
+      phone: student.phone,
+      program: student.program || '',
+      note: 'PENDAFTARAN',
+      referral: student.referral || '',
+      staff_id: student.staff_id,
+      staff_name: student.staff_name,
+    };
+
+    const { error } = await supabase.from('leads_recap').insert([leadData]);
+    if (error) {
+      console.error('Gagal konversi ke leads:', error);
+      return { success: false, error: error.message };
+    }
+
+    // Hapus dari unregistered_students setelah berhasil dipindahkan
+    await get().deleteUnregisteredStudent(student.id);
+    get().fetchLeadsRecap();
+    return { success: true };
+  },
+
+  convertAllUnregisteredToLeads: async (studentsArray) => {
+    const leads = studentsArray.map(s => ({
+      student_name: s.student_name,
+      school: s.school,
+      phone: s.phone,
+      program: s.program || '',
+      note: 'PENDAFTARAN',
+      referral: s.referral || '',
+      staff_id: s.staff_id,
+      staff_name: s.staff_name,
+    }));
+
+    const { error } = await supabase.from('leads_recap').insert(leads);
+    if (error) {
+      console.error('Gagal konversi semua ke leads:', error);
+      return { success: false, error: error.message };
+    }
+
+    // Hapus semua yang sudah dikonversi
+    const ids = studentsArray.map(s => s.id);
+    await supabase.from('unregistered_students').delete().in('id', ids);
+    
+    set((state) => ({
+      unregisteredStudents: state.unregisteredStudents.filter(s => !ids.includes(s.id))
+    }));
+    get().fetchLeadsRecap();
+    return { success: true };
+  },
+
   convertLeadToStudent: async (lead) => {
     // lead: data dari tabel leads_recap
     // Map ke format tabel students
