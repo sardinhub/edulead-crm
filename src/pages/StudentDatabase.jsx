@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle } from 'lucide-react';
+import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle, Search, Check } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -9,14 +9,34 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
+const KONVERSI_LIST = [
+  { id: 'Pendaftaran',   label: 'Pendaftaran',   color: 'bg-indigo-500',  chip: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
+  { id: 'DP Pangkal',   label: 'DP Pangkal',    color: 'bg-amber-500',   chip: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  { id: 'Pangkal Lunas',label: 'Pangkal Lunas', color: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  { id: 'Biaya Seragam',label: 'Biaya Seragam', color: 'bg-violet-500',  chip: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  { id: 'Biaya Asrama', label: 'Biaya Asrama',  color: 'bg-sky-500',    chip: 'bg-sky-50 text-sky-700 ring-sky-200' },
+];
+
+function deriveStatus(checklist) {
+  const has = (v) => checklist.includes(v);
+  if (has('Pendaftaran') && has('Pangkal Lunas')) return 'Pendaftaran+Pangkal Full';
+  if (has('Pendaftaran') && has('DP Pangkal'))    return 'Pendaftaran+DP Pangkal';
+  if (has('Pangkal Lunas')) return 'Pangkal Full';
+  if (has('DP Pangkal'))    return 'DP Pembayaran Pangkal';
+  if (has('Pendaftaran'))   return 'Baru mendaftar';
+  return checklist.join(' + ') || 'Baru mendaftar';
+}
+
 export default function StudentDatabase() {
   const { 
     students, addStudent, updateStudent, deleteStudent, syncMonevWithRecap,
-    user, marketingStaff, fetchMarketingStaff 
+    user, marketingStaff, fetchMarketingStaff,
+    leadsRecap, fetchLeadsRecap
   } = useStore();
   
   useEffect(() => {
     fetchMarketingStaff();
+    fetchLeadsRecap();
   }, [fetchMarketingStaff]);
 
   // Form State
@@ -34,6 +54,38 @@ export default function StudentDatabase() {
     priority_score: 50,
     status_current: 'Pendaftaran'
   });
+
+  // Checklist & Autocomplete state
+  const [statusChecklist, setStatusChecklist] = useState(['Pendaftaran']);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Gabungkan sumber autocomplete: leadsRecap + students
+  const allSources = useMemo(() => {
+    const fromLeads = (leadsRecap || []).map(l => ({ nama: l.student_name, telepon: l.phone || '', asal_sekolah: l.school || '' }));
+    const fromStudents = (students || []).map(s => ({ nama: s.nama, telepon: s.telepon || '', asal_sekolah: s.asal_sekolah || '' }));
+    const merged = [...fromLeads, ...fromStudents];
+    // Deduplicate by nama
+    const seen = new Set();
+    return merged.filter(s => { if (!s.nama || seen.has(s.nama)) return false; seen.add(s.nama); return true; });
+  }, [leadsRecap, students]);
+
+  const suggestions = useMemo(() => {
+    if (!formData.nama || formData.nama.length < 2) return [];
+    return allSources.filter(s => s.nama.toLowerCase().includes(formData.nama.toLowerCase())).slice(0, 7);
+  }, [formData.nama, allSources]);
+
+  const handleSelectStudent = (s) => {
+    setFormData(f => ({ ...f, nama: s.nama, telepon: s.telepon, asal_sekolah: s.asal_sekolah }));
+    setShowSuggestions(false);
+  };
+
+  const handleToggleKonversi = (id) => {
+    setStatusChecklist(prev => {
+      const next = prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id];
+      setFormData(f => ({ ...f, status_pembayaran: deriveStatus(next) }));
+      return next;
+    });
+  };
 
   const [isSuccess, setIsSuccess] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -140,36 +192,60 @@ export default function StudentDatabase() {
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
+            {/* Nama Siswa — Autocomplete */}
+            <div className="space-y-3 relative">
               <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">Nama Lengkap Siswa</label>
-              <input 
-                required 
-                placeholder="cth: Ahmad Fauzi" 
-                value={formData.nama} 
-                onChange={e => setFormData({...formData, nama: e.target.value})} 
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-300 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  required
+                  placeholder="cth: Ahmad Fauzi (ketik untuk cari)"
+                  value={formData.nama}
+                  onChange={e => { setFormData({...formData, nama: e.target.value}); setShowSuggestions(true); }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 180)}
+                  onFocus={() => setShowSuggestions(true)}
+                  className="w-full pl-10 pr-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all text-slate-800 font-semibold"
+                />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                    {suggestions.map((s, i) => (
+                      <button key={i} type="button" onMouseDown={() => handleSelectStudent(s)}
+                        className="w-full text-left px-4 py-3 hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0">
+                        <p className="font-bold text-slate-800 text-sm">{s.nama}</p>
+                        <div className="flex gap-2 mt-0.5">
+                          <span className="text-[10px] text-emerald-600 font-medium">{s.telepon}</span>
+                          {s.telepon && s.asal_sekolah && <span className="text-[10px] text-slate-300">·</span>}
+                          <span className="text-[10px] text-slate-400">{s.asal_sekolah}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">
+                WhatsApp Aktif
+                {formData.telepon && <span className="ml-2 text-emerald-500 font-normal normal-case text-[10px]">✓ terisi otomatis</span>}
+              </label>
+              <input
+                required type="tel" placeholder="08... (otomatis terisi)"
+                value={formData.telepon}
+                onChange={e => setFormData({...formData, telepon: e.target.value})}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all text-slate-800 font-semibold"
               />
             </div>
 
             <div className="space-y-3">
-              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">WhatsApp Aktif</label>
-              <input 
-                required 
-                type="tel" 
-                placeholder="08..." 
-                value={formData.telepon} 
-                onChange={e => setFormData({...formData, telepon: e.target.value})} 
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all text-slate-800 font-semibold"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">Asal Sekolah</label>
-              <input 
-                required 
-                placeholder="SMA/SMK Negeri..." 
-                value={formData.asal_sekolah} 
-                onChange={e => setFormData({...formData, asal_sekolah: e.target.value})} 
+              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">
+                Asal Sekolah
+                {formData.asal_sekolah && <span className="ml-2 text-emerald-500 font-normal normal-case text-[10px]">✓ terisi otomatis</span>}
+              </label>
+              <input
+                required placeholder="SMA/SMK Negeri... (otomatis terisi)"
+                value={formData.asal_sekolah}
+                onChange={e => setFormData({...formData, asal_sekolah: e.target.value})}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all text-slate-800 font-semibold"
               />
             </div>
@@ -185,19 +261,31 @@ export default function StudentDatabase() {
               />
             </div>
 
-            <div className="space-y-3 md:col-span-1">
-              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">Status Konversi</label>
-              <select 
-                value={formData.status_pembayaran} 
-                onChange={e => setFormData({...formData, status_pembayaran: e.target.value})} 
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-bold text-slate-600 cursor-pointer"
-              >
-                <option value="Baru mendaftar">Pendaftaran Baru (Cold)</option>
-                <option value="DP Pembayaran Pangkal">DP Pangkal (Convert to DP)</option>
-                <option value="Pangkal Full">Pangkal Lunas (WON)</option>
-                <option value="Pendaftaran+DP Pangkal">Daftar + Langsung DP</option>
-                <option value="Pendaftaran+Pangkal Full">Daftar + Langsung Lunas</option>
-              </select>
+            <div className="space-y-3 md:col-span-2">
+              <label className="text-[xs] font-black text-slate-400 uppercase tracking-tighter ml-1">Status Konversi <span className="font-normal normal-case text-slate-300">(centang semua yang sesuai)</span></label>
+              <div className="flex flex-wrap gap-3 pt-1">
+                {KONVERSI_LIST.map(opt => {
+                  const checked = statusChecklist.includes(opt.id);
+                  return (
+                    <button key={opt.id} type="button" onClick={() => handleToggleKonversi(opt.id)}
+                      className={`flex items-center gap-2.5 px-5 py-3.5 rounded-2xl border-2 font-bold text-sm transition-all ${
+                        checked
+                          ? `${opt.chip} border-current ring-1 shadow-md`
+                          : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                      }`}>
+                      <span className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+                        checked ? `${opt.color} border-current` : 'border-slate-300'
+                      }`}>
+                        {checked && <Check className="w-3 h-3 text-white" />}
+                      </span>
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {statusChecklist.length > 0 && (
+                <p className="text-[10px] text-slate-400 ml-1">→ Akan disimpan sebagai: <span className="font-bold text-indigo-600">{formData.status_pembayaran}</span></p>
+              )}
             </div>
 
             <div className="space-y-3">
