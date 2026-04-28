@@ -260,7 +260,7 @@ export default function ReceiptModal({ student, onClose }) {
                 </tr>
               </tbody>
             </table>
-            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Register by: Divisi Acounting ---</div>
+            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Diterbitkan oleh: Divisi Keuangan ---</div>
           </div>
         </div>
       </div>
