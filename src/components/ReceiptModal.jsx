@@ -49,13 +49,13 @@ export default function ReceiptModal({ student, onClose }) {
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    const printWindow = window.open('', '_blank', 'width=560,height=790');
     printWindow.document.write(`<!DOCTYPE html><html><head><title>Kwitansi - ${student.nama}</title>
 <style>
-  @page { size: A5 landscape; margin: 10mm; }
+  @page { size: A5 portrait; margin: 8mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #1a1a2e; padding: 16px; }
-  .receipt { max-width: 720px; margin: auto; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; }
+  .receipt { max-width: 500px; margin: auto; }
   .header { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
   .header img { height: 55px; width: auto; }
   .header-title { background: #1a1a5e; color: white; padding: 8px 28px; font-size: 15px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
