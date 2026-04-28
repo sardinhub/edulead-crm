@@ -228,6 +228,7 @@ export default function ReceiptModal({ student, onClose }) {
                       <li>Uang yang sudah dibayarkan tidak dapat ditarik Kembali</li>
                       <li>Bukti ini disimpan dengan baik dan harus diperlihatkan pada pembayaran berikutnya</li>
                       <li>Semua jenis pembayaran melalui rekening BRI Lembaga Pendidikan Triesakti Indonesia dengan No. Rekening: <strong>2085-01-000301-565</strong></li>
+                      <li>Kwitansi digital memiliki kekuatan hukum yang sah sebagai pengganti bukti pembayaran kertas</li>
                     </ul>
                   </td>
                   <td style={{border:'1px solid #ccc',verticalAlign:'top',padding:0}}>
