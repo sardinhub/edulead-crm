@@ -177,14 +177,18 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         <div className="p-6" ref={printRef}>
           <div className="receipt">
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
-              <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto' }} />
-              <div style={{ background: '#1a1a5e', color: 'white', padding: '10px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '1', display: 'inline-flex', alignItems: 'center' }}>BUKTI PEMBAYARAN</div>
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '12px' }}>
-                <span style={{ color: '#fff', background: '#1a1a5e', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '1', display: 'inline-flex', alignItems: 'center' }}>No.</span>
-                <span style={{ border: '1.5px solid #1a1a5e', padding: '6px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1' }}>{form.noKwitansi || '—'}</span>
-              </div>
-            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '4px' }}><tbody><tr>
+              <td style={{ verticalAlign: 'middle', padding: '0 16px 0 0', width: 'auto' }}>
+                <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto', display: 'block' }} />
+              </td>
+              <td style={{ verticalAlign: 'middle', padding: 0 }}>
+                <div style={{ background: '#1a1a5e', color: 'white', padding: '10px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '15px', textAlign: 'center', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
+              </td>
+              <td style={{ verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap', padding: 0 }}>
+                <span style={{ color: '#fff', background: '#1a1a5e', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
+                <span style={{ border: '1.5px solid #1a1a5e', padding: '6px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px', lineHeight: '14px' }}>{form.noKwitansi || '—'}</span>
+              </td>
+            </tr></tbody></table>
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
 
             {/* Form Section */}
