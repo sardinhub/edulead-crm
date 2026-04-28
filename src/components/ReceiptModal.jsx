@@ -177,7 +177,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         <div className="p-6" ref={printRef}>
           <div className="receipt">
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px', marginTop: '24px' }}>
               <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto' }} />
               <div style={{ background: '#1a1a5e', color: 'white', padding: '8px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>BUKTI PEMBAYARAN</div>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '12px' }}>
