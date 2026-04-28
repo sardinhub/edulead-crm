@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileSearch, Search, Download, Filter, User, Printer } from 'lucide-react';
+import { FileSearch, Search, Download, Filter, User, Printer, FileText } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import ReceiptModal from '../components/ReceiptModal';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -13,6 +14,7 @@ export default function MonevRecap() {
   const { students, marketingStaff, user } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStaff, setFilterStaff] = useState('all');
+  const [receiptStudent, setReceiptStudent] = useState(null);
 
   // Authorize: Only Manager or specific privileged staff (Ayu)
   const isAuthorized = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
@@ -144,6 +146,7 @@ export default function MonevRecap() {
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">PIC Staff</th>
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">Catatan Progres</th>
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">Tanggal</th>
+                <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -187,11 +190,21 @@ export default function MonevRecap() {
                   <td className="px-6 py-5">
                     <span className="text-[10px] font-bold text-slate-400">{item.tanggal_daftar || item.created_at?.split('T')[0]}</span>
                   </td>
+                  <td className="px-6 py-5 text-center">
+                    <button
+                      onClick={() => setReceiptStudent(item)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold hover:bg-indigo-100 hover:scale-105 active:scale-95 transition-all ring-1 ring-indigo-100"
+                      title="Cetak Kwitansi"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Kwitansi
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-slate-300 italic font-medium">
+                  <td colSpan={7} className="px-6 py-20 text-center text-slate-300 italic font-medium">
                     Tidak ada data monev yang sesuai dengan filter pencarian.
                   </td>
                 </tr>
@@ -215,6 +228,11 @@ export default function MonevRecap() {
           .p-6, .p-8 { padding: 10px !important; }
         }
       `}} />
+
+      {/* Receipt Modal */}
+      {receiptStudent && (
+        <ReceiptModal student={receiptStudent} onClose={() => setReceiptStudent(null)} />
+      )}
     </div>
   );
 }
