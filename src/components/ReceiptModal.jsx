@@ -60,33 +60,8 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; }
   .receipt { max-width: 500px; margin: auto; }
-  .header { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
-  .header img { height: 55px; width: auto; }
-  .header-title { background: #1a1a5e; color: white; padding: 8px 28px; font-size: 15px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
-  .header-no { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 12px; }
-  .header-no span { color: #fff; background: #1a1a5e; padding: 4px 10px; border-radius: 4px; font-size: 11px; }
-  .header-no input { border: 1.5px solid #1a1a5e; padding: 4px 10px; width: 100px; font-weight: bold; text-align: center; }
-  .program { text-align: center; font-weight: 900; font-size: 14px; letter-spacing: 1px; margin: 8px 0 14px; color: #1a1a5e; }
-  .form-section { border: 1.5px solid #ccc; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; }
-  .form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 11.5px; }
-  .form-row label { font-weight: 700; min-width: 120px; white-space: nowrap; }
-  .form-row .val { flex: 1; border-bottom: 1.5px solid #bbb; padding: 2px 6px; min-height: 18px; font-weight: 600; }
-  .form-row .val-short { width: 100px; border-bottom: 1.5px solid #bbb; padding: 2px 6px; min-height: 18px; font-weight: 600; text-align: center; }
-  .form-row .label-mid { font-weight: 700; margin-left: 12px; white-space: nowrap; }
-  .tbl { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 10.5px; }
-  .tbl th { background: #1a1a5e; color: #fff; padding: 6px 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #1a1a5e; }
-  .tbl td { padding: 6px 8px; border: 1px solid #ccc; vertical-align: top; }
-  .tbl .warn { background: #eef; }
-  .tbl .warn-title { background: #1a1a5e; color: #fff; font-weight: 800; text-align: center; padding: 4px; text-transform: uppercase; }
-  .sign-row { display: flex; justify-content: space-between; }
-  .sign-col { text-align: center; min-width: 120px; }
-  .sign-col .name { font-weight: 900; margin-top: 50px; text-decoration: underline; }
-  .footer { text-align: center; margin-top: 10px; font-size: 10px; color: #888; letter-spacing: 2px; }
   ul { padding-left: 14px; margin: 0; }
   ul li { margin-bottom: 2px; font-size: 10px; }
-  .metode-box { text-align: center; padding-top: 8px; }
-  .metode-label { font-size: 10px; color: #666; }
-  .metode-val { font-weight: 900; font-size: 12px; }
 </style></head><body>`);
     printWindow.document.write(content.innerHTML);
     printWindow.document.write('</body></html>');
@@ -182,11 +157,11 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                 <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto', display: 'block' }} />
               </td>
               <td style={{ verticalAlign: 'middle', padding: 0 }}>
-                <div style={{ background: '#1a1a5e', color: 'white', padding: '6px 28px 12px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '15px', textAlign: 'center', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
+                <div style={{ background: '#1a1a5e', color: 'white', height: '36px', lineHeight: '36px', paddingLeft: '28px', paddingRight: '28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
               </td>
               <td style={{ verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap', padding: 0 }}>
-                <span style={{ color: '#fff', background: '#1a1a5e', padding: '4px 10px 8px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
-                <span style={{ border: '1.5px solid #1a1a5e', padding: '4px 14px 8px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px', lineHeight: '14px' }}>{form.noKwitansi || '—'}</span>
+                <span style={{ color: '#fff', background: '#1a1a5e', height: '24px', lineHeight: '24px', paddingLeft: '10px', paddingRight: '10px', borderRadius: '4px', fontSize: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
+                <span style={{ border: '1.5px solid #1a1a5e', height: '28px', lineHeight: '28px', paddingLeft: '14px', paddingRight: '14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px' }}>{form.noKwitansi || '—'}</span>
               </td>
             </tr></tbody></table>
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
