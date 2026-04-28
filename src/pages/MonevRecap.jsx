@@ -18,6 +18,7 @@ export default function MonevRecap() {
 
   // Authorize: Only Manager or specific privileged staff (Ayu)
   const isAuthorized = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
+  const isManager = user?.role === 'Manager';
 
   if (!isAuthorized) {
     return (
@@ -146,7 +147,7 @@ export default function MonevRecap() {
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">PIC Staff</th>
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">Catatan Progres</th>
                 <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider">Tanggal</th>
-                <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider text-center">Aksi</th>
+                {isManager && <th className="px-6 py-5 font-black text-slate-400 text-[10px] uppercase tracking-wider text-center">Aksi</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -190,6 +191,7 @@ export default function MonevRecap() {
                   <td className="px-6 py-5">
                     <span className="text-[10px] font-bold text-slate-400">{item.tanggal_daftar || item.created_at?.split('T')[0]}</span>
                   </td>
+                  {isManager && (
                   <td className="px-6 py-5 text-center">
                     <button
                       onClick={() => setReceiptStudent(item)}
@@ -200,11 +202,12 @@ export default function MonevRecap() {
                       Kwitansi
                     </button>
                   </td>
+                  )}
                 </tr>
               ))}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center text-slate-300 italic font-medium">
+                  <td colSpan={isManager ? 7 : 6} className="px-6 py-20 text-center text-slate-300 italic font-medium">
                     Tidak ada data monev yang sesuai dengan filter pencarian.
                   </td>
                 </tr>
@@ -231,7 +234,7 @@ export default function MonevRecap() {
 
       {/* Receipt Modal */}
       {receiptStudent && (
-        <ReceiptModal student={receiptStudent} onClose={() => setReceiptStudent(null)} />
+        <ReceiptModal student={receiptStudent} onClose={() => setReceiptStudent(null)} picStaff={receiptStudent?.pic_staff} />
       )}
     </div>
   );

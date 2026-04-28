@@ -17,7 +17,7 @@ function angkaTerbilang(angka) {
   return String(angka);
 }
 
-export default function ReceiptModal({ student, onClose }) {
+export default function ReceiptModal({ student, onClose, picStaff }) {
   const printRef = useRef(null);
   const [form, setForm] = useState({
     noKwitansi: '',
@@ -207,7 +207,7 @@ export default function ReceiptModal({ student, onClose }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Terbilang</label>
-                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600, fontStyle: 'italic' }}>{terbilang || '—'}</div>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 700, fontStyle: 'italic', textTransform: 'uppercase' }}>{terbilang || '—'}</div>
               </div>
             </div>
 
@@ -218,19 +218,21 @@ export default function ReceiptModal({ student, onClose }) {
                   <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Total Biaya</th>
                   <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Dibayar</th>
                   <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Sisa Pembayaran</th>
-                  <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc' }} rowSpan={2}>Tanggal Pembayaran<br /><span style={{ fontWeight: 600, fontSize: '11px' }}>{tglBayar}</span></th>
+                  <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc', fontStyle: 'italic' }}>Tanggal Pembayaran</th>
+                  <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc' }}>{tglBayar ? new Date(tglBayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : '—'}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {totalBiaya > 0 ? totalBiaya.toLocaleString('id-ID') : '—'}</td>
                   <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {uangSebanyak.toLocaleString('id-ID')}</td>
-                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {sisaBayar > 0 ? sisaBayar.toLocaleString('id-ID') : '0'}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 900 }}>{sisaBayar <= 0 && totalBiaya > 0 ? 'LUNAS' : (sisaBayar > 0 ? `Rp ${sisaBayar.toLocaleString('id-ID')}` : '—')}</td>
+                  <td colSpan={2} style={{ border: '1px solid #ccc' }}></td>
                 </tr>
                 <tr>
                   <td colSpan={2} style={{ border: '1px solid #ccc', padding: 0, verticalAlign: 'top' }}>
                     <div style={{ background: '#1a1a5e', color: '#fff', fontWeight: 800, textAlign: 'center', padding: '4px', textTransform: 'uppercase', fontSize: '10px' }}>Perhatian</div>
-                    <ul style={{ padding: '6px 6px 6px 22px', margin: 0, fontSize: '9.5px', lineHeight: '1.5', listStyleType: 'disc' }}>
+                    <ul style={{ padding: '6px 6px 6px 22px', margin: 0, fontSize: '9.5px', lineHeight: '1.5', listStyleType: 'disc', fontStyle: 'italic' }}>
                       <li>Uang yang sudah dibayarkan tidak dapat ditarik Kembali</li>
                       <li>Bukti ini disimpan dengan baik dan harus diperlihatkan pada pembayaran berikutnya</li>
                       <li>Semua jenis pembayaran melalui rekening BRI Lembaga Pendidikan Triesakti Indonesia dengan No. Rekening: <strong>2085-01-000301-565</strong></li>
@@ -247,26 +249,24 @@ export default function ReceiptModal({ student, onClose }) {
                       <div style={{ fontWeight: 900, fontSize: '12px' }}>{form.metode}</div>
                     </div>
                   </td>
-                  <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penyetor,</div>
-                      <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                      </div>
-                      <div style={{ borderTop: '1px solid #aaa', paddingTop: '4px', fontWeight: 600, fontSize: '10px' }}>({student.nama})</div>
+                  <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penyetor,</div>
+                    <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                     </div>
-                    <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penerima,</div>
-                      <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
-                      </div>
-                      <div style={{ fontWeight: 900, textDecoration: 'underline' }}>{form.penerima}</div>
+                    <div style={{ borderTop: '1px solid #aaa', paddingTop: '4px', fontWeight: 600, fontSize: '10px' }}>({student.nama})</div>
+                  </td>
+                  <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penerima,</div>
+                    <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
                     </div>
+                    <div style={{ fontWeight: 900, textDecoration: 'underline' }}>{form.penerima}</div>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Diterbitkan oleh: Divisi Keuangan ---</div>
+            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Register by {(picStaff || student.pic_staff || '').toUpperCase()} ---</div>
           </div>
         </div>
       </div>
