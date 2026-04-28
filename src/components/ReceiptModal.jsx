@@ -131,27 +131,27 @@ export default function ReceiptModal({ student, onClose }) {
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-3">
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">No. Kwitansi</label>
-            <input value={form.noKwitansi} onChange={e => setForm({...form, noKwitansi: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="001/KW/2026" />
+            <input value={form.noKwitansi} onChange={e => setForm({ ...form, noKwitansi: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="001/KW/2026" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Angkatan</label>
-            <input value={form.angkatan} onChange={e => setForm({...form, angkatan: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="2026" />
+            <input value={form.angkatan} onChange={e => setForm({ ...form, angkatan: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="2026" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Total Biaya Program</label>
-            <input type="number" value={form.totalBiaya} onChange={e => setForm({...form, totalBiaya: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="15000000" />
+            <input type="number" value={form.totalBiaya} onChange={e => setForm({ ...form, totalBiaya: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="15000000" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Untuk Pembayaran</label>
-            <input value={form.untukPembayaran} onChange={e => setForm({...form, untukPembayaran: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
+            <input value={form.untukPembayaran} onChange={e => setForm({ ...form, untukPembayaran: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Jatuh Tempo</label>
-            <input type="date" value={form.jatuhTempo} onChange={e => setForm({...form, jatuhTempo: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
+            <input type="date" value={form.jatuhTempo} onChange={e => setForm({ ...form, jatuhTempo: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Program Studi</label>
-            <select value={form.programStudi} onChange={e => setForm({...form, programStudi: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer">
+            <select value={form.programStudi} onChange={e => setForm({ ...form, programStudi: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer">
               <option value="AVSEC">AVSEC</option>
               <option value="Ground Staff">Ground Staff</option>
               <option value="Flight Attendant">Flight Attendant</option>
@@ -159,7 +159,7 @@ export default function ReceiptModal({ student, onClose }) {
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Metode Bayar</label>
-            <select value={form.metode} onChange={e => setForm({...form, metode: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer">
+            <select value={form.metode} onChange={e => setForm({ ...form, metode: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer">
               <option>TRANSFER BANK</option>
               <option>TUNAI</option>
               <option>LAINNYA</option>
@@ -171,96 +171,96 @@ export default function ReceiptModal({ student, onClose }) {
         <div className="p-6" ref={printRef}>
           <div className="receipt">
             {/* Header */}
-            <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'4px'}}>
-              <img src="/logo-trisakti.png" alt="Logo" style={{height:'55px',width:'auto'}} />
-              <div style={{background:'#1a1a5e',color:'white',padding:'8px 28px',fontSize:'15px',fontWeight:900,letterSpacing:'2px',textTransform:'uppercase'}}>BUKTI PEMBAYARAN</div>
-              <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:'6px',fontWeight:'bold',fontSize:'12px'}}>
-                <span style={{color:'#fff',background:'#1a1a5e',padding:'4px 10px',borderRadius:'4px',fontSize:'11px'}}>No.</span>
-                <span style={{border:'1.5px solid #1a1a5e',padding:'4px 14px',fontWeight:900,minWidth:'80px',display:'inline-block',textAlign:'center'}}>{form.noKwitansi || '—'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
+              <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto' }} />
+              <div style={{ background: '#1a1a5e', color: 'white', padding: '8px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>BUKTI PEMBAYARAN</div>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                <span style={{ color: '#fff', background: '#1a1a5e', padding: '4px 10px', borderRadius: '4px', fontSize: '11px' }}>No.</span>
+                <span style={{ border: '1.5px solid #1a1a5e', padding: '4px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center' }}>{form.noKwitansi || '—'}</span>
               </div>
             </div>
-            <div style={{textAlign:'center',fontWeight:900,fontSize:'14px',letterSpacing:'1px',margin:'8px 0 14px',color:'#1a1a5e'}}>PROGRAM STUDI: {programStudi}</div>
+            <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
 
             {/* Form Section */}
-            <div style={{border:'1.5px solid #ccc',borderRadius:'6px',padding:'14px 18px',marginBottom:'14px'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px',fontSize:'11.5px'}}>
-                <label style={{fontWeight:700,minWidth:'120px'}}>Sudah terima dari</label>
-                <div style={{flex:1,borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600}}>{student.nama}</div>
+            <div style={{ border: '1.5px solid #ccc', borderRadius: '6px', padding: '14px 18px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+                <label style={{ fontWeight: 700, minWidth: '120px' }}>Sudah terima dari</label>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{student.nama}</div>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px',fontSize:'11.5px'}}>
-                <label style={{fontWeight:700,minWidth:'120px'}}>Asal Sekolah</label>
-                <div style={{flex:1,borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600}}>{student.asal_sekolah}</div>
-                <span style={{fontWeight:700,marginLeft:'12px'}}>Angkatan</span>
-                <div style={{width:'80px',borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600,textAlign:'center'}}>{form.angkatan || '—'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+                <label style={{ fontWeight: 700, minWidth: '120px' }}>Asal Sekolah</label>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{student.asal_sekolah}</div>
+                <span style={{ fontWeight: 700, marginLeft: '12px' }}>Angkatan</span>
+                <div style={{ width: '80px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600, textAlign: 'center' }}>{form.angkatan || '—'}</div>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px',fontSize:'11.5px'}}>
-                <label style={{fontWeight:700,minWidth:'120px'}}>Uang Sebanyak</label>
-                <div style={{width:'140px',borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600}}>Rp {dibayar.toLocaleString('id-ID')}</div>
-                <span style={{fontWeight:700,marginLeft:'12px'}}>Untuk Pembayaran</span>
-                <div style={{flex:1,borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600}}>{form.untukPembayaran || '—'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+                <label style={{ fontWeight: 700, minWidth: '120px' }}>Uang Sebanyak</label>
+                <div style={{ width: '140px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>Rp {dibayar.toLocaleString('id-ID')}</div>
+                <span style={{ fontWeight: 700, marginLeft: '12px' }}>Untuk Pembayaran</span>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{form.untukPembayaran || '—'}</div>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'8px',fontSize:'11.5px'}}>
-                <label style={{fontWeight:700,minWidth:'120px'}}>Terbilang</label>
-                <div style={{flex:1,borderBottom:'1.5px solid #bbb',padding:'2px 6px',fontWeight:600,fontStyle:'italic'}}>{terbilang || '—'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px' }}>
+                <label style={{ fontWeight: 700, minWidth: '120px' }}>Terbilang</label>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600, fontStyle: 'italic' }}>{terbilang || '—'}</div>
               </div>
             </div>
 
             {/* Table */}
-            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'10.5px',marginBottom:'4px'}}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10.5px', marginBottom: '4px' }}>
               <thead>
                 <tr>
-                  <th style={{background:'#1a1a5e',color:'#fff',padding:'6px 8px',fontWeight:800,border:'1px solid #1a1a5e',textTransform:'uppercase'}}>Total Biaya</th>
-                  <th style={{background:'#1a1a5e',color:'#fff',padding:'6px 8px',fontWeight:800,border:'1px solid #1a1a5e',textTransform:'uppercase'}}>Dibayar</th>
-                  <th style={{background:'#1a1a5e',color:'#fff',padding:'6px 8px',fontWeight:800,border:'1px solid #1a1a5e',textTransform:'uppercase'}}>Sisa Pembayaran</th>
-                  <th style={{background:'#fff',padding:'6px 8px',fontWeight:800,border:'1px solid #ccc'}} rowSpan={2}>Tanggal Pembayaran<br/><span style={{fontWeight:600,fontSize:'11px'}}>{tglBayar}</span></th>
+                  <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Total Biaya</th>
+                  <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Dibayar</th>
+                  <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Sisa Pembayaran</th>
+                  <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc' }} rowSpan={2}>Tanggal Pembayaran<br /><span style={{ fontWeight: 600, fontSize: '11px' }}>{tglBayar}</span></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style={{padding:'6px 8px',border:'1px solid #ccc',textAlign:'center',fontWeight:700}}>Rp {totalBiaya > 0 ? totalBiaya.toLocaleString('id-ID') : '—'}</td>
-                  <td style={{padding:'6px 8px',border:'1px solid #ccc',textAlign:'center',fontWeight:700}}>Rp {dibayar.toLocaleString('id-ID')}</td>
-                  <td style={{padding:'6px 8px',border:'1px solid #ccc',textAlign:'center',fontWeight:700}}>Rp {sisaBayar > 0 ? sisaBayar.toLocaleString('id-ID') : '0'}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {totalBiaya > 0 ? totalBiaya.toLocaleString('id-ID') : '—'}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {dibayar.toLocaleString('id-ID')}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {sisaBayar > 0 ? sisaBayar.toLocaleString('id-ID') : '0'}</td>
                 </tr>
                 <tr>
-                  <td colSpan={2} style={{border:'1px solid #ccc',padding:0,verticalAlign:'top'}}>
-                    <div style={{background:'#1a1a5e',color:'#fff',fontWeight:800,textAlign:'center',padding:'4px',textTransform:'uppercase',fontSize:'10px'}}>Perhatian</div>
-                    <ul style={{padding:'6px 6px 6px 22px',margin:0,fontSize:'9.5px',lineHeight:'1.5',listStyleType:'disc'}}>
+                  <td colSpan={2} style={{ border: '1px solid #ccc', padding: 0, verticalAlign: 'top' }}>
+                    <div style={{ background: '#1a1a5e', color: '#fff', fontWeight: 800, textAlign: 'center', padding: '4px', textTransform: 'uppercase', fontSize: '10px' }}>Perhatian</div>
+                    <ul style={{ padding: '6px 6px 6px 22px', margin: 0, fontSize: '9.5px', lineHeight: '1.5', listStyleType: 'disc' }}>
                       <li>Uang yang sudah dibayarkan tidak dapat ditarik Kembali</li>
                       <li>Bukti ini disimpan dengan baik dan harus diperlihatkan pada pembayaran berikutnya</li>
                       <li>Semua jenis pembayaran melalui rekening BRI Lembaga Pendidikan Triesakti Indonesia dengan No. Rekening: <strong>2085-01-000301-565</strong></li>
-                      <li>Kwitansi digital memiliki kekuatan hukum yang sah sebagai pengganti bukti pembayaran kertas</li>
+                      <li>Kwitansi digital ini memiliki kekuatan hukum yang sah sebagai pengganti bukti pembayaran kertas</li>
                     </ul>
                   </td>
-                  <td style={{border:'1px solid #ccc',verticalAlign:'top',padding:0}}>
-                    <div style={{background:'#1a1a5e',color:'#fff',fontWeight:800,textAlign:'center',padding:'4px',textTransform:'uppercase',fontSize:'10px'}}>Jatuh Tempo</div>
-                    <div style={{textAlign:'center',padding:'8px',fontWeight:700,fontSize:'11px'}}>
-                      {form.jatuhTempo ? new Date(form.jatuhTempo).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '—'}
+                  <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: 0 }}>
+                    <div style={{ background: '#1a1a5e', color: '#fff', fontWeight: 800, textAlign: 'center', padding: '4px', textTransform: 'uppercase', fontSize: '10px' }}>Jatuh Tempo</div>
+                    <div style={{ textAlign: 'center', padding: '8px', fontWeight: 700, fontSize: '11px' }}>
+                      {form.jatuhTempo ? new Date(form.jatuhTempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                     </div>
-                    <div style={{textAlign:'center',paddingTop:'8px'}}>
-                      <div style={{fontSize:'9px',color:'#666'}}>Metode Pembayaran</div>
-                      <div style={{fontWeight:900,fontSize:'12px'}}>{form.metode}</div>
+                    <div style={{ textAlign: 'center', paddingTop: '8px' }}>
+                      <div style={{ fontSize: '9px', color: '#666' }}>Metode Pembayaran</div>
+                      <div style={{ fontWeight: 900, fontSize: '12px' }}>{form.metode}</div>
                     </div>
                   </td>
-                  <td style={{border:'1px solid #ccc',verticalAlign:'top',padding:'8px'}}>
-                    <div style={{textAlign:'center'}}>
-                      <div style={{fontWeight:700,marginBottom:'4px'}}>Penyetor,</div>
-                      <div style={{height:'50px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penyetor,</div>
+                      <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                       </div>
-                      <div style={{borderTop:'1px solid #aaa',paddingTop:'4px',fontWeight:600,fontSize:'10px'}}>({student.nama})</div>
+                      <div style={{ borderTop: '1px solid #aaa', paddingTop: '4px', fontWeight: 600, fontSize: '10px' }}>({student.nama})</div>
                     </div>
-                    <div style={{textAlign:'center',marginTop:'16px'}}>
-                      <div style={{fontWeight:700,marginBottom:'4px'}}>Penerima,</div>
-                      <div style={{height:'80px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                        <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{height:'80px',width:'auto',objectFit:'contain'}} />
+                    <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penerima,</div>
+                      <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
                       </div>
-                      <div style={{fontWeight:900,textDecoration:'underline'}}>{form.penerima}</div>
+                      <div style={{ fontWeight: 900, textDecoration: 'underline' }}>{form.penerima}</div>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div style={{textAlign:'center',marginTop:'10px',fontSize:'10px',color:'#888',letterSpacing:'2px'}}>--- Register by ---</div>
+            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Register by ---</div>
           </div>
         </div>
       </div>
