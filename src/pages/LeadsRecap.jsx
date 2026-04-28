@@ -33,6 +33,7 @@ export default function LeadsRecap() {
   const [selectedStaff, setSelectedStaff] = useState('');
   const [previewData, setPreviewData] = useState([]);
   const [filterStaff, setFilterStaff] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [manualLead, setManualLead] = useState({
@@ -401,13 +402,22 @@ export default function LeadsRecap() {
   };
 
   const filteredLeads = leadsRecap.filter(l => {
+    const term = searchTerm.toLowerCase();
+    const currentStatus = l.status || 'Belum Dihubungi';
     const matchesSearch = 
-      l.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.school?.toLowerCase().includes(searchTerm.toLowerCase());
+      l.student_name.toLowerCase().includes(term) ||
+      l.school?.toLowerCase().includes(term) ||
+      currentStatus.toLowerCase().includes(term);
     
     const matchesStaff = filterStaff === 'all' || l.staff_name === filterStaff;
     
-    return matchesSearch && matchesStaff;
+    const matchesStatus = filterStatus === 'all' || (() => {
+      if (filterStatus === 'DONE') return l.note?.toUpperCase()?.includes('PANGKAL LUNAS');
+      if (filterStatus === 'Belum Dihubungi') return !l.status || l.status === 'Belum Dihubungi';
+      return l.status === filterStatus;
+    })();
+    
+    return matchesSearch && matchesStaff && matchesStatus;
   });
 
   // --- Handlers Broadcast WA ---
@@ -604,15 +614,30 @@ export default function LeadsRecap() {
       {/* Filter & Table Container */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-slate-50 flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Cari nama siswa atau sekolah..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2.5 w-full bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all outline-none"
-            />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder="Cari nama, sekolah, atau status..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4 py-2.5 w-full bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all outline-none"
+              />
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-violet-500/10 min-w-[170px] cursor-pointer"
+            >
+              <option value="all">Semua Status</option>
+              <option value="Belum Dihubungi">⏳ Belum Dihubungi</option>
+              <option value="Tertarik">✅ Tertarik</option>
+              <option value="Janji Datang">📅 Janji Datang</option>
+              <option value="Tidak Tertarik">❌ Tidak Tertarik</option>
+              <option value="Tidak dapat dihubungi">📵 Tidak dapat dihubungi</option>
+              <option value="DONE">🏁 DONE (Pangkal Lunas)</option>
+            </select>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
