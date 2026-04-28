@@ -44,7 +44,9 @@ export default function ReceiptModal({ student, onClose }) {
   const sisaBayar = totalBiaya > 0 ? totalBiaya - dibayar : 0;
   const tglBayar = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
   const terbilang = dibayar > 0 ? angkaTerbilang(dibayar) + ' Rupiah' : '';
-  const programStudi = student.program_interest || '-';
+  const programStudi = student.program_interest && student.program_interest !== 'Reguler' 
+    ? student.program_interest 
+    : (student.program || student.jurusan || student.prodi || '-');
 
   const handlePrint = () => {
     const content = printRef.current;
