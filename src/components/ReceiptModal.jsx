@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Printer } from 'lucide-react';
+import { X, Printer, Download, Image } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 // Fungsi konversi angka ke terbilang Bahasa Indonesia
 function angkaTerbilang(angka) {
@@ -91,6 +92,20 @@ export default function ReceiptModal({ student, onClose }) {
     setTimeout(() => { printWindow.print(); }, 400);
   };
 
+  const handleDownloadPNG = async () => {
+    const content = printRef.current;
+    if (!content) return;
+    const canvas = await html2canvas(content, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+    const link = document.createElement('a');
+    link.download = `Kwitansi_${student.nama.replace(/\s+/g, '_')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -100,6 +115,9 @@ export default function ReceiptModal({ student, onClose }) {
             <Printer className="w-5 h-5 text-indigo-600" /> Preview Kwitansi
           </h2>
           <div className="flex items-center gap-2">
+            <button onClick={handleDownloadPNG} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md">
+              <Image className="w-4 h-4" /> Simpan PNG
+            </button>
             <button onClick={handlePrint} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
               <Printer className="w-4 h-4" /> Cetak
             </button>
