@@ -224,7 +224,7 @@ export default function ReceiptModal({ student, onClose }) {
                 <tr>
                   <td colSpan={2} style={{border:'1px solid #ccc',padding:0,verticalAlign:'top'}}>
                     <div style={{background:'#1a1a5e',color:'#fff',fontWeight:800,textAlign:'center',padding:'4px',textTransform:'uppercase',fontSize:'10px'}}>Perhatian</div>
-                    <ul style={{padding:'6px 6px 6px 18px',margin:0,fontSize:'9.5px',lineHeight:'1.5'}}>
+                    <ul style={{padding:'6px 6px 6px 22px',margin:0,fontSize:'9.5px',lineHeight:'1.5',listStyleType:'disc'}}>
                       <li>Uang yang sudah dibayarkan tidak dapat ditarik Kembali</li>
                       <li>Bukti ini disimpan dengan baik dan harus diperlihatkan pada pembayaran berikutnya</li>
                       <li>Semua jenis pembayaran melalui rekening BRI Lembaga Pendidikan Triesakti Indonesia dengan No. Rekening: <strong>2085-01-000301-565</strong></li>
