@@ -182,11 +182,11 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                 <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto', display: 'block' }} />
               </td>
               <td style={{ verticalAlign: 'middle', padding: 0 }}>
-                <div style={{ background: '#1a1a5e', color: 'white', padding: '10px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '15px', textAlign: 'center', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
+                <div style={{ background: '#1a1a5e', color: 'white', padding: '6px 28px 12px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '15px', textAlign: 'center', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
               </td>
               <td style={{ verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap', padding: 0 }}>
-                <span style={{ color: '#fff', background: '#1a1a5e', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
-                <span style={{ border: '1.5px solid #1a1a5e', padding: '6px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px', lineHeight: '14px' }}>{form.noKwitansi || '—'}</span>
+                <span style={{ color: '#fff', background: '#1a1a5e', padding: '4px 10px 8px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
+                <span style={{ border: '1.5px solid #1a1a5e', padding: '4px 14px 8px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px', lineHeight: '14px' }}>{form.noKwitansi || '—'}</span>
               </td>
             </tr></tbody></table>
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
