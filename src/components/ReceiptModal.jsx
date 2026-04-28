@@ -188,26 +188,26 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
 
             {/* Form Section */}
-            <div style={{ border: '1.5px solid #ccc', borderRadius: '6px', padding: '14px 18px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+            <div style={{ border: '1.5px solid #ccc', borderRadius: '6px', padding: '16px 18px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Sudah terima dari</label>
-                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{student.nama}</div>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 600 }}>{student.nama}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Asal Sekolah</label>
-                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{student.asal_sekolah}</div>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 600 }}>{student.asal_sekolah}</div>
                 <span style={{ fontWeight: 700, marginLeft: '12px' }}>Angkatan</span>
-                <div style={{ width: '80px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600, textAlign: 'center' }}>{form.angkatan || '—'}</div>
+                <div style={{ width: '80px', borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 600, textAlign: 'center' }}>{form.angkatan || '—'}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Uang Sebanyak</label>
-                <div style={{ width: '140px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>Rp {uangSebanyak.toLocaleString('id-ID')}</div>
+                <div style={{ width: '140px', borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 600 }}>Rp {uangSebanyak.toLocaleString('id-ID')}</div>
                 <span style={{ fontWeight: 700, marginLeft: '12px' }}>Untuk Pembayaran</span>
-                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{form.untukPembayaran || '—'}</div>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 600 }}>{form.untukPembayaran || '—'}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Terbilang</label>
-                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 700, fontStyle: 'italic', textTransform: 'uppercase' }}>{terbilang || '—'}</div>
+                <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '4px 6px', fontWeight: 700, fontStyle: 'italic', textTransform: 'uppercase' }}>{terbilang || '—'}</div>
               </div>
             </div>
 
