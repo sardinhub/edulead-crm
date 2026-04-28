@@ -179,10 +179,10 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
               <img src="/logo-trisakti.png" alt="Logo" style={{ height: '55px', width: 'auto' }} />
-              <div style={{ background: '#1a1a5e', color: 'white', padding: '8px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', position: 'relative', top: '-8px' }}>BUKTI PEMBAYARAN</div>
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '12px', position: 'relative', top: '-8px' }}>
-                <span style={{ color: '#fff', background: '#1a1a5e', padding: '4px 10px', borderRadius: '4px', fontSize: '11px' }}>No.</span>
-                <span style={{ border: '1.5px solid #1a1a5e', padding: '4px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center' }}>{form.noKwitansi || '—'}</span>
+              <div style={{ background: '#1a1a5e', color: 'white', padding: '10px 28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', lineHeight: '1', display: 'inline-flex', alignItems: 'center' }}>BUKTI PEMBAYARAN</div>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '12px' }}>
+                <span style={{ color: '#fff', background: '#1a1a5e', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '1', display: 'inline-flex', alignItems: 'center' }}>No.</span>
+                <span style={{ border: '1.5px solid #1a1a5e', padding: '6px 14px', fontWeight: 900, minWidth: '80px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1' }}>{form.noKwitansi || '—'}</span>
               </div>
             </div>
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
