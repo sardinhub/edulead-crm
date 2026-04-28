@@ -216,12 +216,16 @@ export default function ReceiptModal({ student, onClose }) {
                   <td style={{border:'1px solid #ccc',verticalAlign:'top',padding:'8px'}}>
                     <div style={{textAlign:'center'}}>
                       <div style={{fontWeight:700,marginBottom:'4px'}}>Penyetor,</div>
-                      <div style={{height:'50px'}}></div>
+                      <div style={{height:'50px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                      </div>
                       <div style={{borderTop:'1px solid #aaa',paddingTop:'4px',fontWeight:600,fontSize:'10px'}}>({student.nama})</div>
                     </div>
                     <div style={{textAlign:'center',marginTop:'16px'}}>
                       <div style={{fontWeight:700,marginBottom:'4px'}}>Penerima,</div>
-                      <div style={{height:'50px'}}></div>
+                      <div style={{height:'80px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{height:'80px',width:'auto',objectFit:'contain'}} />
+                      </div>
                       <div style={{fontWeight:900,textDecoration:'underline'}}>{form.penerima}</div>
                     </div>
                   </td>
