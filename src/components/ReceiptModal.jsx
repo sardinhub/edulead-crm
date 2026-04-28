@@ -23,6 +23,7 @@ export default function ReceiptModal({ student, onClose }) {
     noKwitansi: '',
     angkatan: '',
     totalBiaya: '',
+    uangSebanyak: '',
     untukPembayaran: '',
     jatuhTempo: '',
     metode: 'TRANSFER BANK',
@@ -35,17 +36,18 @@ export default function ReceiptModal({ student, onClose }) {
       setForm(f => ({
         ...f,
         untukPembayaran: student.status_pembayaran || '',
+        uangSebanyak: String(student.nominal_pembayaran || ''),
       }));
     }
   }, [student]);
 
   if (!student) return null;
 
-  const dibayar = Number(student.nominal_pembayaran || 0);
+  const uangSebanyak = Number(form.uangSebanyak || 0);
   const totalBiaya = Number(form.totalBiaya || 0);
-  const sisaBayar = totalBiaya > 0 ? totalBiaya - dibayar : 0;
+  const sisaBayar = totalBiaya > 0 ? totalBiaya - uangSebanyak : 0;
   const tglBayar = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
-  const terbilang = dibayar > 0 ? angkaTerbilang(dibayar) + ' Rupiah' : '';
+  const terbilang = uangSebanyak > 0 ? angkaTerbilang(uangSebanyak) + ' Rupiah' : '';
   const programStudi = form.programStudi;
 
   const handlePrint = () => {
@@ -138,6 +140,10 @@ export default function ReceiptModal({ student, onClose }) {
             <input value={form.angkatan} onChange={e => setForm({ ...form, angkatan: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="2026" />
           </div>
           <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase">Uang Sebanyak (Rp)</label>
+            <input type="number" value={form.uangSebanyak} onChange={e => setForm({ ...form, uangSebanyak: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="6650000" />
+          </div>
+          <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Total Biaya Program</label>
             <input type="number" value={form.totalBiaya} onChange={e => setForm({ ...form, totalBiaya: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" placeholder="15000000" />
           </div>
@@ -195,7 +201,7 @@ export default function ReceiptModal({ student, onClose }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '11.5px' }}>
                 <label style={{ fontWeight: 700, minWidth: '120px' }}>Uang Sebanyak</label>
-                <div style={{ width: '140px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>Rp {dibayar.toLocaleString('id-ID')}</div>
+                <div style={{ width: '140px', borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>Rp {uangSebanyak.toLocaleString('id-ID')}</div>
                 <span style={{ fontWeight: 700, marginLeft: '12px' }}>Untuk Pembayaran</span>
                 <div style={{ flex: 1, borderBottom: '1.5px solid #bbb', padding: '2px 6px', fontWeight: 600 }}>{form.untukPembayaran || '—'}</div>
               </div>
@@ -218,7 +224,7 @@ export default function ReceiptModal({ student, onClose }) {
               <tbody>
                 <tr>
                   <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {totalBiaya > 0 ? totalBiaya.toLocaleString('id-ID') : '—'}</td>
-                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {dibayar.toLocaleString('id-ID')}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {uangSebanyak.toLocaleString('id-ID')}</td>
                   <td style={{ padding: '6px 8px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 700 }}>Rp {sisaBayar > 0 ? sisaBayar.toLocaleString('id-ID') : '0'}</td>
                 </tr>
                 <tr>
