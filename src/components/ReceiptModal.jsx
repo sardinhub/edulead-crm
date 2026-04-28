@@ -26,6 +26,7 @@ export default function ReceiptModal({ student, onClose }) {
     jatuhTempo: '',
     metode: 'TRANSFER BANK',
     penerima: 'SRI RAHAYU',
+    programStudi: 'AVSEC',
   });
 
   useEffect(() => {
@@ -44,9 +45,7 @@ export default function ReceiptModal({ student, onClose }) {
   const sisaBayar = totalBiaya > 0 ? totalBiaya - dibayar : 0;
   const tglBayar = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
   const terbilang = dibayar > 0 ? angkaTerbilang(dibayar) + ' Rupiah' : '';
-  const programStudi = student.program_interest && student.program_interest !== 'Reguler' 
-    ? student.program_interest 
-    : (student.program || student.jurusan || student.prodi || '-');
+  const programStudi = form.programStudi;
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -131,6 +130,14 @@ export default function ReceiptModal({ student, onClose }) {
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Jatuh Tempo</label>
             <input type="date" value={form.jatuhTempo} onChange={e => setForm({...form, jatuhTempo: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase">Program Studi</label>
+            <select value={form.programStudi} onChange={e => setForm({...form, programStudi: e.target.value})} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer">
+              <option value="AVSEC">AVSEC</option>
+              <option value="Ground Staff">Ground Staff</option>
+              <option value="Flight Attendant">Flight Attendant</option>
+            </select>
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-500 uppercase">Metode Bayar</label>
