@@ -796,6 +796,23 @@ export const useStore = create(
     }
   },
 
+  clearLoginLogs: async () => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase
+      .from('login_logs')
+      .delete()
+      .gte('created_at', '1970-01-01');
+
+    if (!error) {
+      set({ loginLogs: [] });
+      return { success: true };
+    }
+    console.error('Gagal hapus login logs:', error);
+    return { success: false, error: error.message };
+  },
+
   // ─── Team Chat ────────────────────────────────────────────────────
   chatMessages: [],
   unreadCounts: {}, // { contactId: number }

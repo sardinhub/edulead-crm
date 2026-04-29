@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { History, Search, Monitor, Tablet, Smartphone, User, Clock, Calendar } from 'lucide-react';
+import { History, Search, Monitor, Tablet, Smartphone, User, Clock, Calendar, Trash2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -10,7 +10,7 @@ function cn(...inputs) {
 }
 
 export default function LoginLogs() {
-  const { loginLogs, fetchLoginLogs, user } = useStore();
+  const { loginLogs, fetchLoginLogs, clearLoginLogs, user } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -71,6 +71,21 @@ export default function LoginLogs() {
             Monitor Aktivitas Login Seluruh Tim
           </p>
         </div>
+        <button
+          onClick={async () => {
+            if (!window.confirm('Apakah Anda yakin ingin menghapus SEMUA data log login? Tindakan ini tidak dapat dibatalkan.')) return;
+            const result = await clearLoginLogs();
+            if (result?.success) {
+              alert('Semua data log berhasil dihapus.');
+            } else {
+              alert('Gagal menghapus log: ' + (result?.error || 'Unknown error'));
+            }
+          }}
+          className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-red-100 transition-all ring-1 ring-red-100 hover:scale-105 active:scale-95"
+        >
+          <Trash2 className="w-4 h-4" />
+          Clear Data Log
+        </button>
       </div>
 
       {/* Search Bar */}
