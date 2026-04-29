@@ -149,8 +149,29 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         </div>
 
         {/* Receipt Preview (ini yang dicetak) */}
-        <div className="p-6" ref={printRef}>
-          <div className="receipt">
+        <div className="p-6" ref={printRef} style={{ position: 'relative', overflow: 'hidden' }}>
+          {/* Watermark LUNAS */}
+          {sisaBayar <= 0 && totalBiaya > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-35deg)',
+              fontSize: '72px',
+              fontWeight: 900,
+              color: 'rgba(22, 163, 74, 0.13)',
+              letterSpacing: '12px',
+              textTransform: 'uppercase',
+              pointerEvents: 'none',
+              zIndex: 1,
+              whiteSpace: 'nowrap',
+              border: '4px solid rgba(22, 163, 74, 0.13)',
+              padding: '10px 40px',
+              borderRadius: '12px',
+              fontFamily: "'Segoe UI', Arial, sans-serif",
+            }}>LUNAS</div>
+          )}
+          <div className="receipt" style={{ position: 'relative', zIndex: 0 }}>
             {/* Header */}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '4px' }}><tbody><tr>
               <td style={{ verticalAlign: 'middle', padding: '0 16px 0 0', width: 'auto' }}>
