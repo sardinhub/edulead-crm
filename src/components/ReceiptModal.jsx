@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Printer, Download, Image } from 'lucide-react';
+import { X, Printer, Download, Image, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Fungsi konversi angka ke terbilang Bahasa Indonesia
 function angkaTerbilang(angka) {
@@ -58,10 +59,13 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
 <style>
   @page { size: A5 portrait; margin: 8mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; }
-  .receipt { max-width: 500px; margin: auto; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; line-height: 1.4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .receipt { width: 500px; margin: auto; }
   ul { padding-left: 14px; margin: 0; }
   ul li { margin-bottom: 2px; font-size: 10px; }
+  table { border-collapse: collapse; }
+  img { max-width: 100%; }
+  svg { display: inline-block; }
 </style></head><body>`);
     printWindow.document.write(content.innerHTML);
     printWindow.document.write('</body></html>');
@@ -83,6 +87,44 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
     link.click();
   };
 
+  const handleDownloadPDF = async () => {
+    const content = printRef.current;
+    if (!content) return;
+    const canvas = await html2canvas(content, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+    const imgData = canvas.toDataURL('image/png');
+    // A5 portrait: 148mm x 210mm
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a5',
+    });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgRatio = canvas.width / canvas.height;
+    const pdfRatio = pdfWidth / pdfHeight;
+
+    let finalWidth, finalHeight;
+    if (imgRatio > pdfRatio) {
+      // Image is wider relative to page
+      finalWidth = pdfWidth - 10; // 5mm margin each side
+      finalHeight = finalWidth / imgRatio;
+    } else {
+      // Image is taller relative to page
+      finalHeight = pdfHeight - 14; // 7mm margin top/bottom
+      finalWidth = finalHeight * imgRatio;
+    }
+
+    const x = (pdfWidth - finalWidth) / 2;
+    const y = 7; // 7mm from top
+
+    pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+    pdf.save(`Kwitansi_${student.nama.replace(/\s+/g, '_')}.pdf`);
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -92,10 +134,13 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
             <Printer className="w-5 h-5 text-indigo-600" /> Preview Kwitansi
           </h2>
           <div className="flex items-center gap-2">
-            <button onClick={handleDownloadPNG} className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md">
+            <button onClick={handleDownloadPDF} className="px-4 py-2 bg-rose-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-rose-700 transition-all shadow-md">
+              <FileText className="w-4 h-4" /> Simpan PDF
+            </button>
+            <button onClick={handleDownloadPNG} className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md">
               <Image className="w-4 h-4" /> Simpan PNG
             </button>
-            <button onClick={handlePrint} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
+            <button onClick={handlePrint} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
               <Printer className="w-4 h-4" /> Cetak
             </button>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all">
@@ -149,7 +194,8 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         </div>
 
         {/* Receipt Preview (ini yang dicetak) */}
-        <div className="p-6" ref={printRef}>
+        <div style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}>
+          <div ref={printRef} style={{ width: '520px', background: '#ffffff', padding: '20px', fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: '11px', color: '#1a1a2e', lineHeight: '1.4' }}>
           <div className="receipt">
             {/* Header */}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '4px' }}><tbody><tr>
@@ -246,6 +292,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
               </tbody>
             </table>
             <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#888', letterSpacing: '2px' }}>--- Register by {(picStaff || student.pic_staff || '').toUpperCase()} ---</div>
+          </div>
           </div>
         </div>
       </div>
