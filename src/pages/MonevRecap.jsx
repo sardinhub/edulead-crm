@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileSearch, Search, Download, Filter, User, Printer, FileText, MessageCircle } from 'lucide-react';
+import { FileSearch, Search, Download, Filter, User, Printer, FileText } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ReceiptModal from '../components/ReceiptModal';
 import { clsx } from 'clsx';
@@ -193,26 +193,14 @@ export default function MonevRecap() {
                   </td>
                   {isManager && (
                   <td className="px-6 py-5 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button
-                        onClick={() => setReceiptStudent(item)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold hover:bg-indigo-100 hover:scale-105 active:scale-95 transition-all ring-1 ring-indigo-100"
-                        title="Cetak Kwitansi"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        Kwitansi
-                      </button>
-                      <a
-                        href={`https://wa.me/6285346540060?text=${encodeURIComponent(`Mohon dibantu untuk cetak kwitansi atas nama ${item.nama}, ${item.status_pembayaran || '-'}, Rp ${Number(item.nominal_pembayaran || 0).toLocaleString('id-ID')}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-bold hover:bg-emerald-100 hover:scale-105 active:scale-95 transition-all ring-1 ring-emerald-100"
-                        title="Kirim WA Cetak Kwitansi"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        WA
-                      </a>
-                    </div>
+                    <button
+                      onClick={() => setReceiptStudent(item)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold hover:bg-indigo-100 hover:scale-105 active:scale-95 transition-all ring-1 ring-indigo-100"
+                      title="Cetak Kwitansi"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Kwitansi
+                    </button>
                   </td>
                   )}
                 </tr>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle, Search, Check } from 'lucide-react';
+import { Plus, ClipboardEdit, CheckCircle2, Edit, Trash2, Save, XCircle, Search, Check, MessageCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -397,6 +397,15 @@ export default function StudentDatabase() {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <a
+                        href={`https://wa.me/6285346540060?text=${encodeURIComponent(`Mohon dibantu untuk cetak kwitansi atas nama ${item.nama}, ${item.status_pembayaran || '-'}, Rp ${Number(item.nominal_pembayaran || 0).toLocaleString('id-ID')}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all hover:scale-110"
+                        title="Kirim WA Cetak Kwitansi"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
                       <button 
                         onClick={() => handleEdit(item)}
                         className="p-2.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-all hover:scale-110"
