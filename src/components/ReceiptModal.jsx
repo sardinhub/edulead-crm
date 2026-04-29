@@ -159,9 +159,11 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
               <td style={{ verticalAlign: 'middle', padding: 0 }}>
                 <div style={{ background: '#1a1a5e', color: 'white', height: '36px', lineHeight: '36px', paddingLeft: '28px', paddingRight: '28px', fontSize: '15px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', display: 'inline-block' }}>BUKTI PEMBAYARAN</div>
               </td>
-              <td style={{ verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap', padding: 0 }}>
-                <span style={{ color: '#fff', background: '#1a1a5e', height: '24px', lineHeight: '24px', paddingLeft: '10px', paddingRight: '10px', borderRadius: '4px', fontSize: '11px', display: 'inline-block', verticalAlign: 'middle' }}>No.</span>
-                <span style={{ border: '1.5px solid #1a1a5e', height: '28px', lineHeight: '28px', paddingLeft: '14px', paddingRight: '14px', fontWeight: 900, minWidth: '80px', display: 'inline-block', textAlign: 'center', verticalAlign: 'middle', marginLeft: '6px' }}>{form.noKwitansi || '—'}</span>
+              <td style={{ verticalAlign: 'middle', padding: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                  <span style={{ color: '#fff', background: '#1a1a5e', padding: '5px 10px', borderRadius: '4px', fontSize: '11px', lineHeight: '14px' }}>No.</span>
+                  <span style={{ border: '1.5px solid #1a1a5e', padding: '5px 14px', fontWeight: 900, minWidth: '80px', textAlign: 'center', fontSize: '13px', lineHeight: '16px' }}>{form.noKwitansi || '—'}</span>
+                </div>
               </td>
             </tr></tbody></table>
             <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14px', letterSpacing: '1px', margin: '8px 0 14px', color: '#1a1a5e' }}>PROGRAM STUDI: {programStudi}</div>
