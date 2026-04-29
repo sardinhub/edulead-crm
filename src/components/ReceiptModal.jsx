@@ -238,7 +238,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                   <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px', textAlign: 'center' }}>
                     <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penerima,</div>
                     <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
+                      <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ maxHeight: '80px', maxWidth: '100%', width: 'auto', height: 'auto' }} />
                     </div>
                     <div style={{ fontWeight: 900, textDecoration: 'underline' }}>{form.penerima}</div>
                   </td>
