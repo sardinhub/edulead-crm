@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Award, TrendingUp, Users, Calendar, Map, PieChart, Star, Medal, Trophy } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
