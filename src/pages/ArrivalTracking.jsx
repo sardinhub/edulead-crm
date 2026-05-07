@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Search, Filter, User, CheckCircle2, Plane, XCircle, Clock, LayoutGrid, List } from 'lucide-react';
+import { MapPin, Search, Filter, User, CheckCircle2, Plane, XCircle, Clock, LayoutGrid, List, MessageCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -47,6 +47,13 @@ export default function ArrivalTracking() {
   const allLunasLeads = useMemo(() => {
     return leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS'));
   }, [leadsRecap]);
+
+  const handleWhatsApp = (phone) => {
+    if (!phone) return;
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+  };
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
@@ -127,7 +134,17 @@ export default function ArrivalTracking() {
                     </div>
                   </td>
                   <td className="px-6 py-5 text-center">
-                    <span className="text-xs font-bold text-indigo-500">{item.phone || '—'}</span>
+                    {item.phone ? (
+                      <button
+                        onClick={() => handleWhatsApp(item.phone)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-bold hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all shadow-sm shadow-emerald-200"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        {item.phone}
+                      </button>
+                    ) : (
+                      <span className="text-slate-300 text-xs">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">

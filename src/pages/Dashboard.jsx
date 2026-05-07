@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane, XCircle, ChevronDown, X } from 'lucide-react';
+import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane, XCircle, ChevronDown, X, MessageCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -100,6 +100,13 @@ export default function Dashboard() {
       return lunasLeads.filter(l => l.arrival_status === 'BATAL');
     }
     return lunasLeads.filter(l => l.arrival_status === statusId);
+  };
+
+  const handleWhatsApp = (phone, name) => {
+    if (!phone) return;
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
   };
 
   // Kalkulasi Dinamis dari Students Database
@@ -264,6 +271,7 @@ export default function Dashboard() {
                             <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Sekolah</th>
                             <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Telepon</th>
                             <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">PIC Staff</th>
+                            <th className="px-5 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-wider">WhatsApp</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -274,6 +282,19 @@ export default function Dashboard() {
                               <td className="px-5 py-3 text-slate-500 text-xs">{lead.school || '—'}</td>
                               <td className="px-5 py-3 text-indigo-500 font-bold text-xs">{lead.phone || '—'}</td>
                               <td className="px-5 py-3 text-slate-600 text-xs font-semibold">{lead.staff_name || '—'}</td>
+                              <td className="px-5 py-3 text-center">
+                                {lead.phone ? (
+                                  <button
+                                    onClick={() => handleWhatsApp(lead.phone, lead.student_name)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all shadow-sm shadow-emerald-200"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    Hubungi
+                                  </button>
+                                ) : (
+                                  <span className="text-slate-300 text-xs">—</span>
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
