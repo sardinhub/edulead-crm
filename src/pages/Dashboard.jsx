@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane, XCircle, ChevronDown, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -79,10 +79,28 @@ const TargetWidget = ({ current, target, userName }) => {
 export default function Dashboard() {
   const { user, students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
+  const [arrivalPanel, setArrivalPanel] = useState(null); // null | 'AKTIF' | 'PROSES' | 'BATAL' | 'GELOMBANG_2'
 
   React.useEffect(() => {
     fetchLeadsRecap();
   }, []);
+
+  // Leads yang sudah PANGKAL LUNAS
+  const lunasLeads = leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS'));
+
+  const arrivalCategories = [
+    { id: 'AKTIF', label: 'Sudah di Kampus', bg: 'bg-emerald-600', hoverBg: 'hover:bg-emerald-700', icon: CheckCircle2, textMuted: 'text-emerald-100', shadow: 'shadow-emerald-100', borderColor: 'border-emerald-400' },
+    { id: 'PROSES', label: 'Dalam Perjalanan', bg: 'bg-sky-600', hoverBg: 'hover:bg-sky-700', icon: Plane, textMuted: 'text-sky-100', shadow: 'shadow-sky-100', borderColor: 'border-sky-400' },
+    { id: 'BATAL', label: 'Batal Gabung', bg: 'bg-slate-800', hoverBg: 'hover:bg-slate-900', icon: XCircle, textMuted: 'text-slate-300', shadow: 'shadow-slate-100', borderColor: 'border-slate-500' },
+    { id: 'GELOMBANG_2', label: 'Gelombang 2', bg: 'bg-violet-600', hoverBg: 'hover:bg-violet-700', icon: Clock, textMuted: 'text-violet-100', shadow: 'shadow-violet-100', borderColor: 'border-violet-400' },
+  ];
+
+  const getStudentsByArrival = (statusId) => {
+    if (statusId === 'BATAL') {
+      return lunasLeads.filter(l => l.arrival_status === 'BATAL');
+    }
+    return lunasLeads.filter(l => l.arrival_status === statusId);
+  };
 
   // Kalkulasi Dinamis dari Students Database
   const totalStudents = students.length;
@@ -169,49 +187,103 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* New: Arrival Statistics Row (dari Rekap Leads PANGKAL LUNAS) */}
+          {/* Arrival Statistics Row - Clickable Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            <div className="bg-emerald-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-100 flex items-center justify-between">
-              <div>
-                <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Sudah di Kampus</p>
-                <h3 className="text-3xl font-black mt-1">{leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && l.arrival_status === 'AKTIF').length}</h3>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="bg-sky-600 rounded-2xl p-6 text-white shadow-lg shadow-sky-100 flex items-center justify-between">
-              <div>
-                <p className="text-sky-100 text-xs font-bold uppercase tracking-wider">Dalam Perjalanan</p>
-                <h3 className="text-3xl font-black mt-1">{leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && l.arrival_status === 'PROSES').length}</h3>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Plane className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="bg-slate-800 rounded-2xl p-6 text-white shadow-lg shadow-slate-100 flex items-center justify-between">
-              <div>
-                <p className="text-slate-300 text-xs font-bold uppercase tracking-wider">Batal / Gel. 2</p>
-                <h3 className="text-3xl font-black mt-1">
-                  {leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && (l.arrival_status === 'BATAL' || l.arrival_status === 'GELOMBANG_2')).length}
-                </h3>
-              </div>
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-slate-300" />
-              </div>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Belum Konfirmasi</p>
-                <h3 className="text-2xl font-black text-slate-700 mt-1">
-                  {leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && (!l.arrival_status || l.arrival_status === 'BELUM KONFIRMASI')).length}
-                </h3>
-              </div>
-              <div className="text-slate-200">
-                <Clock className="w-8 h-8" />
-              </div>
-            </div>
+            {arrivalCategories.map(cat => {
+              const Icon = cat.icon;
+              const count = getStudentsByArrival(cat.id).length;
+              const isActive = arrivalPanel === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setArrivalPanel(isActive ? null : cat.id)}
+                  className={cn(
+                    cat.bg, cat.hoverBg,
+                    "rounded-2xl p-6 text-white shadow-lg", cat.shadow,
+                    "flex items-center justify-between cursor-pointer transition-all text-left w-full",
+                    isActive && "ring-4 ring-white/30 scale-[1.02]"
+                  )}
+                >
+                  <div>
+                    <p className={cn("text-xs font-bold uppercase tracking-wider", cat.textMuted)}>{cat.label}</p>
+                    <h3 className="text-3xl font-black mt-1">{count}</h3>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <ChevronDown className={cn("w-4 h-4 text-white/50 transition-transform", isActive && "rotate-180")} />
+                  </div>
+                </button>
+              );
+            })}
           </div>
+
+          {/* Expandable Student List Panel */}
+          <AnimatePresence>
+            {arrivalPanel && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden mt-4"
+              >
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+                  <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-3">
+                      {(() => {
+                        const cat = arrivalCategories.find(c => c.id === arrivalPanel);
+                        const Icon = cat?.icon || Users;
+                        return (
+                          <>
+                            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", cat?.bg)}>
+                              <Icon className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-slate-800 text-sm">Daftar Siswa — {cat?.label}</h3>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase">{getStudentsByArrival(arrivalPanel).length} siswa</p>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <button onClick={() => setArrivalPanel(null)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {getStudentsByArrival(arrivalPanel).length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 italic text-sm">Belum ada siswa dalam kategori ini.</div>
+                    ) : (
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50 sticky top-0 z-10">
+                          <tr>
+                            <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">No</th>
+                            <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Nama Siswa</th>
+                            <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Sekolah</th>
+                            <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Telepon</th>
+                            <th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">PIC Staff</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {getStudentsByArrival(arrivalPanel).map((lead, idx) => (
+                            <tr key={lead.id} className="hover:bg-indigo-50/40 transition-colors">
+                              <td className="px-5 py-3 text-slate-400 font-bold text-xs">{idx + 1}</td>
+                              <td className="px-5 py-3 font-bold text-slate-800 uppercase tracking-tight">{lead.student_name}</td>
+                              <td className="px-5 py-3 text-slate-500 text-xs">{lead.school || '—'}</td>
+                              <td className="px-5 py-3 text-indigo-500 font-bold text-xs">{lead.phone || '—'}</td>
+                              <td className="px-5 py-3 text-slate-600 text-xs font-semibold">{lead.staff_name || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         {user?.role !== 'Manager' ? (
