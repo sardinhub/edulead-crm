@@ -13,7 +13,9 @@ function cn(...inputs) {
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'Analitik & Leaderboard', path: '/leaderboard', icon: Award },
   { name: 'Progress Monev Leads', path: '/database', icon: Users },
+  { name: 'Kedatangan Siswa', path: '/arrival', icon: MapPin },
   { name: 'Team Chat', path: '/chat', icon: MessageCircle },
   { name: 'Scheduler', path: '/scheduler', icon: CalendarDays, managerOnly: true },
   { name: 'Daftar Karyawan', path: '/users', icon: Shield, managerOnly: true },

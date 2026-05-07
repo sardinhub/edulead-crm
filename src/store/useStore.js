@@ -301,6 +301,28 @@ export const useStore = create(
     }
   },
 
+  updateArrivalStatus: async (id, newArrivalStatus) => {
+    // Optimistic UI Update
+    set((state) => ({
+      students: state.students.map(s => 
+        s.id === id ? { ...s, arrival_status: newArrivalStatus } : s
+      )
+    }));
+    
+    // DB update
+    const { error } = await supabase
+      .from('students')
+      .update({ arrival_status: newArrivalStatus })
+      .eq('id', id);
+      
+    if (error) {
+      console.error("Gagal update status kedatangan:", error);
+      // Rollback if needed (optional, but good for UX)
+    } else {
+      get().logActivity(id, 'Update_Kedatangan', `Status kedatangan diubah ke: ${newArrivalStatus}`);
+    }
+  },
+
   updateFollowUp: async (id, conversationResult, labelJanji) => {
     // 1. Simpan riwayat percakapan secara permanen di activity log
     if (conversationResult) {

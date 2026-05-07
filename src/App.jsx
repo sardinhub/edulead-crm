@@ -14,6 +14,8 @@ import Guidance from './pages/Guidance';
 import MonevRecap from './pages/MonevRecap';
 import LoginLogs from './pages/LoginLogs';
 import TeamChat from './pages/TeamChat';
+import ArrivalTracking from './pages/ArrivalTracking';
+import Leaderboard from './pages/Leaderboard';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -44,6 +46,8 @@ function App() {
         <Route path="/login-logs" element={<ProtectedRoute><LoginLogs /></ProtectedRoute>} />
         <Route path="/guidance" element={<ProtectedRoute><Guidance /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><TeamChat /></ProtectedRoute>} />
+        <Route path="/arrival" element={<ProtectedRoute><ArrivalTracking /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
