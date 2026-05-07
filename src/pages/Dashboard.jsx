@@ -169,12 +169,12 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* New: Arrival Statistics Row */}
+          {/* New: Arrival Statistics Row (dari Rekap Leads PANGKAL LUNAS) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             <div className="bg-emerald-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-100 flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Sudah di Kampus</p>
-                <h3 className="text-3xl font-black mt-1">{students.filter(s => s.arrival_status === 'AKTIF').length}</h3>
+                <h3 className="text-3xl font-black mt-1">{leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && l.arrival_status === 'AKTIF').length}</h3>
               </div>
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-white" />
@@ -183,7 +183,7 @@ export default function Dashboard() {
             <div className="bg-sky-600 rounded-2xl p-6 text-white shadow-lg shadow-sky-100 flex items-center justify-between">
               <div>
                 <p className="text-sky-100 text-xs font-bold uppercase tracking-wider">Dalam Perjalanan</p>
-                <h3 className="text-3xl font-black mt-1">{students.filter(s => s.arrival_status === 'PROSES').length}</h3>
+                <h3 className="text-3xl font-black mt-1">{leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && l.arrival_status === 'PROSES').length}</h3>
               </div>
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                 <Plane className="w-6 h-6 text-white" />
@@ -193,7 +193,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-slate-300 text-xs font-bold uppercase tracking-wider">Batal / Gel. 2</p>
                 <h3 className="text-3xl font-black mt-1">
-                  {students.filter(s => s.arrival_status === 'BATAL' || s.arrival_status === 'GELOMBANG_2').length}
+                  {leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && (l.arrival_status === 'BATAL' || l.arrival_status === 'GELOMBANG_2')).length}
                 </h3>
               </div>
               <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
@@ -204,7 +204,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Belum Konfirmasi</p>
                 <h3 className="text-2xl font-black text-slate-700 mt-1">
-                  {students.filter(s => (s.status_pembayaran?.includes('Pangkal Full') || s.status_pembayaran?.includes('WON')) && (!s.arrival_status || s.arrival_status === 'BELUM KONFIRMASI')).length}
+                  {leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS') && (!l.arrival_status || l.arrival_status === 'BELUM KONFIRMASI')).length}
                 </h3>
               </div>
               <div className="text-slate-200">

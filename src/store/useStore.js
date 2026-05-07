@@ -318,8 +318,25 @@ export const useStore = create(
     if (error) {
       console.error("Gagal update status kedatangan:", error);
       // Rollback if needed (optional, but good for UX)
-    } else {
-      get().logActivity(id, 'Update_Kedatangan', `Status kedatangan diubah ke: ${newArrivalStatus}`);
+    }
+  },
+
+  updateLeadArrivalStatus: async (id, newArrivalStatus) => {
+    // Optimistic UI Update on leadsRecap
+    set((state) => ({
+      leadsRecap: state.leadsRecap.map(l => 
+        l.id === id ? { ...l, arrival_status: newArrivalStatus } : l
+      )
+    }));
+    
+    // DB update on leads_recap table
+    const { error } = await supabase
+      .from('leads_recap')
+      .update({ arrival_status: newArrivalStatus })
+      .eq('id', id);
+      
+    if (error) {
+      console.error("Gagal update status kedatangan lead:", error);
     }
   },
 

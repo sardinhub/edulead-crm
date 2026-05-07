@@ -8,7 +8,17 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
 export default function Leaderboard() {
-  const { students, leadsRecap, marketingStaff } = useStore();
+  const { 
+    students, fetchStudents, 
+    leadsRecap, fetchLeadsRecap, 
+    marketingStaff, fetchMarketingStaff 
+  } = useStore();
+
+  useEffect(() => {
+    fetchStudents();
+    fetchLeadsRecap();
+    fetchMarketingStaff();
+  }, []);
 
   // 1. Leaderboard Data (Berdasarkan ACH - Pangkal Lunas)
   const leaderboardData = useMemo(() => {
