@@ -401,6 +401,32 @@ export default function LeadsRecap() {
     window.open(`https://wa.me/${cleanPhone}`, '_blank');
   };
 
+  const handleExportLeads = () => {
+    if (filteredLeads.length === 0) {
+      alert('Tidak ada data untuk diekspor');
+      return;
+    }
+
+    const dataToExport = filteredLeads.map(l => ({
+      'Tanggal Daftar': l.created_at ? new Date(l.created_at).toLocaleDateString('id-ID') : '-',
+      'Nama Siswa': l.student_name,
+      'No. Telepon': l.phone || '-',
+      'Asal Sekolah': l.school || '-',
+      'Program': l.program || '-',
+      'Referral': l.referral || '-',
+      'Status': l.status || 'Belum Dihubungi',
+      'Keterangan': l.note || '-',
+      'PIC Staff': l.staff_name || '-'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads Recap');
+    
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Backup_Leads_Recap_${dateStr}.xlsx`);
+  };
+
   const filteredLeads = leadsRecap.filter(l => {
     const term = searchTerm.toLowerCase();
     const currentStatus = l.status || 'Belum Dihubungi';
@@ -538,6 +564,13 @@ export default function LeadsRecap() {
               </button>
             </>
           )}
+          <button 
+            onClick={handleExportLeads}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold hover:bg-emerald-100 transition-all outline-none shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Export Data
+          </button>
           <button 
             onClick={() => setIsManualModalOpen(true)}
             className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
