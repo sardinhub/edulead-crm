@@ -21,6 +21,7 @@ export default function ArrivalTracking() {
   const { leadsRecap, fetchLeadsRecap, updateLeadArrivalStatus, user } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStaff, setFilterStaff] = useState('all');
 
   useEffect(() => {
     fetchLeadsRecap();
@@ -30,18 +31,29 @@ export default function ArrivalTracking() {
   const lunasLeads = useMemo(() => {
     return leadsRecap.filter(l => {
       const isLunas = l.note?.toUpperCase().includes('PANGKAL LUNAS');
-      
-      const matchesSearch = 
+
+      const matchesSearch =
         l.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         l.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         l.phone?.includes(searchTerm);
-      
+
       const currentArrival = l.arrival_status || 'BELUM KONFIRMASI';
       const matchesArrivalStatus = filterStatus === 'all' || currentArrival === filterStatus;
 
-      return isLunas && matchesSearch && matchesArrivalStatus;
+      const matchesStaff = filterStaff === 'all' || l.staff_name === filterStaff;
+
+      return isLunas && matchesSearch && matchesArrivalStatus && matchesStaff;
     });
-  }, [leadsRecap, searchTerm, filterStatus]);
+  }, [leadsRecap, searchTerm, filterStatus, filterStaff]);
+
+  // Daftar unik PIC Staff dari semua leads PANGKAL LUNAS
+  const staffList = useMemo(() => {
+    const allLunas = leadsRecap.filter(l => l.note?.toUpperCase().includes('PANGKAL LUNAS'));
+    const names = allLunas
+      .map(l => l.staff_name)
+      .filter(Boolean);
+    return [...new Set(names)].sort();
+  }, [leadsRecap]);
 
   // Statistik (dihitung dari semua leads PANGKAL LUNAS, tanpa filter search)
   const allLunasLeads = useMemo(() => {
@@ -96,9 +108,10 @@ export default function ArrivalTracking() {
           />
         </div>
         
+        {/* Filter Status Kedatangan */}
         <div className="flex items-center gap-2 md:w-72">
-          <Filter className="w-5 h-5 text-slate-400 ml-2" />
-          <select 
+          <Filter className="w-5 h-5 text-slate-400 ml-2 shrink-0" />
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-600 cursor-pointer"
@@ -106,6 +119,21 @@ export default function ArrivalTracking() {
             <option value="all">SEMUA STATUS DATANG</option>
             {ARRIVAL_STATUSES.map(st => (
               <option key={st.id} value={st.id}>{st.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filter PIC Staff */}
+        <div className="flex items-center gap-2 md:w-64">
+          <User className="w-5 h-5 text-slate-400 ml-2 shrink-0" />
+          <select
+            value={filterStaff}
+            onChange={(e) => setFilterStaff(e.target.value)}
+            className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-600 cursor-pointer"
+          >
+            <option value="all">SEMUA PIC STAFF</option>
+            {staffList.map(name => (
+              <option key={name} value={name}>{name}</option>
             ))}
           </select>
         </div>
