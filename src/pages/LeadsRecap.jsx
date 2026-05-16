@@ -4,10 +4,11 @@ import {
   FileSpreadsheet, Download, Search, Trash2, 
   Phone, MessageCircle, Filter, X, Upload, CheckCircle2, AlertCircle,
   Users, UserPlus, Clock, ExternalLink, UserCheck, Send, Square, CheckSquare,
-  Radio, Zap, AlertTriangle, ArrowRightCircle, ChevronRight
+  Radio, Zap, AlertTriangle, ArrowRightCircle, ChevronRight, FileText
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useStore } from '../store/useStore';
+import ReceiptModal from '../components/ReceiptModal';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -63,6 +64,7 @@ export default function LeadsRecap() {
   );
   const [broadcastProgress, setBroadcastProgress] = useState(null); // { current, total }
   const broadcastIndexRef = useRef(0);
+  const [receiptLead, setReceiptLead] = useState(null);
 
   const isManager = user?.role === 'Manager';
 
@@ -866,6 +868,25 @@ export default function LeadsRecap() {
                   )}
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
+                      {/* Tombol Cetak Kwitansi — hanya untuk LUNAS PANGKAL & Manager */}
+                      {isLunas && isManager && (
+                        <button
+                          onClick={() => setReceiptLead({
+                            nama: lead.student_name,
+                            asal_sekolah: lead.school || '—',
+                            status_pembayaran: lead.note || 'PANGKAL LUNAS',
+                            nominal_pembayaran: 0,
+                            pic_staff: lead.staff_name,
+                            tanggal_daftar: lead.created_at?.split('T')[0],
+                            created_at: lead.created_at,
+                          })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold hover:bg-indigo-100 hover:scale-105 active:scale-95 transition-all ring-1 ring-indigo-100"
+                          title="Cetak Kwitansi Lunas Pangkal"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          Kwitansi
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleConvert(lead)}
                         disabled={isLunas || !isManager}
@@ -1780,6 +1801,15 @@ export default function LeadsRecap() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Modal Cetak Kwitansi — Rekap Leads (hanya Manager, hanya PANGKAL LUNAS) */}
+      {receiptLead && (
+        <ReceiptModal
+          student={receiptLead}
+          onClose={() => setReceiptLead(null)}
+          picStaff={receiptLead.pic_staff}
+        />
+      )}
     </div>
   );
 }
