@@ -58,20 +58,16 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         penerima: 'SRI RAHAYU',
         programStudi: 'AVSEC',
         tanggalPembayaran: '',
-        tampilkanWatermark: false,
     });
 
     useEffect(() => {
         if (student) {
             const defaultTanggal = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
-            const statusLower = (student.status_pembayaran || '').toLowerCase();
-            const isLunas = statusLower.includes('lunas') || statusLower.includes('full') || statusLower.includes('won');
             setForm(f => ({
                 ...f,
                 untukPembayaran: student.status_pembayaran || '',
                 uangSebanyak: String(student.nominal_pembayaran || ''),
                 tanggalPembayaran: defaultTanggal,
-                tampilkanWatermark: isLunas,
             }));
         }
     }, [student]);
@@ -81,6 +77,12 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
     const uangSebanyak = Number(form.uangSebanyak || 0);
     const totalBiaya = Number(form.totalBiaya || 0);
     const sisaBayar = totalBiaya > 0 ? totalBiaya - uangSebanyak : 0;
+    
+    // Menentukan status lunas untuk mencantumkan watermark secara otomatis
+    const statusLower = (form.untukPembayaran || '').toLowerCase();
+    const isLunasStatus = statusLower.includes('lunas') || statusLower.includes('full') || statusLower.includes('won');
+    const isFullyPaid = (totalBiaya > 0 && sisaBayar <= 0) || (totalBiaya === 0 && uangSebanyak > 0 && isLunasStatus);
+
     const tglBayar = form.tanggalPembayaran;
     const terbilang = uangSebanyak > 0 ? angkaTerbilang(uangSebanyak) + ' Rupiah' : '';
     const programStudi = form.programStudi;
@@ -189,18 +191,26 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Penerima</label>
                         <input value={form.penerima} onChange={e => setForm({ ...form, penerima: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
-                    <div className="flex items-center gap-2 h-full pt-5">
-                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
-                            <input type="checkbox" checked={form.tampilkanWatermark} onChange={e => setForm({ ...form, tampilkanWatermark: e.target.checked })} className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer" />
-                            Watermark LUNAS
-                        </label>
+                    <div className="flex flex-col justify-center">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Status Pembayaran</label>
+                        <div className="mt-1">
+                            {isFullyPaid ? (
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 select-none">
+                                    LUNAS
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-black bg-amber-100 text-amber-700 ring-1 ring-amber-200 select-none">
+                                    BELUM LUNAS
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Receipt Preview (ini yang dicetak) */}
                 <div className="p-6" ref={printRef} style={{ position: 'relative', overflow: 'hidden' }}>
                     {/* Watermark LUNAS */}
-                    {form.tampilkanWatermark && (
+                    {isFullyPaid && (
                         <div style={{
                             position: 'absolute',
                             top: '50%',
