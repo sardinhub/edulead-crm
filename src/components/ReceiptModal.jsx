@@ -58,16 +58,20 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         penerima: 'SRI RAHAYU',
         programStudi: 'AVSEC',
         tanggalPembayaran: '',
+        tampilkanWatermark: false,
     });
 
     useEffect(() => {
         if (student) {
             const defaultTanggal = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
+            const statusLower = (student.status_pembayaran || '').toLowerCase();
+            const isLunas = statusLower.includes('lunas') || statusLower.includes('full') || statusLower.includes('won');
             setForm(f => ({
                 ...f,
                 untukPembayaran: student.status_pembayaran || '',
                 uangSebanyak: String(student.nominal_pembayaran || ''),
                 tanggalPembayaran: defaultTanggal,
+                tampilkanWatermark: isLunas,
             }));
         }
     }, [student]);
@@ -89,7 +93,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
 <style>
   @page { size: A5 portrait; margin: 8mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; color: #1a1a2e; padding: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .receipt { max-width: 500px; margin: auto; }
   ul { padding-left: 14px; margin: 0; }
   ul li { margin-bottom: 2px; font-size: 10px; }
@@ -185,12 +189,18 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Penerima</label>
                         <input value={form.penerima} onChange={e => setForm({ ...form, penerima: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
+                    <div className="flex items-center gap-2 h-full pt-5">
+                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
+                            <input type="checkbox" checked={form.tampilkanWatermark} onChange={e => setForm({ ...form, tampilkanWatermark: e.target.checked })} className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer" />
+                            Watermark LUNAS
+                        </label>
+                    </div>
                 </div>
 
                 {/* Receipt Preview (ini yang dicetak) */}
                 <div className="p-6" ref={printRef} style={{ position: 'relative', overflow: 'hidden' }}>
                     {/* Watermark LUNAS */}
-                    {sisaBayar <= 0 && totalBiaya > 0 && (
+                    {form.tampilkanWatermark && (
                         <div style={{
                             position: 'absolute',
                             top: '50%',
@@ -198,16 +208,18 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                             transform: 'translate(-50%, -50%) rotate(-35deg)',
                             fontSize: '72px',
                             fontWeight: 900,
-                            color: 'rgba(22, 163, 74, 0.13)',
+                            color: 'rgba(22, 163, 74, 0.16)',
                             letterSpacing: '12px',
                             textTransform: 'uppercase',
                             pointerEvents: 'none',
                             zIndex: 1,
                             whiteSpace: 'nowrap',
-                            border: '4px solid rgba(22, 163, 74, 0.13)',
+                            border: '4px solid rgba(22, 163, 74, 0.16)',
                             padding: '10px 40px',
                             borderRadius: '12px',
                             fontFamily: "'Segoe UI', Arial, sans-serif",
+                            WebkitPrintColorAdjust: 'exact',
+                            printColorAdjust: 'exact',
                         }}>LUNAS</div>
                     )}
                     <div className="receipt" style={{ position: 'relative', zIndex: 0 }}>
