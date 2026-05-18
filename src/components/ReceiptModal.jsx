@@ -181,6 +181,10 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                             <option>LAINNYA</option>
                         </select>
                     </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Penerima</label>
+                        <input value={form.penerima} onChange={e => setForm({ ...form, penerima: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
+                    </div>
                 </div>
 
                 {/* Receipt Preview (ini yang dicetak) */}
@@ -296,7 +300,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                                     <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: '8px', textAlign: 'center' }}>
                                         <div style={{ fontWeight: 700, marginBottom: '4px' }}>Penerima,</div>
                                         <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <img src="/ttd-stempel.png" alt="TTD & Stempel" style={{ maxHeight: '80px', maxWidth: '100%', width: 'auto', height: 'auto' }} />
+                                            <img src="/TTD%20Stempel%20Ayu.png" alt="TTD & Stempel" style={{ maxHeight: '80px', maxWidth: '100%', width: 'auto', height: 'auto' }} />
                                         </div>
                                         <div style={{ fontWeight: 900, textDecoration: 'underline' }}>{form.penerima}</div>
                                     </td>
