@@ -29,14 +29,17 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
         metode: 'TRANSFER BANK',
         penerima: 'SRI RAHAYU',
         programStudi: 'AVSEC',
+        tanggalPembayaran: '',
     });
 
     useEffect(() => {
         if (student) {
+            const defaultTanggal = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
             setForm(f => ({
                 ...f,
                 untukPembayaran: student.status_pembayaran || '',
                 uangSebanyak: String(student.nominal_pembayaran || ''),
+                tanggalPembayaran: defaultTanggal,
             }));
         }
     }, [student]);
@@ -46,7 +49,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
     const uangSebanyak = Number(form.uangSebanyak || 0);
     const totalBiaya = Number(form.totalBiaya || 0);
     const sisaBayar = totalBiaya > 0 ? totalBiaya - uangSebanyak : 0;
-    const tglBayar = student.tanggal_daftar || student.created_at?.split('T')[0] || '';
+    const tglBayar = form.tanggalPembayaran;
     const terbilang = uangSebanyak > 0 ? angkaTerbilang(uangSebanyak) + ' Rupiah' : '';
     const programStudi = form.programStudi;
 
@@ -129,6 +132,10 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                     <div>
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Jatuh Tempo</label>
                         <input type="date" value={form.jatuhTempo} onChange={e => setForm({ ...form, jatuhTempo: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Tanggal Pembayaran</label>
+                        <input type="date" value={form.tanggalPembayaran} onChange={e => setForm({ ...form, tanggalPembayaran: e.target.value })} className="w-full mt-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
                     <div>
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Program Studi</label>
