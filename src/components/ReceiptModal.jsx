@@ -17,6 +17,34 @@ function angkaTerbilang(angka) {
     return String(angka);
 }
 
+// Fungsi konversi format tanggal YYYY-MM-DD ke Bahasa Indonesia (menghindari timezone shift)
+function formatDateIndonesia(dateStr, formatUppercase = false) {
+    if (!dateStr) return '—';
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length !== 3) {
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '—';
+            const formatted = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            return formatUppercase ? formatted.toUpperCase() : formatted;
+        } catch (e) {
+            return '—';
+        }
+    }
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    if (monthIndex < 0 || monthIndex > 11 || isNaN(day) || isNaN(monthIndex) || isNaN(year)) {
+        return '—';
+    }
+    const formatted = `${day} ${months[monthIndex]} ${year}`;
+    return formatUppercase ? formatted.toUpperCase() : formatted;
+}
+
 export default function ReceiptModal({ student, onClose, picStaff }) {
     const printRef = useRef(null);
     const [form, setForm] = useState({
@@ -228,7 +256,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                                     <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Dibayar</th>
                                     <th style={{ background: '#1a1a5e', color: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #1a1a5e', textTransform: 'uppercase' }}>Sisa Pembayaran</th>
                                     <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc', fontStyle: 'italic' }}>Tanggal Pembayaran</th>
-                                    <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc' }}>{tglBayar ? new Date(tglBayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : '—'}</th>
+                                    <th style={{ background: '#fff', padding: '6px 8px', fontWeight: 800, border: '1px solid #ccc' }}>{formatDateIndonesia(tglBayar, true)}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -251,7 +279,7 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
                                     <td style={{ border: '1px solid #ccc', verticalAlign: 'top', padding: 0 }}>
                                         <div style={{ background: '#1a1a5e', color: '#fff', fontWeight: 800, textAlign: 'center', padding: '4px', textTransform: 'uppercase', fontSize: '10px' }}>Jatuh Tempo</div>
                                         <div style={{ textAlign: 'center', padding: '8px', fontWeight: 700, fontSize: '11px' }}>
-                                            {form.jatuhTempo ? new Date(form.jatuhTempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                                            {formatDateIndonesia(form.jatuhTempo)}
                                         </div>
                                         <div style={{ textAlign: 'center', paddingTop: '8px' }}>
                                             <div style={{ fontSize: '9px', color: '#666' }}>Metode Pembayaran</div>
