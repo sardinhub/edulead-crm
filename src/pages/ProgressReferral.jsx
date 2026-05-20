@@ -18,6 +18,7 @@ export default function ProgressReferral() {
   // Form State
   const [studentResponse, setStudentResponse] = useState('');
   const [staffAction, setStaffAction] = useState('');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function ProgressReferral() {
     setSelectedLead(lead);
     setStudentResponse('');
     setStaffAction('');
+    setNotes('');
     setIsModalOpen(true);
   };
 
@@ -65,6 +67,7 @@ export default function ProgressReferral() {
             activity_date: new Date().toISOString().split('T')[0],
             student_response: studentResponse,
             staff_action: 'Join (Daftar Manual)',
+            notes: notes,
             pic_staff: user?.name || selectedLead.staff_name
           });
         }
@@ -93,19 +96,12 @@ export default function ProgressReferral() {
       activity_date: new Date().toISOString().split('T')[0],
       student_response: studentResponse,
       staff_action: staffAction,
+      notes: notes,
       pic_staff: user?.name || selectedLead.staff_name
     });
 
     setIsSubmitting(false);
     setIsModalOpen(false);
-
-    // Buka WhatsApp
-    if (selectedLead.phone) {
-      let cleanPhone = selectedLead.phone.replace(/[^0-9]/g, '');
-      if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
-      const msg = `Halo ${selectedLead.student_name}, kami ada program referral menarik nih...`;
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
   };
 
   return (
@@ -321,12 +317,23 @@ export default function ProgressReferral() {
                       <option value="Selesai">Selesai / Skip</option>
                     </select>
                   </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Catatan</label>
+                    <textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Tambahkan detail jika perlu..."
+                      rows={3}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 outline-none transition-all text-sm resize-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
                   <button type="submit" disabled={isSubmitting} className="flex-[2] py-3 text-sm font-bold text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-all disabled:opacity-50">
-                    {isSubmitting ? 'Menyimpan...' : 'Simpan & Hubungi WA'}
+                    {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                   </button>
                 </div>
               </form>

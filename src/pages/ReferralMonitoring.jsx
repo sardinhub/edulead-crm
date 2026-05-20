@@ -68,6 +68,7 @@ export default function ReferralMonitoring() {
                 <th className="px-6 py-4 font-bold text-slate-900 text-xs uppercase tracking-wide">Nama Siswa</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-xs uppercase tracking-wide">Respon</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-xs uppercase tracking-wide">Tindakan Staff</th>
+                <th className="px-6 py-4 font-bold text-slate-900 text-xs uppercase tracking-wide">Catatan</th>
                 <th className="px-6 py-4 font-bold text-slate-900 text-xs uppercase tracking-wide">PIC Staff</th>
               </tr>
             </thead>
@@ -100,6 +101,11 @@ export default function ReferralMonitoring() {
                       {log.staff_action}
                     </span>
                   </td>
+                  <td className="px-6 py-4 max-w-[200px]">
+                    <p className="text-[11px] text-slate-500 italic line-clamp-2" title={log.notes}>
+                      {log.notes || '—'}
+                    </p>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">
                       <Users className="w-3.5 h-3.5" />
@@ -110,7 +116,7 @@ export default function ReferralMonitoring() {
               ))}
               {filteredLogs.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center">
+                  <td colSpan={6} className="px-6 py-20 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
                         <AlertCircle className="w-8 h-8 text-slate-300" />

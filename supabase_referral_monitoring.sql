@@ -21,9 +21,19 @@ CREATE TABLE IF NOT EXISTS referral_monitoring (
   activity_date DATE NOT NULL,
   student_response TEXT,
   staff_action TEXT,
+  notes TEXT,
   pic_staff TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- 3. Tambah kolom notes di referral_monitoring (Jika tabel sudah ada)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='referral_monitoring' AND column_name='notes') THEN
+        ALTER TABLE referral_monitoring ADD COLUMN notes TEXT;
+    END IF;
+END $$;
 
 -- RLS
 ALTER TABLE referral_monitoring ENABLE ROW LEVEL SECURITY;
