@@ -42,8 +42,9 @@ export default function LeadsRecap() {
     phone: '',
     school: '',
     program: 'AVSEC',
-    note: 'PENDAFTARAN',
-    referral: ''
+    referral: '',
+    referred_by: '',
+    note: 'BELUM DIHUBUNGI'
   });
   const [selectedManualStaff, setSelectedManualStaff] = useState('');
   const [staffToClear, setStaffToClear] = useState('all');
@@ -1314,6 +1315,16 @@ export default function LeadsRecap() {
                         </select>
                       </div>
                     )}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase ml-1">Direkomendasikan Oleh (Opsional)</label>
+                      <input 
+                        type="text"
+                        value={manualLead.referred_by || ''}
+                        onChange={(e) => setManualLead({...manualLead, referred_by: e.target.value.toUpperCase()})}
+                        placeholder="NAMA SISWA LAMA (JIKA ADA)"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none transition-all font-bold"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-1">

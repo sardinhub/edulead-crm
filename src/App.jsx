@@ -17,6 +17,7 @@ import TeamChat from './pages/TeamChat';
 import ArrivalTracking from './pages/ArrivalTracking';
 import Leaderboard from './pages/Leaderboard';
 import ProgressReferral from './pages/ProgressReferral';
+import ReferralMonitoring from './pages/ReferralMonitoring';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -50,6 +51,7 @@ function App() {
         <Route path="/arrival" element={<ProtectedRoute><ArrivalTracking /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/progress-referral" element={<ProtectedRoute><ProgressReferral /></ProtectedRoute>} />
+        <Route path="/referral-monitoring" element={<ProtectedRoute><ReferralMonitoring /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

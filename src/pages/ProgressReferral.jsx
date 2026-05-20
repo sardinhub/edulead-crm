@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Gift, Search, Users, Phone, MessageCircle, MapPin, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Gift, Search, Users, Phone, MessageCircle, MapPin, CheckCircle2, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -8,8 +8,15 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
 export default function ProgressReferral() {
-  const { user, leadsRecap, fetchLeadsRecap } = useStore();
+  const { user, leadsRecap, fetchLeadsRecap, addReferralLog } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  
+  // Form State
+  const [studentResponse, setStudentResponse] = useState('');
+  const [staffAction, setStaffAction] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchLeadsRecap();
@@ -28,12 +35,48 @@ export default function ProgressReferral() {
            c.staff_name?.toLowerCase().includes(term);
   });
 
-  const handleWhatsApp = (phone, name) => {
-    if (!phone) return;
-    let cleanPhone = phone.replace(/[^0-9]/g, '');
-    if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
-    const msg = `Halo ${name}, selamat datang di kampus! Kami memiliki program referral menarik untuk Anda...`;
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  const getReferralCount = (studentName) => {
+    return leadsRecap.filter(l => 
+      l.referred_by === studentName && 
+      l.note?.toUpperCase().includes('PANGKAL LUNAS')
+    ).length;
+  };
+
+  const handleOpenModal = (lead) => {
+    setSelectedLead(lead);
+    setStudentResponse('');
+    setStaffAction('');
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!studentResponse || !staffAction) return;
+
+    setIsSubmitting(true);
+    
+    // Simpan ke DB
+    await addReferralLog({
+      lead_id: selectedLead.id,
+      student_name: selectedLead.student_name,
+      school: selectedLead.school,
+      program: selectedLead.program,
+      activity_date: new Date().toISOString().split('T')[0],
+      student_response: studentResponse,
+      staff_action: staffAction,
+      pic_staff: user?.name || selectedLead.staff_name
+    });
+
+    setIsSubmitting(false);
+    setIsModalOpen(false);
+
+    // Buka WhatsApp
+    if (selectedLead.phone) {
+      let cleanPhone = selectedLead.phone.replace(/[^0-9]/g, '');
+      if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+      const msg = `Halo ${selectedLead.student_name}, kami ada program referral menarik nih...`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
   };
 
   return (
@@ -92,7 +135,9 @@ export default function ProgressReferral() {
               </tr>
             </thead>
             <tbody>
-              {filteredCandidates.map((lead, idx) => (
+              {filteredCandidates.map((lead, idx) => {
+                const refCount = getReferralCount(lead.student_name);
+                return (
                 <motion.tr 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -101,18 +146,22 @@ export default function ProgressReferral() {
                   className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group"
                 >
                   <td className="px-6 py-4">
-                    <p className="font-bold text-slate-900">{lead.student_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-900">{lead.student_name}</p>
+                      {refCount > 0 && (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md ring-1 ring-amber-200">
+                          [{refCount} Referensi]
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-slate-400 mt-0.5">Didaftarkan: {lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID') : '—'}</p>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1.5">
-                      <button 
-                        onClick={() => handleWhatsApp(lead.phone, lead.student_name)}
-                        className="flex items-center gap-2 font-bold text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
-                      >
+                      <span className="flex items-center gap-2 font-bold text-xs text-emerald-600">
                         <MessageCircle className="w-3.5 h-3.5" />
                         {lead.phone || '—'}
-                      </button>
+                      </span>
                       <p className="text-[11px] text-slate-500 italic flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> {lead.school || '—'}
                       </p>
@@ -137,7 +186,7 @@ export default function ProgressReferral() {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button
-                      onClick={() => handleWhatsApp(lead.phone, lead.student_name)}
+                      onClick={() => handleOpenModal(lead)}
                       disabled={!lead.phone}
                       className={cn(
                         "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm",
@@ -151,7 +200,7 @@ export default function ProgressReferral() {
                     </button>
                   </td>
                 </motion.tr>
-              ))}
+              )})}
               {filteredCandidates.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-20 text-center">
@@ -169,6 +218,92 @@ export default function ProgressReferral() {
           </table>
         </div>
       </div>
+
+      {/* MODAL INPUT PROGRESS REFERRAL */}
+      <AnimatePresence>
+        {isModalOpen && selectedLead && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-xl">Progress Referral</h3>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nama Siswa</label>
+                    <input type="text" disabled value={selectedLead.student_name} className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none cursor-not-allowed font-bold text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Program</label>
+                    <input type="text" disabled value={selectedLead.program} className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none cursor-not-allowed font-bold text-sm" />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Asal Sekolah</label>
+                    <input type="text" disabled value={selectedLead.school} className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none cursor-not-allowed font-bold text-sm" />
+                  </div>
+                </div>
+
+                <hr className="border-slate-100 my-4" />
+
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Respon Siswa</label>
+                    <select 
+                      required
+                      value={studentResponse}
+                      onChange={(e) => setStudentResponse(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 outline-none transition-all text-sm font-bold"
+                    >
+                      <option value="">Pilih Respon...</option>
+                      <option value="Tertarik">Tertarik</option>
+                      <option value="Pikir-pikir dulu">Pikir-pikir dulu</option>
+                      <option value="Menolak">Menolak</option>
+                      <option value="Tidak dapat dihubungi">Tidak dapat dihubungi</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tindakan Staff</label>
+                    <select 
+                      required
+                      value={staffAction}
+                      onChange={(e) => setStaffAction(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 outline-none transition-all text-sm font-bold"
+                    >
+                      <option value="">Pilih Tindakan...</option>
+                      <option value="Kirim Brosur via WA">Kirim Brosur via WA</option>
+                      <option value="Jadwalkan Telepon">Jadwalkan Telepon</option>
+                      <option value="Tawarkan Bonus/Insentif">Tawarkan Bonus/Insentif</option>
+                      <option value="Selesai">Selesai / Skip</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                  <button type="submit" disabled={isSubmitting} className="flex-[2] py-3 text-sm font-bold text-white bg-pink-600 hover:bg-pink-700 rounded-xl transition-all disabled:opacity-50">
+                    {isSubmitting ? 'Menyimpan...' : 'Simpan & Hubungi WA'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

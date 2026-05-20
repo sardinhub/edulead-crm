@@ -444,6 +444,7 @@ export const useStore = create(
   // ─── Marketing Monitor ───────────────────────────────────────────────
   marketingStaff: [],
   activityReports: [],
+  referralLogs: [],
   isMarketingLoading: false,
 
   fetchMarketingStaff: async () => {
@@ -548,6 +549,35 @@ export const useStore = create(
 
     set((state) => ({
       activityReports: state.activityReports.filter(r => r.id !== id)
+    }));
+    return { success: true };
+  },
+  // ─── Referral Monitoring ───────────────────────────────────────────
+  fetchReferralLogs: async () => {
+    const { data, error } = await supabase
+      .from('referral_monitoring')
+      .select('*')
+      .order('activity_date', { ascending: false });
+
+    if (!error && data) {
+      set({ referralLogs: data });
+    }
+  },
+
+  addReferralLog: async (payload) => {
+    const { data, error } = await supabase
+      .from('referral_monitoring')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Gagal simpan referral log:', error);
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      referralLogs: [data, ...state.referralLogs]
     }));
     return { success: true };
   },
