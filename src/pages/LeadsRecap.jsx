@@ -402,6 +402,13 @@ export default function LeadsRecap() {
     }
   };
 
+  const handleEditNote = async (lead) => {
+    const newNote = window.prompt(`Edit Keterangan untuk ${lead.student_name}:\nSaat ini: ${lead.note || '-'}`, lead.note || '');
+    if (newNote !== null && newNote !== lead.note) {
+      await updateLeadRecapStatus(lead.id, { note: newNote.toUpperCase() });
+    }
+  };
+
   const handleWhatsApp = (phone) => {
     if (!phone) return;
     let cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -859,12 +866,23 @@ export default function LeadsRecap() {
                     </p>
                   </td>
                   <td className="px-6 py-4 max-w-xs transition-all">
-                    <p className={cn(
-                      "text-[11px] line-clamp-1 italic",
-                      isLunas ? "text-emerald-600 font-bold" : "text-slate-400"
-                    )} title={lead.note}>
-                      {lead.note || '—'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={cn(
+                        "text-[11px] line-clamp-1 italic",
+                        isLunas ? "text-emerald-600 font-bold" : "text-slate-400"
+                      )} title={lead.note}>
+                        {lead.note || '—'}
+                      </p>
+                      {isManager && (
+                        <button
+                          onClick={() => handleEditNote(lead)}
+                          className="p-1 text-slate-300 hover:text-amber-500 transition-colors bg-white hover:bg-amber-50 rounded shadow-sm shrink-0"
+                          title="Edit Keterangan"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                   {isManager && (
                     <td className="px-6 py-4">
