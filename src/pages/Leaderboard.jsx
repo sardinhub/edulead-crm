@@ -24,9 +24,7 @@ export default function Leaderboard() {
   const leaderboardData = useMemo(() => {
     const stats = {};
     leadsRecap.forEach(l => {
-      const isACH = l.staff_name && l.referral && 
-                    l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase() &&
-                    l.note?.toUpperCase().includes('PANGKAL LUNAS');
+      const isACH = l.staff_name && l.note?.toUpperCase().includes('PANGKAL LUNAS');
       
       if (isACH) {
         stats[l.staff_name] = (stats[l.staff_name] || 0) + 1;
