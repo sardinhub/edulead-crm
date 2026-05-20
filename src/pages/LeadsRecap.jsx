@@ -4,7 +4,7 @@ import {
   FileSpreadsheet, Download, Search, Trash2, 
   Phone, MessageCircle, Filter, X, Upload, CheckCircle2, AlertCircle,
   Users, UserPlus, Clock, ExternalLink, UserCheck, Send, Square, CheckSquare,
-  Radio, Zap, AlertTriangle, ArrowRightCircle, ChevronRight, FileText
+  Radio, Zap, AlertTriangle, ArrowRightCircle, ChevronRight, FileText, Edit
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useStore } from '../store/useStore';
@@ -391,6 +391,13 @@ export default function LeadsRecap() {
   const handleDelete = async (id) => {
     if (window.confirm('Hapus data lead ini?')) {
       await deleteLeadRecap(id);
+    }
+  };
+
+  const handleEditReferral = async (lead) => {
+    const newReferral = window.prompt(`Edit Referral untuk ${lead.student_name}:\nSaat ini: ${lead.referral || '-'}`, lead.referral || '');
+    if (newReferral !== null && newReferral !== lead.referral) {
+      await updateLeadRecapStatus(lead.id, { referral: newReferral.toUpperCase() });
     }
   };
 
@@ -898,12 +905,21 @@ export default function LeadsRecap() {
                       >
                         <UserCheck className="w-4 h-4" />
                       </button>
+                      {isManager && (
+                        <button
+                          onClick={() => handleEditReferral(lead)}
+                          className="p-2 text-slate-300 hover:text-amber-500 transition-colors bg-white hover:bg-amber-50 rounded-lg shadow-sm"
+                          title="Edit Referral"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleDelete(lead.id)}
                         disabled={isLunas}
                         className={cn(
                           "p-2 transition-colors",
-                          isLunas ? "text-slate-200 cursor-not-allowed" : "text-slate-300 hover:text-red-500"
+                          isLunas ? "text-slate-200 cursor-not-allowed" : "text-slate-300 hover:text-red-500 bg-white hover:bg-red-50 rounded-lg shadow-sm"
                         )}
                         title="Hapus Lead"
                       >
