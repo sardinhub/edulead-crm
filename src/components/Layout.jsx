@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book, FileSearch, History, MessageCircle, Award, MapPin } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Settings, Bell, Search, Menu, Shield, ClipboardList, BarChart2, X, UserPlus, Book, FileSearch, History, MessageCircle, Award, MapPin, Gift } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { clsx } from 'clsx';
@@ -28,6 +28,7 @@ const marketingNavItems = [
   { name: 'Rekap Leads', path: '/recap', icon: UserPlus },
   { name: 'Input Laporan Harian', path: '/activity', icon: ClipboardList },
   { name: 'List Monitoring', path: '/monitoring', icon: BarChart2 },
+  { name: 'Progress Referral', path: '/progress-referral', icon: Gift },
   { name: 'Panduan', path: '/guidance', icon: Book },
 ];
 
