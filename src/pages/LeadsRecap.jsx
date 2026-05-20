@@ -36,6 +36,7 @@ export default function LeadsRecap() {
   const [previewData, setPreviewData] = useState([]);
   const [filterStaff, setFilterStaff] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterNote, setFilterNote] = useState('all');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [manualLead, setManualLead] = useState({
@@ -472,9 +473,14 @@ export default function LeadsRecap() {
       if (filterStatus === 'Belum Dihubungi') return !l.status || l.status === 'Belum Dihubungi';
       return l.status === filterStatus;
     })();
-    
-    return matchesSearch && matchesStaff && matchesStatus;
-  });
+
+    const matchesNote = filterNote === 'all' || (() => {
+      const note = l.note?.toUpperCase() || '';
+      return note.includes(filterNote);
+    })();
+
+    return matchesSearch && matchesStaff && matchesStatus && matchesNote;
+  }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   // --- Handlers Broadcast WA ---
   const handleToggleSelect = (id) => {
@@ -700,6 +706,16 @@ export default function LeadsRecap() {
               <option value="Tidak Tertarik">❌ Tidak Tertarik</option>
               <option value="Tidak dapat dihubungi">📵 Tidak dapat dihubungi</option>
               <option value="DONE">🏁 DONE (Pangkal Lunas)</option>
+            </select>
+            <select
+              value={filterNote}
+              onChange={(e) => setFilterNote(e.target.value)}
+              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-violet-500/10 min-w-[170px] cursor-pointer"
+            >
+              <option value="all">Semua Keterangan</option>
+              <option value="PENDAFTARAN">PENDAFTARAN</option>
+              <option value="PANGKAL LUNAS">PANGKAL LUNAS</option>
+              <option value="PANGKAL 1">PANGKAL 1</option>
             </select>
           </div>
 
