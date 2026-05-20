@@ -123,7 +123,9 @@ export default function Dashboard() {
   
   // Perhitungan Pencapaian (ACH) - Harus SAMA dengan di LeadsRecap.jsx
   const calculateACH = (leads) => leads.filter(l => 
-    l.staff_name && l.note?.toUpperCase().includes('PANGKAL LUNAS')
+    l.staff_name && l.referral && 
+    l.staff_name.trim().toUpperCase() === l.referral.trim().toUpperCase() &&
+    l.note?.toUpperCase().includes('PANGKAL LUNAS')
   ).length;
 
   const totalACH = calculateACH(leadsRecap);
@@ -139,7 +141,9 @@ export default function Dashboard() {
 
   // Untuk Manager: Ringkasan Pencapaian Tim
   const teamAchievements = user?.role === 'Manager' ? leadsRecap.reduce((acc, lead) => {
-    if (lead.staff_name && lead.note?.toUpperCase().includes('PANGKAL LUNAS')) {
+    if (lead.staff_name && lead.referral && 
+        lead.staff_name.trim().toUpperCase() === lead.referral.trim().toUpperCase() &&
+        lead.note?.toUpperCase().includes('PANGKAL LUNAS')) {
       acc[lead.staff_name] = (acc[lead.staff_name] || 0) + 1;
     }
     return acc;
