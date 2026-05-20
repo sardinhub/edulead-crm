@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Search, Users, Phone, MessageCircle, MapPin, CheckCircle2, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -9,6 +10,7 @@ function cn(...inputs) { return twMerge(clsx(inputs)); }
 
 export default function ProgressReferral() {
   const { user, leadsRecap, fetchLeadsRecap, addReferralLog } = useStore();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -47,6 +49,33 @@ export default function ProgressReferral() {
     setStudentResponse('');
     setStaffAction('');
     setIsModalOpen(true);
+  };
+
+  const handleActionChange = async (e) => {
+    const val = e.target.value;
+    if (val === 'Join') {
+      if (window.confirm('Arahkan ke form Daftar Manual untuk menginput data teman yang direferensikan?')) {
+        // Jika sudah ada respon siswa yang diisi, simpan log nya sekalian
+        if (studentResponse) {
+          await addReferralLog({
+            lead_id: selectedLead.id,
+            student_name: selectedLead.student_name,
+            school: selectedLead.school,
+            program: selectedLead.program,
+            activity_date: new Date().toISOString().split('T')[0],
+            student_response: studentResponse,
+            staff_action: 'Join (Daftar Manual)',
+            pic_staff: user?.name || selectedLead.staff_name
+          });
+        }
+        setIsModalOpen(false);
+        navigate(`/recap?action=manual&referrer=${encodeURIComponent(selectedLead.student_name)}`);
+      } else {
+        setStaffAction('');
+      }
+    } else {
+      setStaffAction(val);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -281,13 +310,14 @@ export default function ProgressReferral() {
                     <select 
                       required
                       value={staffAction}
-                      onChange={(e) => setStaffAction(e.target.value)}
+                      onChange={handleActionChange}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 outline-none transition-all text-sm font-bold"
                     >
                       <option value="">Pilih Tindakan...</option>
                       <option value="Kirim Brosur via WA">Kirim Brosur via WA</option>
                       <option value="Jadwalkan Telepon">Jadwalkan Telepon</option>
                       <option value="Tawarkan Bonus/Insentif">Tawarkan Bonus/Insentif</option>
+                      <option value="Join">Join (Daftar Manual)</option>
                       <option value="Selesai">Selesai / Skip</option>
                     </select>
                   </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileSpreadsheet, Download, Search, Trash2, 
@@ -68,12 +69,24 @@ export default function LeadsRecap() {
   const [receiptLead, setReceiptLead] = useState(null);
 
   const isManager = user?.role === 'Manager';
+  const location = useLocation();
 
   useEffect(() => {
     fetchLeadsRecap();
     fetchUnregisteredStudents();
     if (isManager) fetchMarketingStaff();
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('action') === 'manual') {
+      setIsManualModalOpen(true);
+      const referrer = params.get('referrer');
+      if (referrer) {
+        setManualLead(prev => ({...prev, referred_by: referrer}));
+      }
+    }
+  }, [location.search]);
 
   const handleConfirmClear = async () => {
     const targetName = staffToClear === 'all' ? 'SELURUH data Rekap Leads' : `data milik staff "${staffToClear}"`;
