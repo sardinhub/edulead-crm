@@ -8,18 +8,29 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
 export default function ReferralMonitoring() {
-  const { user, referralLogs, fetchReferralLogs } = useStore();
+  const { user, referralLogs, fetchReferralLogs, marketingStaff, fetchMarketingStaff } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStaff, setFilterStaff] = useState('all');
+  const [filterDate, setFilterDate] = useState('');
+
+  const isManager = user?.role === 'Manager';
 
   useEffect(() => {
     fetchReferralLogs();
+    if (isManager) fetchMarketingStaff();
   }, [user]);
 
   const filteredLogs = referralLogs.filter(log => {
     const term = searchTerm.toLowerCase();
-    return log.student_name?.toLowerCase().includes(term) || 
-           log.pic_staff?.toLowerCase().includes(term) ||
-           log.school?.toLowerCase().includes(term);
+    const matchesSearch = log.student_name?.toLowerCase().includes(term) || 
+                          log.pic_staff?.toLowerCase().includes(term) ||
+                          log.school?.toLowerCase().includes(term);
+    
+    const matchesStaff = filterStaff === 'all' || log.pic_staff === filterStaff;
+    
+    const matchesDate = !filterDate || log.activity_date === filterDate;
+
+    return matchesSearch && matchesStaff && matchesDate;
   });
 
   const getStatusColor = (response) => {
@@ -48,7 +59,7 @@ export default function ReferralMonitoring() {
 
       <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
-          <div className="relative w-full max-w-sm">
+          <div className="relative w-full sm:max-w-xs">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
@@ -58,6 +69,27 @@ export default function ReferralMonitoring() {
               className="pl-9 pr-4 py-2 w-full bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
             />
           </div>
+
+          {isManager && (
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer"
+              />
+              <select
+                value={filterStaff}
+                onChange={(e) => setFilterStaff(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer"
+              >
+                <option value="all">Semua Staff</option>
+                {marketingStaff?.map(staff => (
+                  <option key={staff.id} value={staff.name}>{staff.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto">
