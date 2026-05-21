@@ -86,7 +86,7 @@ export default function MonitoringList() {
         Merespon: r.leads_responded,
         'Rincian Leads': detailString,
         Konversi: r.leads_converted,
-        Hambatan: r.obstacles || '',
+        'Aktivitas Hari Ini': r.obstacles || '',
         'Rencana Aktivitas Hari Selanjutnya': r.next_day_plan || ''
       };
     });
@@ -102,7 +102,7 @@ export default function MonitoringList() {
     doc.setFontSize(16);
     doc.text("Laporan Aktivitas Marketing", 14, 20);
     
-    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Hambatan", "Rencana Aktivitas Hari Selanjutnya"];
+    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Aktivitas Hari Ini", "Rencana Aktivitas Hari Selanjutnya"];
     const tableRowsData = [];
 
     tableRows.forEach(r => {
@@ -483,7 +483,7 @@ export default function MonitoringList() {
                     'Tanggal',
                     ...(isManager ? ['Staff'] : []),
                     'Follow-up', 'Merespon', 'Konversi',
-                    'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana Aktivitas Hari Selanjutnya',
+                    'Resp. Rate', 'Conv. Rate', 'Aktivitas Hari Ini', 'Rencana Aktivitas Hari Selanjutnya',
                     ...(isManager ? ['Aksi'] : [])
                   ].map(h => (
                     <th 

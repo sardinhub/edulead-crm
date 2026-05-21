@@ -59,10 +59,10 @@ const textFields = [
   },
   {
     id: 'obstacles',
-    label: 'Hambatan',
-    icon: AlertTriangle,
-    color: 'red',
-    placeholder: 'Kendala apa yang dihadapi hari ini dalam proses follow-up?',
+    label: 'Aktivitas Anda hari ini',
+    icon: CheckCheck,
+    color: 'emerald',
+    placeholder: 'Apa saja aktivitas yang Anda lakukan hari ini?',
     rows: 2,
   },
   {
