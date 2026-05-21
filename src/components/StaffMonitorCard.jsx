@@ -184,7 +184,7 @@ export default function StaffMonitorCard({ staff, reports, index }) {
         ))}
         {reports.length > 0 && lastReport?.next_day_plan && (
           <div className="mt-3 p-3 bg-sky-50 rounded-xl border border-sky-100">
-            <div className="text-xs font-semibold text-sky-700 mb-1">📅 Rencana Hari Ini:</div>
+            <div className="text-xs font-semibold text-sky-700 mb-1">📅 Rencana Aktivitas Hari Selanjutnya:</div>
             <p className="text-xs text-sky-600 leading-relaxed">{lastReport.next_day_plan}</p>
           </div>
         )}
