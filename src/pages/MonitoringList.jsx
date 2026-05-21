@@ -87,7 +87,7 @@ export default function MonitoringList() {
         'Rincian Leads': detailString,
         Konversi: r.leads_converted,
         Hambatan: r.obstacles || '',
-        Rencana: r.next_day_plan || ''
+        'Rencana Aktivitas Hari Selanjutnya': r.next_day_plan || ''
       };
     });
 
@@ -102,7 +102,7 @@ export default function MonitoringList() {
     doc.setFontSize(16);
     doc.text("Laporan Aktivitas Marketing", 14, 20);
     
-    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Hambatan", "Rencana"];
+    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Hambatan", "Rencana Aktivitas Hari Selanjutnya"];
     const tableRowsData = [];
 
     tableRows.forEach(r => {
@@ -483,7 +483,7 @@ export default function MonitoringList() {
                     'Tanggal',
                     ...(isManager ? ['Staff'] : []),
                     'Follow-up', 'Merespon', 'Konversi',
-                    'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana',
+                    'Resp. Rate', 'Conv. Rate', 'Hambatan', 'Rencana Aktivitas Hari Selanjutnya',
                     ...(isManager ? ['Aksi'] : [])
                   ].map(h => (
                     <th 
@@ -546,11 +546,11 @@ export default function MonitoringList() {
                           Number(cr) >= 10 ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-600'
                         )}>{cr}%</span>
                       </td>
-                      <td className="px-4 py-3 max-w-[160px]">
-                        <p className="text-xs text-slate-500 truncate">{r.obstacles || '—'}</p>
+                      <td className="px-4 py-3 min-w-[200px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap">{r.obstacles || '—'}</p>
                       </td>
-                      <td className="px-4 py-3 max-w-[160px]">
-                        <p className="text-xs text-slate-500 truncate">{r.next_day_plan || '—'}</p>
+                      <td className="px-4 py-3 min-w-[200px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap">{r.next_day_plan || '—'}</p>
                       </td>
                       {isManager && (
                         <td className="px-4 py-3 sticky right-0 bg-white z-10 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.1)]">
