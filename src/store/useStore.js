@@ -686,37 +686,61 @@ export const useStore = create(
     const { user } = get();
     if (!user) return;
 
-    let query = supabase
-      .from('unregistered_students')
-      .select('*')
-      .order('created_at', { ascending: false });
-
     const isPrivileged = user?.role === 'Manager' || user?.email === 'ayu@gmail.com';
-    if (!isPrivileged) {
-      query = query.eq('staff_name', user.name);
+    const PAGE_SIZE = 1000;
+    let allData = [];
+    let from = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      let query = supabase
+        .from('unregistered_students')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (!isPrivileged) {
+        query = query.eq('staff_name', user.name);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Gagal fetch unregistered students:', error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        from += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
     }
 
-    const { data, error } = await query;
-    if (!error && data) {
-      set({ unregisteredStudents: data });
-    } else if (error) {
-      console.error('Gagal fetch unregistered students:', error);
-    }
+    set({ unregisteredStudents: allData });
   },
 
-  importUnregisteredStudents: async (studentsArray) => {
-    const { error } = await supabase
-      .from('unregistered_students')
-      .insert(studentsArray);
 
-    if (error) {
-      console.error('Gagal import unregistered students:', error);
-      return { success: false, error: error.message };
+  importUnregisteredStudents: async (studentsArray) => {
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < studentsArray.length; i += CHUNK_SIZE) {
+      const chunk = studentsArray.slice(i, i + CHUNK_SIZE);
+      const { error } = await supabase
+        .from('unregistered_students')
+        .insert(chunk);
+
+      if (error) {
+        console.error('Gagal import unregistered students (chunk):', error);
+        return { success: false, error: error.message };
+      }
     }
 
     get().fetchUnregisteredStudents();
     return { success: true };
   },
+
 
   deleteUnregisteredStudent: async (id) => {
     const { error } = await supabase
