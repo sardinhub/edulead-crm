@@ -26,7 +26,8 @@ export default function LeadsRecap() {
     updateLeadRecapStatus, convertLeadToStudent,
     unregisteredStudents, fetchUnregisteredStudents, importUnregisteredStudents,
     deleteUnregisteredStudent, deleteAllUnregisteredStudents,
-    convertUnregisteredToLead, convertAllUnregisteredToLeads
+    convertUnregisteredToLead, convertAllUnregisteredToLeads,
+    updateUnregisteredStudentNotes
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,6 +59,12 @@ export default function LeadsRecap() {
   const [unregSelectedStaff, setUnregSelectedStaff] = useState('');
   const [unregImportLoading, setUnregImportLoading] = useState(false);
   const [unregSearchTerm, setUnregSearchTerm] = useState('');
+
+  // --- State untuk Modal Catatan Siswa Belum Daftar ---
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [notesTarget, setNotesTarget] = useState(null); // { id, student_name, notes }
+  const [notesInput, setNotesInput] = useState('');
+  const [notesSaving, setNotesSaving] = useState(false);
 
   // --- State untuk Broadcast WhatsApp ---
   const [selectedLeadIds, setSelectedLeadIds] = useState(new Set());
@@ -421,6 +428,21 @@ export default function LeadsRecap() {
     if (newNote !== null && newNote !== lead.note) {
       await updateLeadRecapStatus(lead.id, { note: newNote.toUpperCase() });
     }
+  };
+
+  const handleOpenNotesModal = (student) => {
+    setNotesTarget(student);
+    setNotesInput(student.notes || '');
+    setIsNotesModalOpen(true);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notesTarget) return;
+    setNotesSaving(true);
+    await updateUnregisteredStudentNotes(notesTarget.id, notesInput);
+    setNotesSaving(false);
+    setIsNotesModalOpen(false);
+    setNotesTarget(null);
   };
 
   const handleWhatsApp = (phone) => {
@@ -1594,6 +1616,7 @@ export default function LeadsRecap() {
                         <th className="px-5 py-3.5 font-bold text-slate-700 text-xs uppercase tracking-wide">Program</th>
                         <th className="px-5 py-3.5 font-bold text-slate-700 text-xs uppercase tracking-wide">Referral</th>
                         {isManager && <th className="px-5 py-3.5 font-bold text-slate-700 text-xs uppercase tracking-wide">PIC</th>}
+                        <th className="px-5 py-3.5 font-bold text-slate-700 text-xs uppercase tracking-wide">Catatan Follow-up</th>
                         <th className="px-5 py-3.5 font-bold text-slate-700 text-xs uppercase tracking-wide text-center">Aksi</th>
                       </tr>
                     </thead>
@@ -1650,6 +1673,24 @@ export default function LeadsRecap() {
                               </span>
                             </td>
                           )}
+                          {/* Kolom Catatan */}
+                          <td className="px-5 py-4 max-w-[200px]">
+                            <div className="flex items-start gap-2">
+                              <p
+                                className="text-[11px] text-slate-500 italic line-clamp-2 flex-1"
+                                title={student.notes}
+                              >
+                                {student.notes || <span className="text-slate-300">Belum ada catatan</span>}
+                              </p>
+                              <button
+                                onClick={() => handleOpenNotesModal(student)}
+                                className="shrink-0 p-1 text-slate-300 hover:text-amber-500 hover:bg-amber-50 rounded transition-colors"
+                                title="Edit Catatan"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
                           <td className="px-5 py-4">
                             <div className="flex items-center justify-center gap-1.5">
                               {/* Tombol WA */}
@@ -1884,6 +1925,70 @@ export default function LeadsRecap() {
           picStaff={receiptLead.pic_staff}
         />
       )}
+
+      {/* MODAL: Catatan Follow-up Siswa Belum Daftar */}
+      <AnimatePresence>
+        {isNotesModalOpen && notesTarget && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+                    <Edit className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Catatan Follow-up</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{notesTarget.student_name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsNotesModalOpen(false)}
+                  className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Catatan</label>
+                  <textarea
+                    value={notesInput}
+                    onChange={(e) => setNotesInput(e.target.value)}
+                    placeholder="Contoh: Sudah dihubungi 20 Mei, siswa minta dihubungi kembali minggu depan..."
+                    rows={4}
+                    autoFocus
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 outline-none transition-all text-sm resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsNotesModalOpen(false)}
+                    className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveNotes}
+                    disabled={notesSaving}
+                    className="flex-[2] py-3 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-all disabled:opacity-50 shadow-sm shadow-amber-200"
+                  >
+                    {notesSaving ? 'Menyimpan...' : 'Simpan Catatan'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
