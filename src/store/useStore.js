@@ -776,16 +776,25 @@ export const useStore = create(
 
   deleteAllUnregisteredStudents: async (staffName = null) => {
     const { user } = get();
-    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+    const isManager = user?.role === 'Manager';
 
+    // Staff biasa hanya bisa hapus data miliknya sendiri
     let query = supabase.from('unregistered_students').delete().gte('created_at', '1970-01-01');
-    if (staffName && staffName !== 'all') {
+
+    if (!isManager) {
+      // Paksa filter ke nama staff yang login
+      query = query.eq('staff_name', user.name);
+    } else if (staffName && staffName !== 'all') {
       query = query.eq('staff_name', staffName);
     }
 
     const { error } = await query;
     if (!error) {
-      if (staffName && staffName !== 'all') {
+      if (!isManager) {
+        set((state) => ({
+          unregisteredStudents: state.unregisteredStudents.filter(s => s.staff_name !== user.name)
+        }));
+      } else if (staffName && staffName !== 'all') {
         set((state) => ({
           unregisteredStudents: state.unregisteredStudents.filter(s => s.staff_name !== staffName)
         }));
@@ -796,6 +805,7 @@ export const useStore = create(
     }
     return { success: false, error: error?.message };
   },
+
 
   convertUnregisteredToLead: async (student) => {
     // Pindahkan dari unregistered_students ke leads_recap

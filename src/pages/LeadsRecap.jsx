@@ -1739,20 +1739,19 @@ export default function LeadsRecap() {
                   <p className="text-xs text-slate-500 font-medium">
                     <span className="font-bold text-amber-600">{filteredUnreg.length}</span> siswa belum mendaftar
                   </p>
-                  {/* Tombol Hapus Semua — aktif hanya Manager */}
+                  {/* Tombol Hapus Semua */}
                   <button
-                    onClick={isManager ? handleDeleteAllUnreg : undefined}
-                    disabled={!isManager || unregImportLoading || unregisteredStudents.length === 0}
-                    title={!isManager ? 'Hanya Manager yang dapat menghapus semua data' : 'Hapus seluruh data siswa belum daftar'}
+                    onClick={handleDeleteAllUnreg}
+                    disabled={unregImportLoading || unregisteredStudents.length === 0}
+                    title="Hapus seluruh data siswa belum daftar"
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                      isManager && unregisteredStudents.length > 0
+                      unregisteredStudents.length > 0
                         ? 'bg-white border-red-200 text-red-500 hover:bg-red-600 hover:text-white hover:border-red-600 shadow-sm'
                         : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
                     }`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Hapus Semua
-                    {!isManager && <span className="ml-0.5">🔒</span>}
                   </button>
                 </div>
 
