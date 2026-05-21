@@ -27,7 +27,7 @@ export default function LeadsRecap() {
     unregisteredStudents, fetchUnregisteredStudents, importUnregisteredStudents,
     deleteUnregisteredStudent, deleteAllUnregisteredStudents,
     convertUnregisteredToLead, convertAllUnregisteredToLeads,
-    updateUnregisteredStudentNotes
+    updateUnregisteredStudentNotes, updateUnregisteredStudentName
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -427,6 +427,13 @@ export default function LeadsRecap() {
     const newNote = window.prompt(`Edit Keterangan untuk ${lead.student_name}:\nSaat ini: ${lead.note || '-'}`, lead.note || '');
     if (newNote !== null && newNote !== lead.note) {
       await updateLeadRecapStatus(lead.id, { note: newNote.toUpperCase() });
+    }
+  };
+
+  const handleEditUnregName = async (student) => {
+    const newName = window.prompt(`Edit Nama Siswa:\nSaat ini: ${student.student_name}`, student.student_name);
+    if (newName && newName.trim() !== '' && newName !== student.student_name) {
+      await updateUnregisteredStudentName(student.id, newName.toUpperCase());
     }
   };
 
@@ -1635,7 +1642,16 @@ export default function LeadsRecap() {
                             </span>
                           </td>
                           <td className="px-5 py-4">
-                            <p className="font-bold text-slate-900">{student.student_name}</p>
+                            <div className="flex items-center gap-2 group/name">
+                              <p className="font-bold text-slate-900">{student.student_name}</p>
+                              <button
+                                onClick={() => handleEditUnregName(student)}
+                                className="opacity-0 group-hover/name:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-all"
+                                title="Edit Nama Siswa"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                           <td className="px-5 py-4">
                             <div className="flex flex-col gap-1">

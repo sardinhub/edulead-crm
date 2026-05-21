@@ -774,6 +774,23 @@ export const useStore = create(
     return { success: false, error: error?.message };
   },
 
+  updateUnregisteredStudentName: async (id, student_name) => {
+    const { error } = await supabase
+      .from('unregistered_students')
+      .update({ student_name })
+      .eq('id', id);
+
+    if (!error) {
+      set((state) => ({
+        unregisteredStudents: state.unregisteredStudents.map(s =>
+          s.id === id ? { ...s, student_name } : s
+        )
+      }));
+      return { success: true };
+    }
+    return { success: false, error: error?.message };
+  },
+
   deleteAllUnregisteredStudents: async (staffName = null) => {
     const { user } = get();
     const isManager = user?.role === 'Manager';
