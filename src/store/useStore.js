@@ -639,6 +639,56 @@ export const useStore = create(
     return { success: false, error: error?.message };
   },
 
+  revertLeadsToUnregistered: async (staffName) => {
+    const { user } = get();
+    if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };
+
+    // 1. Ambil semua leads milik staff tsb yang program-nya N/A atau kosong
+    const { data: leads, error: fetchErr } = await supabase
+      .from('leads_recap')
+      .select('*')
+      .eq('staff_name', staffName)
+      .or('program.eq.N/A,program.is.null,program.eq.');
+
+    if (fetchErr) return { success: false, error: fetchErr.message };
+    if (!leads || leads.length === 0) return { success: false, error: 'Tidak ada data dengan Program N/A untuk staff ini.' };
+
+    // 2. Insert ke unregistered_students (chunked)
+    const rows = leads.map(l => ({
+      student_name: l.student_name,
+      school:       l.school   || '',
+      phone:        l.phone    || '',
+      program:      (l.program === 'N/A' || !l.program) ? '' : l.program,
+      referral:     l.referral || '',
+      staff_id:     l.staff_id,
+      staff_name:   l.staff_name,
+    }));
+
+    const CHUNK = 500;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const { error: insErr } = await supabase
+        .from('unregistered_students')
+        .insert(rows.slice(i, i + CHUNK));
+      if (insErr) return { success: false, error: insErr.message };
+    }
+
+    // 3. Hapus dari leads_recap
+    const ids = leads.map(l => l.id);
+    const { error: delErr } = await supabase
+      .from('leads_recap')
+      .delete()
+      .in('id', ids);
+    if (delErr) return { success: false, error: delErr.message };
+
+    // 4. Update local state
+    set(state => ({
+      leadsRecap: state.leadsRecap.filter(l => !ids.includes(l.id))
+    }));
+    get().fetchUnregisteredStudents();
+
+    return { success: true, count: ids.length };
+  },
+
   deleteAllLeadsRecap: async (staffName = null) => {
     const { user } = get();
     if (user?.role !== 'Manager') return { success: false, error: 'Unauthorized' };

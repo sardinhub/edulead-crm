@@ -27,7 +27,8 @@ export default function LeadsRecap() {
     unregisteredStudents, fetchUnregisteredStudents, importUnregisteredStudents,
     deleteUnregisteredStudent, deleteAllUnregisteredStudents,
     convertUnregisteredToLead, convertAllUnregisteredToLeads,
-    updateUnregisteredStudentNotes, updateUnregisteredStudentName
+    updateUnregisteredStudentNotes, updateUnregisteredStudentName,
+    revertLeadsToUnregistered
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,6 +57,12 @@ export default function LeadsRecap() {
   const [editPicTarget, setEditPicTarget] = useState(null); // lead yang sedang diedit
   const [editPicValue, setEditPicValue] = useState('');
   const [editPicLoading, setEditPicLoading] = useState(false);
+
+  // --- State untuk Modal Kembalikan ke Belum Daftar ---
+  const [isRevertModalOpen, setIsRevertModalOpen] = useState(false);
+  const [revertStaff, setRevertStaff] = useState('');
+  const [revertLoading, setRevertLoading] = useState(false);
+  const [revertPreviewCount, setRevertPreviewCount] = useState(null);
 
   // --- State untuk Panel Siswa Belum Daftar ---
   const [isUnregPanelOpen, setIsUnregPanelOpen] = useState(false);
@@ -418,6 +425,33 @@ export default function LeadsRecap() {
   const handleDelete = async (id) => {
     if (window.confirm('Hapus data lead ini?')) {
       await deleteLeadRecap(id);
+    }
+  };
+
+  const handleRevertPreview = (staffName) => {
+    if (!staffName) { setRevertPreviewCount(null); return; }
+    const count = leadsRecap.filter(l =>
+      l.staff_name === staffName &&
+      (!l.program || l.program === 'N/A' || l.program === '')
+    ).length;
+    setRevertPreviewCount(count);
+  };
+
+  const handleRevert = async () => {
+    if (!revertStaff) return;
+    if (!window.confirm(
+      `Kembalikan ${revertPreviewCount} data Program N/A milik "${revertStaff}" ke Siswa Belum Daftar?\n\nData akan dihapus dari Rekap Leads.`
+    )) return;
+    setRevertLoading(true);
+    const result = await revertLeadsToUnregistered(revertStaff);
+    setRevertLoading(false);
+    if (result.success) {
+      setIsRevertModalOpen(false);
+      setRevertStaff('');
+      setRevertPreviewCount(null);
+      alert(`✅ ${result.count} data berhasil dikembalikan ke Siswa Belum Daftar.`);
+    } else {
+      alert('❌ Gagal: ' + result.error);
     }
   };
 
@@ -804,6 +838,16 @@ export default function LeadsRecap() {
               >
                 <Zap className="w-4 h-4" />
                 Broadcast WA ({selectedLeadIds.size})
+              </button>
+            )}
+            {isManager && (
+              <button
+                onClick={() => { setIsRevertModalOpen(true); setRevertStaff(''); setRevertPreviewCount(null); }}
+                className="flex items-center gap-2 px-4 py-2.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all outline-none"
+                title="Kembalikan data Program N/A ke Siswa Belum Daftar"
+              >
+                <ArrowRightCircle className="w-4 h-4 rotate-180" />
+                Kembalikan N/A
               </button>
             )}
           </div>
@@ -2098,6 +2142,96 @@ export default function LeadsRecap() {
                     className="flex-[2] py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all disabled:opacity-50 shadow-sm shadow-indigo-200"
                   >
                     {editPicLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal Kembalikan ke Belum Daftar ── */}
+      <AnimatePresence>
+        {isRevertModalOpen && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
+            >
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">Kembalikan ke Belum Daftar</h3>
+                  <p className="text-xs text-slate-500">Pindahkan data Program N/A ke Siswa Belum Daftar</p>
+                </div>
+                <button
+                  onClick={() => setIsRevertModalOpen(false)}
+                  className="ml-auto w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-5">
+                <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 text-xs text-orange-700 leading-relaxed">
+                  Semua data leads dengan <strong>Program = N/A</strong> milik staff yang dipilih akan dipindahkan kembali ke menu <strong>Siswa Belum Daftar</strong> dan dihapus dari Rekap Leads.
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Pilih Staff</label>
+                  <select
+                    value={revertStaff}
+                    onChange={(e) => {
+                      setRevertStaff(e.target.value);
+                      handleRevertPreview(e.target.value);
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all"
+                  >
+                    <option value="">-- Pilih Staff --</option>
+                    {marketingStaff.map(s => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Preview count */}
+                {revertStaff && (
+                  <div className={`px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${
+                    revertPreviewCount > 0
+                      ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                      : 'bg-slate-50 text-slate-500 border border-slate-200'
+                  }`}>
+                    <Users className="w-4 h-4 shrink-0" />
+                    {revertPreviewCount === null
+                      ? 'Menghitung...'
+                      : revertPreviewCount > 0
+                        ? `${revertPreviewCount} data Program N/A ditemukan untuk ${revertStaff}`
+                        : `Tidak ada data Program N/A untuk ${revertStaff}`
+                    }
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsRevertModalOpen(false)}
+                    className="flex-1 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRevert}
+                    disabled={revertLoading || !revertStaff || !revertPreviewCount}
+                    className="flex-[2] py-3 text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all disabled:opacity-50 shadow-sm shadow-orange-200"
+                  >
+                    {revertLoading ? 'Memproses...' : `Kembalikan${revertPreviewCount > 0 ? ` (${revertPreviewCount})` : ''}`}
                   </button>
                 </div>
               </div>
