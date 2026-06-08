@@ -253,31 +253,54 @@ export default function MonthlyMonitoring() {
     // Find logs in referral_monitoring for this lead
     const leadLogs = referralLogs.filter(log => log.lead_id === lead.id);
     
-    let latestDateStr = null;
-    let hasLogs = false;
+    // Find arrival log ('Masuk Kampus')
+    const arrivalLog = leadLogs.find(log => log.student_response === 'Masuk Kampus');
+    
+    let arrivalDate = null;
+    if (arrivalLog) {
+      arrivalDate = new Date(arrivalLog.activity_date);
+    } else {
+      // Fallback to lead created_at for older data
+      arrivalDate = lead.created_at ? new Date(lead.created_at) : new Date();
+    }
+    
+    let latestDate = null;
+    let hasFollowUp = false;
     
     if (leadLogs.length > 0) {
-      const dates = leadLogs.map(log => new Date(log.activity_date).getTime());
-      const maxTime = Math.max(...dates);
-      latestDateStr = new Date(maxTime);
-      hasLogs = true;
+      // Filter out 'Masuk Kampus' logs to see if there are actual follow-up logs
+      const followUpLogs = leadLogs.filter(log => log.student_response !== 'Masuk Kampus');
+      if (followUpLogs.length > 0) {
+        const dates = followUpLogs.map(log => new Date(log.activity_date).getTime());
+        const maxTime = Math.max(...dates);
+        latestDate = new Date(maxTime);
+        hasFollowUp = true;
+      } else {
+        // Only arrival log exists
+        latestDate = new Date(arrivalLog ? arrivalLog.activity_date : lead.created_at);
+        hasFollowUp = false;
+      }
     } else {
-      latestDateStr = lead.created_at ? new Date(lead.created_at) : new Date();
-      hasLogs = false;
+      // No logs at all
+      latestDate = lead.created_at ? new Date(lead.created_at) : new Date();
+      hasFollowUp = false;
     }
     
     const today = new Date();
     today.setHours(0,0,0,0);
-    const latestDate = new Date(latestDateStr);
-    latestDate.setHours(0,0,0,0);
     
-    const diffTime = today.getTime() - latestDate.getTime();
+    const latestProgressDate = new Date(latestDate);
+    latestProgressDate.setHours(0,0,0,0);
+    
+    const diffTime = today.getTime() - latestProgressDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     return {
       days: diffDays >= 0 ? diffDays : 0,
-      latestDate: latestDateStr,
-      hasLogs
+      arrivalDate,
+      latestDate,
+      hasLogs: leadLogs.length > 0,
+      hasFollowUp
     };
   };
 
@@ -778,11 +801,20 @@ export default function MonthlyMonitoring() {
                         <p className="font-bold text-slate-700">{selectedLead.staff_name}</p>
                       </div>
                       <div>
+                        <p className="font-bold text-slate-400 uppercase text-[9px] tracking-wider mb-0.5">Tanggal Masuk Kampus</p>
+                        <p className="font-bold text-slate-700">
+                          {leadProgressInfo.arrivalDate 
+                            ? leadProgressInfo.arrivalDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                            : '—'
+                          }
+                        </p>
+                      </div>
+                      <div className="col-span-2">
                         <p className="font-bold text-slate-400 uppercase text-[9px] tracking-wider mb-0.5">Aktivitas Terakhir</p>
                         <p className="font-bold text-slate-700">
-                          {leadProgressInfo.hasLogs 
+                          {leadProgressInfo.hasFollowUp
                             ? leadProgressInfo.latestDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-                            : 'Belum ada progress (Menggunakan tanggal daftar)'
+                            : 'Belum ada follow-up (Mulai terhitung sejak masuk kampus)'
                           }
                         </p>
                       </div>

@@ -337,6 +337,35 @@ export const useStore = create(
       
     if (error) {
       console.error("Gagal update status kedatangan lead:", error);
+    } else if (newArrivalStatus === 'AKTIF') {
+      try {
+        const leadObj = get().leadsRecap.find(l => l.id === id);
+        if (leadObj) {
+          const { data: existingLogs } = await supabase
+            .from('referral_monitoring')
+            .select('id')
+            .eq('lead_id', id)
+            .eq('student_response', 'Masuk Kampus')
+            .limit(1);
+
+          if (!existingLogs || existingLogs.length === 0) {
+            await get().addReferralLog({
+              lead_id: id,
+              student_name: leadObj.student_name,
+              school: leadObj.school || '',
+              program: leadObj.program || '',
+              activity_date: new Date().toISOString().split('T')[0],
+              student_response: 'Masuk Kampus',
+              staff_action: 'Siswa Tiba di Kampus',
+              notes: 'Otomatis dicatat saat status kedatangan diubah menjadi AKTIF',
+              pic_staff: leadObj.staff_name || 'System'
+            });
+            await get().fetchReferralLogs();
+          }
+        }
+      } catch (err) {
+        console.error("Gagal mencatat log masuk kampus otomatis:", err);
+      }
     }
   },
 
