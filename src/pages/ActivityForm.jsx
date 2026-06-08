@@ -1,54 +1,59 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Send, UserCheck, CalendarDays, Users, MessageCircle,
-  CheckCircle2, FileText, Zap, AlertTriangle, Sunrise,
-  UserPlus, Loader2, CheckCheck, ChevronDown, Search
+  Send, UserCheck, CalendarDays,
+  CheckCircle2, Zap, Sunrise,
+  Loader2, CheckCheck, ChevronDown,
+  Radio, Phone, MessageSquare, Users2, Plus, Trash2,
+  MapPin
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-// Removed AddStaffModal import in favor of unified User Management
 
 const today = () => new Date().toISOString().split('T')[0];
 
-const formFields = [
+// ─── Metode Follow Up Config ──────────────────────────────────────────────────
+const FOLLOW_UP_METHODS = [
   {
-    id: 'leads_followed_up',
-    label: 'Jumlah Leads Difollow-up',
-    type: 'number',
-    placeholder: '0',
-    icon: Users,
-    color: 'indigo',
-    hint: 'Total leads yang dihubungi hari ini',
+    key: 'broadcast',
+    label: 'Hanya Broadcast',
+    icon: Radio,
+    color: 'sky',
+    description: 'Kirim pesan broadcast massal',
   },
   {
-    id: 'leads_responded',
-    label: 'Leads Merespon (Prioritas Sedang & Tinggi)',
-    type: 'number',
-    placeholder: '0',
-    icon: MessageCircle,
-    color: 'emerald',
-    hint: 'Leads yang memberikan respon positif',
-  },
-  {
-    id: 'leads_converted',
-    label: 'Leads Terkonversi (Pendaftaran → Pangkal)',
-    type: 'number',
-    placeholder: '0',
-    icon: CheckCircle2,
+    key: 'telepon',
+    label: 'Telepon',
+    icon: Phone,
     color: 'violet',
-    hint: 'Leads yang berhasil masuk ke tahap Pangkal',
+    description: 'Follow up via panggilan telepon',
+  },
+  {
+    key: 'whatsapp',
+    label: 'Komunikasi WhatsApp',
+    icon: MessageSquare,
+    color: 'emerald',
+    description: 'Komunikasi personal via WhatsApp',
+  },
+  {
+    key: 'bertemu',
+    label: 'Bertemu Langsung',
+    icon: Users2,
+    color: 'amber',
+    description: 'Pertemuan tatap muka',
   },
 ];
 
+const colorMap = {
+  indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'focus:border-indigo-500 focus:ring-indigo-500/20', label: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700', card: 'border-indigo-200 bg-indigo-50/30', check: 'accent-indigo-600' },
+  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'focus:border-emerald-500 focus:ring-emerald-500/20', label: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', card: 'border-emerald-200 bg-emerald-50/30', check: 'accent-emerald-600' },
+  violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'focus:border-violet-500 focus:ring-violet-500/20', label: 'text-violet-700', badge: 'bg-violet-100 text-violet-700', card: 'border-violet-200 bg-violet-50/30', check: 'accent-violet-600' },
+  sky: { bg: 'bg-sky-50', text: 'text-sky-600', border: 'focus:border-sky-500 focus:ring-sky-500/20', label: 'text-sky-700', badge: 'bg-sky-100 text-sky-700', card: 'border-sky-200 bg-sky-50/30', check: 'accent-sky-600' },
+  amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'focus:border-amber-500 focus:ring-amber-500/20', label: 'text-amber-700', badge: 'bg-amber-100 text-amber-700', card: 'border-amber-200 bg-amber-50/30', check: 'accent-amber-600' },
+  red: { bg: 'bg-red-50', text: 'text-red-600', border: 'focus:border-red-500 focus:ring-red-500/20', label: 'text-red-700', badge: 'bg-red-100 text-red-700', card: 'border-red-200 bg-red-50/30', check: 'accent-red-600' },
+  orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'focus:border-orange-500 focus:ring-orange-500/20', label: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', card: 'border-orange-200 bg-orange-50/30', check: 'accent-orange-600' },
+};
+
 const textFields = [
-  {
-    id: 'response_notes',
-    label: 'Catatan Respon dari Leads Responsif',
-    icon: FileText,
-    color: 'sky',
-    placeholder: 'Tuliskan tanggapan/respon menarik dari leads yang responsif hari ini...',
-    rows: 3,
-  },
   {
     id: 'follow_up_actions',
     label: 'Tindakan Lanjutan',
@@ -75,29 +80,57 @@ const textFields = [
   },
 ];
 
-const colorMap = {
-  indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'focus:border-indigo-500 focus:ring-indigo-500/20', label: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
-  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'focus:border-emerald-500 focus:ring-emerald-500/20', label: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' },
-  violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'focus:border-violet-500 focus:ring-violet-500/20', label: 'text-violet-700', badge: 'bg-violet-100 text-violet-700' },
-  sky: { bg: 'bg-sky-50', text: 'text-sky-600', border: 'focus:border-sky-500 focus:ring-sky-500/20', label: 'text-sky-700', badge: 'bg-sky-100 text-sky-700' },
-  amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'focus:border-amber-500 focus:ring-amber-500/20', label: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' },
-  red: { bg: 'bg-red-50', text: 'text-red-600', border: 'focus:border-red-500 focus:ring-red-500/20', label: 'text-red-700', badge: 'bg-red-100 text-red-700' },
-  orange: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'focus:border-orange-500 focus:ring-orange-500/20', label: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
+// Initial state untuk setiap metode
+const initialMethodData = {
+  broadcast: { total_sent: '', total_responded: '' },
+  telepon: { total_called: '', total_responded: '' },
+  whatsapp: { total_contacted: '', total_responded: '' },
+  bertemu: {
+    meetings: [{ name: '', phone: '', location: '' }],
+  },
 };
 
 const initialForm = {
   staff_id: '',
   staff_name: '',
   report_date: today(),
-  leads_followed_up: '',
-  leads_responded: '',
+  leads_followed_up: 0,
+  leads_responded: 0,
   leads_converted: '',
-  responded_leads_details: [], // Array of { name, phone, school, konversi: [], note }
-  response_notes: '',
+  // Metode Follow Up baru
+  follow_up_methods: [],       // array key: 'broadcast' | 'telepon' | 'whatsapp' | 'bertemu'
+  method_data: { ...initialMethodData },
+  // Text fields
   follow_up_actions: '',
   obstacles: '',
   next_day_plan: '',
 };
+
+// ─── Hitung total leads dari semua metode ────────────────────────────────────
+function calcTotals(methods, methodData) {
+  let totalFollowedUp = 0;
+  let totalResponded = 0;
+
+  if (methods.includes('broadcast')) {
+    totalFollowedUp += parseInt(methodData.broadcast.total_sent) || 0;
+    totalResponded += parseInt(methodData.broadcast.total_responded) || 0;
+  }
+  if (methods.includes('telepon')) {
+    totalFollowedUp += parseInt(methodData.telepon.total_called) || 0;
+    totalResponded += parseInt(methodData.telepon.total_responded) || 0;
+  }
+  if (methods.includes('whatsapp')) {
+    totalFollowedUp += parseInt(methodData.whatsapp.total_contacted) || 0;
+    totalResponded += parseInt(methodData.whatsapp.total_responded) || 0;
+  }
+  if (methods.includes('bertemu')) {
+    const meetCount = (methodData.bertemu.meetings || []).filter(m => m.name || m.phone).length;
+    totalFollowedUp += meetCount;
+    totalResponded += meetCount; // Bertemu langsung = otomatis merespon
+  }
+
+  return { totalFollowedUp, totalResponded };
+}
 
 export default function ActivityForm() {
   const {
@@ -131,20 +164,25 @@ export default function ActivityForm() {
     }
   }, [isManager, user, marketingStaff]);
 
+  // Recalc totals setiap kali method atau method_data berubah
+  useEffect(() => {
+    const { totalFollowedUp, totalResponded } = calcTotals(form.follow_up_methods, form.method_data);
+    setForm(f => ({ ...f, leads_followed_up: totalFollowedUp, leads_responded: totalResponded }));
+  }, [form.follow_up_methods, form.method_data]);
+
   const validate = () => {
     const e = {};
     if (!form.staff_id) e.staff_id = 'Pilih nama staff terlebih dahulu';
     if (!form.report_date) e.report_date = 'Tanggal laporan wajib diisi';
-    if (form.leads_followed_up === '' || Number(form.leads_followed_up) < 0) e.leads_followed_up = 'Wajib diisi (min 0)';
-    if (form.leads_responded === '' || Number(form.leads_responded) < 0) e.leads_responded = 'Wajib diisi (min 0)';
+    if (form.follow_up_methods.length === 0) e.follow_up_methods = 'Pilih minimal satu metode follow up';
     if (form.leads_converted === '' || Number(form.leads_converted) < 0) e.leads_converted = 'Wajib diisi (min 0)';
-    if (Number(form.leads_responded) > Number(form.leads_followed_up)) e.leads_responded = 'Tidak boleh melebihi jumlah follow-up';
-    if (Number(form.leads_converted) > Number(form.leads_responded)) e.leads_converted = 'Tidak boleh melebihi jumlah yang merespon';
+    if (Number(form.leads_converted) > form.leads_responded) e.leads_converted = 'Tidak boleh melebihi jumlah yang merespon';
 
-    // Validasi Detail Leads Respon
-    if (form.responded_leads_details && form.responded_leads_details.length > 0) {
-      const anyEmpty = form.responded_leads_details.some(l => !l.name || !l.phone || !l.school);
-      if (anyEmpty) e.general = 'Mohon lengkapi seluruh kolom Nama, HP, dan Sekolah pada detail leads yang merespon.';
+    // Validasi bertemu langsung
+    if (form.follow_up_methods.includes('bertemu')) {
+      const meetings = form.method_data.bertemu.meetings || [];
+      const hasEmpty = meetings.some(m => !m.name || !m.phone || !m.location);
+      if (hasEmpty) e.bertemu = 'Mohon lengkapi Nama, No. HP, dan Lokasi untuk setiap pertemuan.';
     }
 
     return e;
@@ -162,50 +200,73 @@ export default function ActivityForm() {
   };
 
   const handleChange = (field, value) => {
-    setForm(f => {
-      const newForm = { ...f, [field]: value };
-      
-      // Auto-sync leads detail rows
-      if (field === 'leads_responded') {
-        const count = Math.max(0, parseInt(value) || 0);
-        const currentDetails = [...(f.responded_leads_details || [])];
-        
-        if (count > currentDetails.length) {
-          // Add rows
-          for (let i = currentDetails.length; i < count; i++) {
-            currentDetails.push({ name: '', phone: '', school: '', konversi: [], note: '' });
-          }
-        } else if (count < currentDetails.length) {
-          // Remove rows
-          currentDetails.splice(count);
-        }
-        newForm.responded_leads_details = currentDetails;
-      }
-      
-      return newForm;
-    });
+    setForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
   };
 
-  const handleLeadDetailChange = (index, field, value) => {
+  // Toggle checkbox metode follow up
+  const handleMethodToggle = (key) => {
     setForm(f => {
-      const newDetails = [...f.responded_leads_details];
-      newDetails[index] = { ...newDetails[index], [field]: value };
-      return { ...f, responded_leads_details: newDetails };
+      const current = f.follow_up_methods;
+      const newMethods = current.includes(key)
+        ? current.filter(m => m !== key)
+        : [...current, key];
+      return { ...f, follow_up_methods: newMethods };
+    });
+    setErrors(e => ({ ...e, follow_up_methods: undefined, [key]: undefined }));
+  };
+
+  // Update data numerik untuk metode broadcast/telepon/whatsapp
+  const handleMethodDataChange = (methodKey, field, value) => {
+    setForm(f => ({
+      ...f,
+      method_data: {
+        ...f.method_data,
+        [methodKey]: {
+          ...f.method_data[methodKey],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  // Update data pertemuan langsung
+  const handleMeetingChange = (idx, field, value) => {
+    setForm(f => {
+      const meetings = [...f.method_data.bertemu.meetings];
+      meetings[idx] = { ...meetings[idx], [field]: value };
+      return {
+        ...f,
+        method_data: {
+          ...f.method_data,
+          bertemu: { ...f.method_data.bertemu, meetings },
+        },
+      };
     });
   };
 
-  // Pilih siswa dari autocomplete → auto-fill phone & school
-  const handleSelectStudent = (index, student) => {
+  const addMeeting = () => {
+    setForm(f => ({
+      ...f,
+      method_data: {
+        ...f.method_data,
+        bertemu: {
+          meetings: [...f.method_data.bertemu.meetings, { name: '', phone: '', location: '' }],
+        },
+      },
+    }));
+  };
+
+  const removeMeeting = (idx) => {
     setForm(f => {
-      const newDetails = [...f.responded_leads_details];
-      newDetails[index] = {
-        ...newDetails[index],
-        name: student.nama,
-        phone: student.telepon || '',
-        school: student.asal_sekolah || '',
+      const meetings = f.method_data.bertemu.meetings.filter((_, i) => i !== idx);
+      return {
+        ...f,
+        method_data: {
+          ...f.method_data,
+          bertemu: { meetings: meetings.length > 0 ? meetings : [{ name: '', phone: '', location: '' }] },
+        },
       };
-      return { ...f, responded_leads_details: newDetails };
     });
   };
 
@@ -216,20 +277,32 @@ export default function ActivityForm() {
       setErrors(errs);
       return;
     }
+
+    // Bangun response_notes dari data metode (untuk backward compat kolom DB)
+    const methodSummary = buildMethodSummary(form.follow_up_methods, form.method_data);
+
     const payload = {
-      ...form,
-      leads_followed_up: Number(form.leads_followed_up) || 0,
-      leads_responded: Number(form.leads_responded) || 0,
+      staff_id: form.staff_id,
+      staff_name: form.staff_name,
+      report_date: form.report_date,
+      leads_followed_up: form.leads_followed_up,
+      leads_responded: form.leads_responded,
       leads_converted: Number(form.leads_converted) || 0,
+      responded_leads_details: buildRespondedLeadsDetails(form.follow_up_methods, form.method_data),
+      response_notes: methodSummary,
+      follow_up_actions: form.follow_up_actions || null,
+      obstacles: form.obstacles || null,
+      next_day_plan: form.next_day_plan || null,
     };
+
     const result = await submitActivityReport(payload);
     if (result.success) {
       setSubmitted(true);
-      // Untuk Manager: pertahankan pilihan staff; untuk Staff: tetap nama sendiri
       setForm(f => ({
         ...initialForm,
         staff_id: f.staff_id,
         staff_name: f.staff_name,
+        method_data: { ...initialMethodData },
       }));
       setTimeout(() => setSubmitted(false), 4000);
     } else {
@@ -237,11 +310,39 @@ export default function ActivityForm() {
     }
   };
 
+  // Build summary teks dari metode (untuk kolom response_notes DB lama)
+  function buildMethodSummary(methods, methodData) {
+    const parts = [];
+    if (methods.includes('broadcast')) {
+      parts.push(`[Broadcast] Terkirim: ${methodData.broadcast.total_sent || 0}, Merespon: ${methodData.broadcast.total_responded || 0}`);
+    }
+    if (methods.includes('telepon')) {
+      parts.push(`[Telepon] Ditelepon: ${methodData.telepon.total_called || 0}, Merespon: ${methodData.telepon.total_responded || 0}`);
+    }
+    if (methods.includes('whatsapp')) {
+      parts.push(`[WhatsApp] Dihubungi: ${methodData.whatsapp.total_contacted || 0}, Merespon: ${methodData.whatsapp.total_responded || 0}`);
+    }
+    if (methods.includes('bertemu')) {
+      const meetings = methodData.bertemu.meetings || [];
+      const names = meetings.filter(m => m.name).map(m => `${m.name} (${m.location})`).join(', ');
+      parts.push(`[Bertemu Langsung] ${names}`);
+    }
+    return parts.join('\n');
+  }
+
+  // Build responded_leads_details dari meetings (untuk backward compat)
+  function buildRespondedLeadsDetails(methods, methodData) {
+    if (!methods.includes('bertemu')) return [];
+    return (methodData.bertemu.meetings || [])
+      .filter(m => m.name)
+      .map(m => ({ name: m.name, phone: m.phone, school: m.location, konversi: [], note: '' }));
+  }
+
   const responseRate = form.leads_followed_up > 0
-    ? ((Number(form.leads_responded) / Number(form.leads_followed_up)) * 100).toFixed(1)
+    ? ((form.leads_responded / form.leads_followed_up) * 100).toFixed(1)
     : '—';
   const conversionRate = form.leads_followed_up > 0
-    ? ((Number(form.leads_converted) / Number(form.leads_followed_up)) * 100).toFixed(1)
+    ? ((Number(form.leads_converted) / form.leads_followed_up) * 100).toFixed(1)
     : '—';
 
   return (
@@ -282,7 +383,7 @@ export default function ActivityForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Left Column — Identity */}
+          {/* ── Left Column ── */}
           <div className="lg:col-span-1 space-y-6">
 
             {/* Staff Selector Card */}
@@ -302,14 +403,12 @@ export default function ActivityForm() {
               </div>
 
               <div className="space-y-4">
-                {/* Staff — locked display untuk non-Manager, dropdown untuk Manager */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                     Nama Staff <span className="text-red-500">*</span>
                   </label>
 
                   {isManager ? (
-                    /* Manager: dropdown semua staff aktif */
                     <div className="relative">
                       <select
                         id="staff_select"
@@ -325,7 +424,6 @@ export default function ActivityForm() {
                       <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                   ) : (
-                    /* Staff: tampilan nama terkunci, tidak bisa diubah */
                     <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-indigo-200 bg-indigo-50">
                       <img
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(form.staff_name || user?.name || '')}&background=e0e7ff&color=4338ca&bold=true`}
@@ -381,188 +479,333 @@ export default function ActivityForm() {
               )}
             </motion.div>
 
-            {/* Number Fields */}
-            {formFields.map((field, idx) => {
-              const colors = colorMap[field.color];
-              const Icon = field.icon;
-              return (
-                <motion.div
-                  key={field.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.05 }}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center`}>
-                      <Icon className={`w-4 h-4 ${colors.text}`} />
-                    </div>
-                    <label htmlFor={field.id} className="text-sm font-semibold text-slate-700">
-                      {field.label} <span className="text-red-500">*</span>
-                    </label>
-                  </div>
-                  <input
-                    id={field.id}
-                    type="number"
-                    min="0"
-                    value={form[field.id]}
-                    onChange={e => handleChange(field.id, e.target.value)}
-                    placeholder={field.placeholder}
-                    className={`w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-2xl font-bold focus:outline-none focus:ring-2 transition-all ${colors.border}`}
-                  />
-                  <p className="text-xs text-slate-400 mt-1.5">{field.hint}</p>
-                  {errors[field.id] && <p className="mt-1 text-xs text-red-600">⚠ {errors[field.id]}</p>}
-                </motion.div>
-              );
-            })}
+            {/* Leads Terkonversi */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 text-violet-600" />
+                </div>
+                <label htmlFor="leads_converted" className="text-sm font-semibold text-slate-700">
+                  Leads Terkonversi (Pendaftaran → Pangkal) <span className="text-red-500">*</span>
+                </label>
+              </div>
+              <input
+                id="leads_converted"
+                type="number"
+                min="0"
+                value={form.leads_converted}
+                onChange={e => handleChange('leads_converted', e.target.value)}
+                placeholder="0"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-2xl font-bold focus:outline-none focus:ring-2 transition-all focus:border-violet-500 focus:ring-violet-500/20"
+              />
+              <p className="text-xs text-slate-400 mt-1.5">Leads yang berhasil masuk ke tahap Pangkal</p>
+              {errors.leads_converted && <p className="mt-1 text-xs text-red-600">⚠ {errors.leads_converted}</p>}
+            </motion.div>
 
-            {/* Dynamic Responsive Leads Details Section */}
+            {/* Auto-calculated totals display */}
             <AnimatePresence>
-              {(form.responded_leads_details || []).length > 0 && (
+              {form.leads_followed_up > 0 && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className="space-y-4 pt-6 border-t-2 border-indigo-100/50"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-5 text-white shadow-lg shadow-indigo-200"
                 >
-                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
-                        <UserPlus className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">DATA DETAIL LEADS RESPONSIVE</h3>
-                        <p className="text-[10px] text-indigo-500 font-medium tracking-wide">WAJIB DIISI UNTUK TIAP LEAD YANG MERESPON</p>
-                      </div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-indigo-200 mb-3">Rekapitulasi Otomatis</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-indigo-100">Total Leads Follow-up</span>
+                      <span className="text-xl font-black">{form.leads_followed_up}</span>
                     </div>
-                    <span className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                      {form.responded_leads_details.length} Data Siswa
-                    </span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-indigo-100">Total Leads Merespon</span>
+                      <span className="text-xl font-black text-emerald-300">{form.leads_responded}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-indigo-100">Terkonversi</span>
+                      <span className="text-xl font-black text-amber-300">{form.leads_converted || 0}</span>
+                    </div>
                   </div>
-
-                  {form.responded_leads_details.map((lead, idx) => {
-                    // Gabungkan students + leadsRecap sebagai sumber autocomplete
-                    const allNameSources = [
-                      ...(students || []).map(s => ({ id: s.id, nama: s.nama, telepon: s.telepon || '', asal_sekolah: s.asal_sekolah || '' })),
-                      ...(leadsRecap || []).map(l => ({ id: 'lr_' + l.id, nama: l.student_name, telepon: l.phone || '', asal_sekolah: l.school || '' })),
-                    ];
-                    // Deduplicate by nama
-                    const seen = new Set();
-                    const uniqueSources = allNameSources.filter(s => {
-                      if (!s.nama || seen.has(s.nama.toLowerCase())) return false;
-                      seen.add(s.nama.toLowerCase());
-                      return true;
-                    });
-                    // Filter berdasarkan ketikan
-                    const suggestions = lead.name && lead.name.length >= 2
-                      ? uniqueSources.filter(s =>
-                          s.nama?.toLowerCase().includes(lead.name.toLowerCase()) ||
-                          s.telepon?.includes(lead.name)
-                        ).slice(0, 8)
-                      : [];
-
-                    return (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-sm p-5 space-y-4 relative"
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-50 pb-2">
-                        <span className="text-[10px] font-black text-emerald-600 uppercase">Leads Responsif #{idx + 1}</span>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {/* ── Nama Siswa (Autocomplete) ── */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
-                            Nama Siswa <span className="text-slate-300 normal-case font-normal">(ketik untuk cari dari database)</span>
-                          </label>
-                          <div className="relative">
-                            <Search className="w-3.5 h-3.5 text-slate-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input
-                              type="text"
-                              value={lead.name}
-                              onChange={e => handleLeadDetailChange(idx, 'name', e.target.value)}
-                              placeholder="Ketik nama atau HP untuk mencari..."
-                              className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                            />
-                            {/* Dropdown suggestions */}
-                            {suggestions.length > 0 && (
-                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
-                                {suggestions.map(s => (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => handleSelectStudent(idx, s)}
-                                    className="w-full text-left px-3 py-2.5 hover:bg-emerald-50 transition-colors border-b border-slate-50 last:border-0"
-                                  >
-                                    <p className="font-bold text-slate-800 text-sm">{s.nama}</p>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-[10px] text-emerald-600 font-medium">{s.telepon}</span>
-                                      <span className="text-[10px] text-slate-400">·</span>
-                                      <span className="text-[10px] text-slate-400">{s.asal_sekolah}</span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* ── No. HP & Sekolah (Auto-fill, disabled) ── */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
-                              No. HP / WA
-                              {lead.phone && <span className="ml-1 text-emerald-500 font-normal normal-case">✓ terisi otomatis</span>}
-                            </label>
-                            <input
-                              type="tel"
-                              value={lead.phone}
-                              disabled
-                              placeholder="Otomatis terisi saat nama dipilih"
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-500 cursor-not-allowed select-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">
-                              Asal Sekolah
-                              {lead.school && <span className="ml-1 text-emerald-500 font-normal normal-case">✓ terisi otomatis</span>}
-                            </label>
-                            <input
-                              type="text"
-                              value={lead.school}
-                              disabled
-                              placeholder="Otomatis terisi saat nama dipilih"
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-500 cursor-not-allowed select-none"
-                            />
-                          </div>
-                        </div>
-
-                        {/* ── Keterangan Tambahan ── */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Keterangan Tambahan <span className="text-slate-300 font-normal normal-case">(opsional)</span></label>
-                          <textarea
-                            rows={2}
-                            value={lead.note}
-                            onChange={e => handleLeadDetailChange(idx, 'note', e.target.value)}
-                            placeholder="Tulis singkat hasil komunikasi, janji, atau catatan lainnya..."
-                            className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none"
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                    );
-                  })}
                 </motion.div>
               )}
             </AnimatePresence>
 
           </div>
 
-          {/* Right Column — Text Fields */}
+          {/* ── Right Column ── */}
           <div className="lg:col-span-2 space-y-5">
+
+            {/* ══ METODE FOLLOW UP ══ */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.08 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+            >
+              <div className="flex items-start gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Metode Follow Up yang Dilakukan</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Centang semua metode yang digunakan hari ini</p>
+                  {errors.follow_up_methods && (
+                    <p className="mt-1 text-xs text-red-600">⚠ {errors.follow_up_methods}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Checkbox Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                {FOLLOW_UP_METHODS.map(method => {
+                  const Icon = method.icon;
+                  const colors = colorMap[method.color];
+                  const isChecked = form.follow_up_methods.includes(method.key);
+                  return (
+                    <button
+                      key={method.key}
+                      type="button"
+                      onClick={() => handleMethodToggle(method.key)}
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all text-left ${
+                        isChecked
+                          ? `${colors.card} border-current ${colors.text}`
+                          : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isChecked ? colors.bg : 'bg-white'}`}>
+                        <Icon className={`w-4 h-4 ${isChecked ? colors.text : 'text-slate-400'}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-bold leading-tight ${isChecked ? '' : 'text-slate-600'}`}>{method.label}</p>
+                      </div>
+                      <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                        isChecked ? `${colors.bg} border-current` : 'border-slate-300 bg-white'
+                      }`}>
+                        {isChecked && <div className={`w-2 h-2 rounded-sm ${colors.text.replace('text-', 'bg-')}`} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* ── Sub-forms per metode ── */}
+              <div className="space-y-4">
+                <AnimatePresence>
+
+                  {/* Broadcast */}
+                  {form.follow_up_methods.includes('broadcast') && (
+                    <motion.div
+                      key="broadcast"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="rounded-xl border-2 border-sky-200 bg-sky-50/40 p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <Radio className="w-4 h-4 text-sky-600" />
+                        <span className="text-xs font-bold text-sky-700 uppercase tracking-wide">Hanya Broadcast</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Dibroadcast</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.broadcast.total_sent}
+                            onChange={e => handleMethodDataChange('broadcast', 'total_sent', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-sky-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah yang Merespon</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.broadcast.total_responded}
+                            onChange={e => handleMethodDataChange('broadcast', 'total_responded', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-sky-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Telepon */}
+                  {form.follow_up_methods.includes('telepon') && (
+                    <motion.div
+                      key="telepon"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="rounded-xl border-2 border-violet-200 bg-violet-50/40 p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <Phone className="w-4 h-4 text-violet-600" />
+                        <span className="text-xs font-bold text-violet-700 uppercase tracking-wide">Telepon</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Ditelepon</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.telepon.total_called}
+                            onChange={e => handleMethodDataChange('telepon', 'total_called', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-violet-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah yang Merespon</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.telepon.total_responded}
+                            onChange={e => handleMethodDataChange('telepon', 'total_responded', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-violet-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* WhatsApp */}
+                  {form.follow_up_methods.includes('whatsapp') && (
+                    <motion.div
+                      key="whatsapp"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="rounded-xl border-2 border-emerald-200 bg-emerald-50/40 p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <MessageSquare className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Komunikasi WhatsApp</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Dihubungi WA</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.whatsapp.total_contacted}
+                            onChange={e => handleMethodDataChange('whatsapp', 'total_contacted', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah yang Merespon</label>
+                          <input
+                            type="number" min="0"
+                            value={form.method_data.whatsapp.total_responded}
+                            onChange={e => handleMethodDataChange('whatsapp', 'total_responded', e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-white text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Bertemu Langsung */}
+                  {form.follow_up_methods.includes('bertemu') && (
+                    <motion.div
+                      key="bertemu"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="rounded-xl border-2 border-amber-200 bg-amber-50/40 p-4"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Users2 className="w-4 h-4 text-amber-600" />
+                          <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Bertemu Langsung</span>
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-bold">
+                            {form.method_data.bertemu.meetings.filter(m => m.name).length} orang
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={addMeeting}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition-colors"
+                        >
+                          <Plus className="w-3 h-3" /> Tambah
+                        </button>
+                      </div>
+
+                      {errors.bertemu && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.bertemu}</p>
+                      )}
+
+                      <div className="space-y-3">
+                        {form.method_data.bertemu.meetings.map((meeting, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, scale: 0.97 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-white rounded-xl border border-amber-200 p-3 space-y-2"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-black text-amber-600 uppercase">Pertemuan #{idx + 1}</span>
+                              {form.method_data.bertemu.meetings.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeMeeting(idx)}
+                                  className="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center hover:bg-red-100 transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3 text-red-500" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama <span className="text-red-400">*</span></label>
+                                <input
+                                  type="text"
+                                  value={meeting.name}
+                                  onChange={e => handleMeetingChange(idx, 'name', e.target.value)}
+                                  placeholder="Nama lengkap..."
+                                  className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. Telepon <span className="text-red-400">*</span></label>
+                                <input
+                                  type="tel"
+                                  value={meeting.phone}
+                                  onChange={e => handleMeetingChange(idx, 'phone', e.target.value)}
+                                  placeholder="08xx-xxxx-xxxx"
+                                  className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Lokasi Pertemuan <span className="text-red-400">*</span></span>
+                              </label>
+                              <input
+                                type="text"
+                                value={meeting.location}
+                                onChange={e => handleMeetingChange(idx, 'location', e.target.value)}
+                                placeholder="Contoh: Kantor, Sekolah SMA 1, Kafe Bintaro..."
+                                className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all"
+                              />
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* Text Fields */}
             {textFields.map((field, idx) => {
               const colors = colorMap[field.color];
               const Icon = field.icon;
@@ -571,7 +814,7 @@ export default function ActivityForm() {
                   key={field.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.06 }}
+                  transition={{ delay: 0.15 + idx * 0.06 }}
                   className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
                 >
                   <div className="flex items-start gap-3 mb-3">
