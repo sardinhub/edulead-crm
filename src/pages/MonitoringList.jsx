@@ -74,7 +74,7 @@ export default function MonitoringList() {
 
   const handleExportExcel = () => {
     const dataToExport = tableRows.map(r => {
-      let detailString = "";
+      let detailString = '';
       if (r.responded_leads_details && Array.isArray(r.responded_leads_details)) {
         detailString = r.responded_leads_details.map(l => `${l.name} (${l.phone}) - ${l.school}`).join(' | ');
       }
@@ -84,41 +84,40 @@ export default function MonitoringList() {
         Staff: r.staff_name,
         'Follow-up': r.leads_followed_up,
         Merespon: r.leads_responded,
-        'Rincian Leads': detailString,
         Konversi: r.leads_converted,
+        'Metode Follow Up': r.response_notes || '',
+        'Rincian Leads Bertemu': detailString,
         'Aktivitas Hari Ini': r.obstacles || '',
-        'Rencana Aktivitas Hari Selanjutnya': r.next_day_plan || ''
+        'Tindakan Lanjutan': r.follow_up_actions || '',
+        'Rencana Aktivitas Hari Selanjutnya': r.next_day_plan || '',
       };
     });
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan');
     XLSX.writeFile(workbook, `Laporan_Marketing.xlsx`);
   };
 
   const handleExportPDF = () => {
     const doc = new jsPDF('landscape');
     doc.setFontSize(16);
-    doc.text("Laporan Aktivitas Marketing", 14, 20);
-    
-    const tableColumn = ["Tanggal", "Staff", "Follow-up", "Merespon", "Konversi", "Aktivitas Hari Ini", "Rencana Aktivitas Hari Selanjutnya"];
+    doc.text('Laporan Aktivitas Marketing', 14, 20);
+
+    const tableColumn = ['Tanggal', 'Staff', 'Follow-up', 'Merespon', 'Konversi', 'Metode Follow Up', 'Aktivitas Hari Ini', 'Tindakan Lanjutan', 'Rencana Selanjutnya'];
     const tableRowsData = [];
 
     tableRows.forEach(r => {
-      let detailSummary = "—";
-      if (r.responded_leads_details && Array.isArray(r.responded_leads_details) && r.responded_leads_details.length > 0) {
-        detailSummary = r.responded_leads_details.map(l => l.name).join(', ');
-      }
-
       const rowData = [
         new Date(r.report_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
         r.staff_name,
         r.leads_followed_up,
-        `${r.leads_responded} (${detailSummary})`,
+        r.leads_responded,
         r.leads_converted,
-        r.obstacles || '',
-        r.next_day_plan || ''
+        (r.response_notes || '').replace(/\[/g, '').replace(/\]/g, '').slice(0, 60),
+        (r.obstacles || '').slice(0, 60),
+        (r.follow_up_actions || '').slice(0, 60),
+        (r.next_day_plan || '').slice(0, 60),
       ];
       tableRowsData.push(rowData);
     });
@@ -127,10 +126,10 @@ export default function MonitoringList() {
       head: [tableColumn],
       body: tableRowsData,
       startY: 25,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [79, 70, 229] } // indigo-600
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [79, 70, 229] },
     });
-    
+
     doc.save(`Laporan_Marketing.pdf`);
   };
 
@@ -483,7 +482,11 @@ export default function MonitoringList() {
                     'Tanggal',
                     ...(isManager ? ['Staff'] : []),
                     'Follow-up', 'Merespon', 'Konversi',
-                    'Resp. Rate', 'Conv. Rate', 'Aktivitas Hari Ini', 'Rencana Aktivitas Hari Selanjutnya',
+                    'Resp. Rate', 'Conv. Rate',
+                    'Metode Follow Up',
+                    'Aktivitas Hari Ini',
+                    'Tindakan Lanjutan',
+                    'Rencana Selanjutnya',
                     ...(isManager ? ['Aksi'] : [])
                   ].map(h => (
                     <th 
@@ -546,11 +549,17 @@ export default function MonitoringList() {
                           Number(cr) >= 10 ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-600'
                         )}>{cr}%</span>
                       </td>
-                      <td className="px-4 py-3 min-w-[200px] align-top">
-                        <p className="text-xs text-slate-500 whitespace-pre-wrap">{r.obstacles || '—'}</p>
+                      <td className="px-4 py-3 min-w-[180px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap leading-relaxed">{r.response_notes || '—'}</p>
                       </td>
-                      <td className="px-4 py-3 min-w-[200px] align-top">
-                        <p className="text-xs text-slate-500 whitespace-pre-wrap">{r.next_day_plan || '—'}</p>
+                      <td className="px-4 py-3 min-w-[180px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap leading-relaxed">{r.obstacles || '—'}</p>
+                      </td>
+                      <td className="px-4 py-3 min-w-[180px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap leading-relaxed">{r.follow_up_actions || '—'}</p>
+                      </td>
+                      <td className="px-4 py-3 min-w-[180px] align-top">
+                        <p className="text-xs text-slate-500 whitespace-pre-wrap leading-relaxed">{r.next_day_plan || '—'}</p>
                       </td>
                       {isManager && (
                         <td className="px-4 py-3 sticky right-0 bg-white z-10 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.1)]">
@@ -569,7 +578,7 @@ export default function MonitoringList() {
                 })}
                 {tableRows.length === 0 && (
                   <tr>
-                    <td colSpan={isManager ? 9 : 8} className="px-4 py-12 text-center text-slate-400 text-sm">
+                    <td colSpan={isManager ? 12 : 10} className="px-4 py-12 text-center text-slate-400 text-sm">
                       Belum ada laporan pada periode ini
                     </td>
                   </tr>

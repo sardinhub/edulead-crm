@@ -61,6 +61,7 @@ const textFields = [
     color: 'amber',
     placeholder: 'Apa tindakan konkret yang akan dilakukan sebagai follow-up berikutnya?',
     rows: 3,
+    required: true,
   },
   {
     id: 'obstacles',
@@ -69,6 +70,7 @@ const textFields = [
     color: 'emerald',
     placeholder: 'Apa saja aktivitas yang Anda lakukan hari ini?',
     rows: 2,
+    required: true,
   },
   {
     id: 'next_day_plan',
@@ -77,6 +79,7 @@ const textFields = [
     color: 'orange',
     placeholder: 'Apa yang akan dilakukan besok? Target leads mana yang diprioritaskan?',
     rows: 3,
+    required: true,
   },
 ];
 
@@ -184,6 +187,11 @@ export default function ActivityForm() {
       const hasEmpty = meetings.some(m => !m.name || !m.phone || !m.location);
       if (hasEmpty) e.bertemu = 'Mohon lengkapi Nama, No. HP, dan Lokasi untuk setiap pertemuan.';
     }
+
+    // Validasi field teks wajib
+    if (!form.follow_up_actions?.trim()) e.follow_up_actions = 'Tindakan Lanjutan wajib diisi';
+    if (!form.obstacles?.trim()) e.obstacles = 'Aktivitas hari ini wajib diisi';
+    if (!form.next_day_plan?.trim()) e.next_day_plan = 'Rencana Aktivitas Hari Selanjutnya wajib diisi';
 
     return e;
   };
@@ -809,24 +817,38 @@ export default function ActivityForm() {
             {textFields.map((field, idx) => {
               const colors = colorMap[field.color];
               const Icon = field.icon;
+              const hasError = !!errors[field.id];
               return (
                 <motion.div
                   key={field.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 + idx * 0.06 }}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+                  className={`bg-white rounded-2xl border shadow-sm p-6 transition-all ${
+                    hasError ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200'
+                  }`}
                 >
                   <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-9 h-9 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`w-5 h-5 ${colors.text}`} />
+                    <div className={`w-9 h-9 rounded-xl ${hasError ? 'bg-red-50' : colors.bg} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-5 h-5 ${hasError ? 'text-red-500' : colors.text}`} />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <label htmlFor={field.id} className="block text-sm font-semibold text-slate-800">
-                        {field.label}
+                        {field.label} {field.required && <span className="text-red-500">*</span>}
                       </label>
-                      <p className="text-xs text-slate-400 mt-0.5">Opsional — semakin detail semakin baik</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {field.required ? 'Wajib diisi sebelum submit' : 'Opsional — semakin detail semakin baik'}
+                      </p>
                     </div>
+                    {field.required && (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        form[field.id]?.trim()
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-red-50 text-red-600 border-red-200'
+                      }`}>
+                        {form[field.id]?.trim() ? '✓ Terisi' : 'WAJIB'}
+                      </span>
+                    )}
                   </div>
                   <textarea
                     id={field.id}
@@ -834,8 +856,17 @@ export default function ActivityForm() {
                     value={form[field.id]}
                     onChange={e => handleChange(field.id, e.target.value)}
                     placeholder={field.placeholder}
-                    className={`w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 transition-all placeholder:text-slate-300 ${colors.border}`}
+                    className={`w-full px-4 py-3 rounded-xl border text-slate-800 text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 transition-all placeholder:text-slate-300 ${
+                      hasError
+                        ? 'border-red-300 bg-red-50/30 focus:ring-red-500/20 focus:border-red-500'
+                        : `border-slate-200 bg-slate-50 ${colors.border}`
+                    }`}
                   />
+                  {hasError && (
+                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                      ⚠ {errors[field.id]}
+                    </p>
+                  )}
                 </motion.div>
               );
             })}
