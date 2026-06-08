@@ -470,7 +470,7 @@ export default function StaffMonitorCard({ staff, reports, index }) {
                   <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100">
                     <div className="flex items-center gap-1 mb-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Aktivitas Hari Itu</p>
+                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Aktivitas Hari Ini</p>
                     </div>
                     <p className="text-xs text-emerald-800 leading-relaxed">{lastReport.obstacles}</p>
                   </div>
