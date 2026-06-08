@@ -30,6 +30,7 @@ const marketingNavItems = [
   { name: 'List Monitoring', path: '/monitoring', icon: BarChart2 },
   { name: 'Progress Referral', path: '/progress-referral', icon: Gift },
   { name: 'Monitoring Referral', path: '/referral-monitoring', icon: Activity },
+  { name: 'Monitoring Bulanan', path: '/monthly-monitoring', icon: CalendarDays, managerOnly: true },
   { name: 'Panduan', path: '/guidance', icon: Book },
 ];
 
@@ -73,6 +74,8 @@ function Navigation({ user, location, onLinkClick, unreadCounts }) {
         <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Marketing Monitor</p>
       </div>
       {marketingNavItems.map((item) => {
+        const hasAccess = !item.managerOnly || user?.role === 'Manager';
+        if (!hasAccess) return null;
         const isActive = location.pathname.startsWith(item.path);
         const Icon = item.icon;
         return (
