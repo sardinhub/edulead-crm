@@ -14,7 +14,10 @@ import {
   ArrowRight,
   Gift,
   X,
-  ShieldAlert
+  ShieldAlert,
+  ArrowRightCircle,
+  HelpCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
@@ -23,7 +26,16 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
 export default function MonthlyMonitoring() {
-  const { user, referralLogs, fetchReferralLogs } = useStore();
+  const { 
+    user, 
+    referralLogs, 
+    fetchReferralLogs,
+    leadsRecap,
+    fetchLeadsRecap,
+    marketingStaff,
+    fetchMarketingStaff,
+    updateLeadRecapStatus
+  } = useStore();
   
   // Calendar View Month/Year
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -35,10 +47,18 @@ export default function MonthlyMonitoring() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // all, potential, others
 
+  // Staf/PIC tracking states
+  const [selectedStaff, setSelectedStaff] = useState('');
+  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [targetStaffId, setTargetStaffId] = useState('');
+  const [isTransferring, setIsTransferring] = useState(false);
+
   const isManager = user?.role === 'Manager';
 
   useEffect(() => {
     fetchReferralLogs();
+    fetchLeadsRecap();
+    fetchMarketingStaff();
   }, [user]);
 
   // If user is not manager, restrict access immediately
@@ -214,6 +234,81 @@ export default function MonthlyMonitoring() {
   const potentialSelectedCount = logsForSelectedDate.filter(l => l.student_response === 'Tertarik' || l.student_response === 'Pikir-pikir dulu').length;
   const othersSelectedCount = totalSelectedCount - potentialSelectedCount;
 
+  // Filter Active Referral candidates for selected staff
+  // Criteria: Note contains 'PANGKAL LUNAS' and arrival_status is 'AKTIF'
+  const activeReferralLeadsForStaff = selectedStaff
+    ? leadsRecap.filter(l => 
+        l.staff_name === selectedStaff &&
+        l.note?.toUpperCase().includes('PANGKAL LUNAS') && 
+        l.arrival_status === 'AKTIF'
+      )
+    : [];
+
+  const selectedLead = leadsRecap.find(l => l.id === selectedLeadId);
+
+  // Calculate days since last progress
+  const getDaysSinceLastProgress = (lead) => {
+    if (!lead) return null;
+    
+    // Find logs in referral_monitoring for this lead
+    const leadLogs = referralLogs.filter(log => log.lead_id === lead.id);
+    
+    let latestDateStr = null;
+    let hasLogs = false;
+    
+    if (leadLogs.length > 0) {
+      const dates = leadLogs.map(log => new Date(log.activity_date).getTime());
+      const maxTime = Math.max(...dates);
+      latestDateStr = new Date(maxTime);
+      hasLogs = true;
+    } else {
+      latestDateStr = lead.created_at ? new Date(lead.created_at) : new Date();
+      hasLogs = false;
+    }
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const latestDate = new Date(latestDateStr);
+    latestDate.setHours(0,0,0,0);
+    
+    const diffTime = today.getTime() - latestDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    return {
+      days: diffDays >= 0 ? diffDays : 0,
+      latestDate: latestDateStr,
+      hasLogs
+    };
+  };
+
+  const leadProgressInfo = getDaysSinceLastProgress(selectedLead);
+
+  // Handle reassigning leads
+  const handleTransferOwnership = async () => {
+    if (!selectedLead || !targetStaffId) return;
+    const target = marketingStaff.find(s => s.id === targetStaffId);
+    if (!target) return;
+    
+    if (window.confirm(`Apakah Anda yakin ingin memindahkan kepemilikan data Leads "${selectedLead.student_name}" ke Staff PIC "${target.name}"?\n\nData leads dan status monitoring referral selanjutnya akan berpindah ke staff tujuan.`)) {
+      setIsTransferring(true);
+      const res = await updateLeadRecapStatus(selectedLead.id, {
+        staff_id: target.id,
+        staff_name: target.name
+      });
+      setIsTransferring(false);
+      
+      if (res.success) {
+        alert(`✅ Kepemilikan Leads "${selectedLead.student_name}" berhasil dipindahkan ke "${target.name}"!`);
+        setSelectedLeadId('');
+        setTargetStaffId('');
+        // Refresh local store data
+        fetchLeadsRecap();
+      } else {
+        alert(`❌ Gagal memindahkan leads: ${res.error}`);
+      }
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 font-inter">
       {/* HEADER SECTION */}
@@ -274,7 +369,7 @@ export default function MonthlyMonitoring() {
           className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all"
         >
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">PIC Staff Aktif</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">PIC Staff Staf Aktif</p>
             <div className="flex items-baseline gap-2">
               <h3 className="text-3xl font-black text-slate-900">{monthStats.uniquePicStaff}</h3>
               <span className="text-xs text-slate-500 font-semibold">karyawan</span>
@@ -549,6 +644,222 @@ export default function MonthlyMonitoring() {
                     <p className="text-slate-600 font-semibold text-sm">Tidak ada data logs referral</p>
                     <p className="text-slate-400 text-xs mt-1">
                       {searchTerm ? 'Coba ganti kata kunci pencarian Anda.' : 'Pilih tanggal lain atau pastikan sudah ada progress referral yang di-input.'}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+
+      {/* NEW SECTION: REFERRAL PROGRESS MONITOR & RE-ASSIGNMENT PANEL */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+          <div className="p-2.5 bg-pink-100 text-pink-600 rounded-xl">
+            <Gift className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-lg">Pemantauan Progress & Re-Assignment Prospek Referal</h3>
+            <p className="text-xs text-slate-400">Pantau aktivitas leads aktif dan pindahkan kepemilikan jika tidak ada progress selama 5+ hari.</p>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* LEFT SUB-CARD: SELECTORS */}
+          <div className="space-y-5">
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
+                  1. Pilih Staff / PIC Awal
+                </label>
+                <select
+                  value={selectedStaff}
+                  onChange={(e) => {
+                    setSelectedStaff(e.target.value);
+                    setSelectedLeadId('');
+                    setTargetStaffId('');
+                  }}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-pink-500/20 cursor-pointer"
+                >
+                  <option value="">-- Pilih PIC Awal --</option>
+                  {marketingStaff.map(staff => (
+                    <option key={staff.id} value={staff.name}>{staff.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
+                  2. Pilih Leads Referral Aktif
+                </label>
+                <select
+                  disabled={!selectedStaff}
+                  value={selectedLeadId}
+                  onChange={(e) => {
+                    setSelectedLeadId(e.target.value);
+                    setTargetStaffId('');
+                  }}
+                  className={cn(
+                    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-pink-500/20 cursor-pointer",
+                    !selectedStaff && "bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200"
+                  )}
+                >
+                  <option value="">
+                    {!selectedStaff 
+                      ? "-- Pilih PIC awal terlebih dahulu --" 
+                      : activeReferralLeadsForStaff.length === 0 
+                        ? "-- Tidak ada leads referral aktif --" 
+                        : `-- Pilih Leads (${activeReferralLeadsForStaff.length}) --`
+                    }
+                  </option>
+                  {activeReferralLeadsForStaff.map(lead => (
+                    <option key={lead.id} value={lead.id}>{lead.student_name} ({lead.school || 'Sekolah N/A'})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* QUICK LEGEND INFO */}
+            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 flex items-start gap-3 text-xs text-slate-500">
+              <HelpCircle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-slate-700">Ketentuan Re-Assignment:</p>
+                <ul className="list-disc pl-4 space-y-1 text-[11px]">
+                  <li>Prospek terdaftar adalah leads yang memiliki program referral, lunas pangkal, dan berstatus <strong>Aktif di Kampus</strong>.</li>
+                  <li>Sistem mendeteksi selisih hari dari log aktivitas referral terakhir. Jika belum ada aktivitas, tanggal daftar digunakan sebagai titik awal.</li>
+                  <li>Jika prospek menganggur (idle) selama <strong>5 hari atau lebih</strong>, Admin/Manager berhak memindahkan data prospek ke PIC baru.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SUB-CARD: PROGRESS INFO & REASSIGN ACTION */}
+          <div className="min-h-[220px]">
+            <AnimatePresence mode="wait">
+              {selectedLead && leadProgressInfo ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="space-y-6"
+                >
+                  {/* Lead Info & Idle Days Stat */}
+                  <div className="border border-slate-100 rounded-2xl p-5 space-y-4 shadow-sm bg-slate-50/10">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-black text-slate-900 text-lg">{selectedLead.student_name}</h4>
+                        <p className="text-xs text-slate-500 mt-1">{selectedLead.school} • {selectedLead.program || 'N/A'}</p>
+                      </div>
+
+                      {/* Idle Badge Warning */}
+                      {leadProgressInfo.days >= 5 ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="bg-red-50 text-red-600 border border-red-200 px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 animate-pulse">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            KRITIS: {leadProgressInfo.days} Hari
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Tanpa Progress</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Aman: {leadProgressInfo.days} Hari
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Tanpa Progress</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-100">
+                      <div>
+                        <p className="font-bold text-slate-400 uppercase text-[9px] tracking-wider mb-0.5">PIC Staf Saat Ini</p>
+                        <p className="font-bold text-slate-700">{selectedLead.staff_name}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-400 uppercase text-[9px] tracking-wider mb-0.5">Aktivitas Terakhir</p>
+                        <p className="font-bold text-slate-700">
+                          {leadProgressInfo.hasLogs 
+                            ? leadProgressInfo.latestDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'Belum ada progress (Menggunakan tanggal daftar)'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reassign action block (shows if idle >= 5 days) */}
+                  {leadProgressInfo.days >= 5 ? (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-red-50/40 border border-red-100 rounded-2xl p-5 space-y-4"
+                    >
+                      <div className="space-y-1">
+                        <h5 className="text-sm font-bold text-red-800 flex items-center gap-1.5">
+                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                          Reassign Leads (Pindahkan Kepemilikan)
+                        </h5>
+                        <p className="text-[11px] text-slate-500">
+                          Data prospek referral ini menganggur selama 5 hari lebih. Silakan pilih staff tujuan baru untuk memindahkan datanya.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <select
+                          value={targetStaffId}
+                          onChange={(e) => setTargetStaffId(e.target.value)}
+                          className="w-full sm:flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-red-500/20"
+                        >
+                          <option value="">-- Pilih PIC Baru --</option>
+                          {marketingStaff
+                            .filter(s => s.name !== selectedLead.staff_name) // hide current staff
+                            .map(staff => (
+                              <option key={staff.id} value={staff.id}>{staff.name}</option>
+                            ))
+                          }
+                        </select>
+
+                        <button
+                          disabled={!targetStaffId || isTransferring}
+                          onClick={handleTransferOwnership}
+                          className={cn(
+                            "w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap",
+                            targetStaffId && !isTransferring
+                              ? "bg-red-600 text-white hover:bg-red-700 shadow-red-100 hover:scale-105"
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+                          )}
+                        >
+                          <ArrowRightCircle className="w-4 h-4" />
+                          {isTransferring ? 'Memproses...' : 'Pindahkan Leads'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="bg-emerald-50/20 border border-emerald-100 rounded-2xl p-5 text-center space-y-2">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+                      <h5 className="text-sm font-bold text-emerald-800">Progress Prospek Terjaga</h5>
+                      <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                        Lead referral ini masih aktif di-follow up dalam rentang 5 hari terakhir oleh <strong>{selectedLead.staff_name}</strong>. Tombol pemindahan kepemilikan terkunci demi keadilan performa staff.
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="h-full border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-6 text-center space-y-3"
+                >
+                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-slate-600 font-bold text-sm">Pilih Leads Untuk Memulai Pemantauan</p>
+                    <p className="text-slate-400 text-[11px] max-w-xs mx-auto mt-0.5">
+                      Pilih PIC awal di sebelah kiri, kemudian tentukan lead aktif untuk menganalisis progress detail dan pemindahan tugas.
                     </p>
                   </div>
                 </motion.div>
