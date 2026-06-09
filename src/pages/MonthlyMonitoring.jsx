@@ -57,7 +57,7 @@ export default function MonthlyMonitoring() {
   // Admin Input Form state
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminActivityDate, setAdminActivityDate] = useState(null);
-  const [adminActivityForm, setAdminActivityForm] = useState({ staff_action: '', student_response: 'Pikir-pikir dulu', notes: '' });
+  const [adminActivityForm, setAdminActivityForm] = useState({ student_response: 'Dalam Konfirmasi', notes: '' });
   const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
 
   const isManager = user?.role === 'Manager';
@@ -362,7 +362,7 @@ export default function MonthlyMonitoring() {
       school: selectedLead.school || '',
       program: selectedLead.program || '',
       activity_date: formatDateString(adminActivityDate),
-      student_response: 'Catatan Aktivitas',
+      student_response: adminActivityForm.student_response,
       staff_action: 'Pembaruan Catatan',
       notes: adminActivityForm.notes,
       pic_staff: selectedLead.staff_name || 'System'
@@ -372,7 +372,7 @@ export default function MonthlyMonitoring() {
     if (res.success) {
       alert("Catatan aktivitas berhasil disimpan!");
       setShowAdminModal(false);
-      setAdminActivityForm({ staff_action: '', student_response: 'Pikir-pikir dulu', notes: '' });
+      setAdminActivityForm({ student_response: 'Dalam Konfirmasi', notes: '' });
       fetchReferralLogs(); // refresh logs
     } else {
       alert("Gagal menyimpan aktivitas: " + res.error);
@@ -511,6 +511,14 @@ export default function MonthlyMonitoring() {
                 const isSelected = formatDateString(cell.date) === selectedDateStr;
                 const isToday = formatDateString(cell.date) === formatDateString(new Date());
                 const hasSelectedLeadLog = selectedLeadId && cellStats.total > 0;
+                
+                const isClosing = hasSelectedLeadLog && cellStats.specificLog.student_response === 'Closing Referal';
+                const cellBgClass = isClosing 
+                  ? "bg-emerald-50 border-emerald-300" 
+                  : (hasSelectedLeadLog ? "bg-amber-50 border-amber-300" : (isSelected ? "bg-indigo-50/30" : ""));
+                const cellTextClass = isClosing 
+                  ? "text-emerald-700 bg-emerald-100/50 border-emerald-200" 
+                  : "text-amber-700 bg-amber-100/50 border-amber-200";
 
                 return (
                   <motion.div
@@ -537,7 +545,7 @@ export default function MonthlyMonitoring() {
                         ? "bg-white border-slate-100 hover:shadow-md hover:border-indigo-100" 
                         : "bg-slate-50/50 border-slate-50 text-slate-300 cursor-not-allowed",
                       isSelected && "ring-2 ring-indigo-500 border-transparent shadow-lg",
-                      hasSelectedLeadLog ? "bg-blue-50 border-blue-200" : (isSelected ? "bg-indigo-50/30" : ""),
+                      cellBgClass,
                       isToday && !isSelected && !hasSelectedLeadLog && "border-indigo-500 bg-slate-50"
                     )}
                   >
@@ -558,7 +566,7 @@ export default function MonthlyMonitoring() {
 
                     {/* Stats indicator inside cell */}
                     {hasSelectedLeadLog ? (
-                      <div className="text-[9px] text-blue-700 font-medium leading-tight overflow-hidden line-clamp-3 bg-blue-100/50 p-1.5 rounded-md border border-blue-200">
+                      <div className={cn("text-[9px] font-medium leading-tight overflow-hidden line-clamp-3 p-1.5 rounded-md border", cellTextClass)}>
                         {cellStats.specificLog.notes || 'Ada Aktivitas'}
                       </div>
                     ) : cellStats.total > 0 && (
@@ -1000,7 +1008,21 @@ export default function MonthlyMonitoring() {
                   />
                 </div>
 
-                {/* Tindakan Staff dan Respons Siswa telah disembunyikan sesuai kebutuhan */}
+                {/* Tindakan Staff telah disembunyikan sesuai kebutuhan */}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600">Status Leads</label>
+                  <select
+                    value={adminActivityForm.student_response}
+                    onChange={(e) => setAdminActivityForm({...adminActivityForm, student_response: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  >
+                    <option value="Tertarik">Tertarik</option>
+                    <option value="Dalam Konfirmasi">Dalam Konfirmasi</option>
+                    <option value="Kurang Merspon">Kurang Merspon</option>
+                    <option value="Closing Referal">Closing Referal</option>
+                  </select>
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-600">Catatan (Hasil Interview) <span className="text-red-500">*</span></label>
