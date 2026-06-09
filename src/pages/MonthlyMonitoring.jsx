@@ -34,7 +34,8 @@ export default function MonthlyMonitoring() {
     fetchLeadsRecap,
     marketingStaff,
     fetchMarketingStaff,
-    updateLeadRecapStatus
+    updateLeadRecapStatus,
+    addReferralLog
   } = useStore();
   
   // Calendar View Month/Year
@@ -52,6 +53,12 @@ export default function MonthlyMonitoring() {
   const [selectedLeadId, setSelectedLeadId] = useState('');
   const [targetStaffId, setTargetStaffId] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
+
+  // Admin Input Form state
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminActivityDate, setAdminActivityDate] = useState(null);
+  const [adminActivityForm, setAdminActivityForm] = useState({ staff_action: '', student_response: 'Pikir-pikir dulu', notes: '' });
+  const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
 
   const isManager = user?.role === 'Manager';
 
@@ -332,10 +339,42 @@ export default function MonthlyMonitoring() {
     }
   };
 
+  // Handle save admin note
+  const handleSaveAdminActivity = async () => {
+    if (!selectedLead || !adminActivityDate) return;
+    if (!adminActivityForm.staff_action || !adminActivityForm.notes) {
+      alert("Tindakan Staff dan Catatan wajib diisi.");
+      return;
+    }
+
+    setIsSubmittingAdmin(true);
+    const res = await addReferralLog({
+      lead_id: selectedLead.id,
+      student_name: selectedLead.student_name,
+      school: selectedLead.school || '',
+      program: selectedLead.program || '',
+      activity_date: formatDateString(adminActivityDate),
+      student_response: adminActivityForm.student_response,
+      staff_action: adminActivityForm.staff_action,
+      notes: adminActivityForm.notes,
+      pic_staff: selectedLead.staff_name || 'System'
+    });
+    setIsSubmittingAdmin(false);
+
+    if (res.success) {
+      alert("Catatan aktivitas berhasil disimpan!");
+      setShowAdminModal(false);
+      setAdminActivityForm({ staff_action: '', student_response: 'Pikir-pikir dulu', notes: '' });
+      fetchReferralLogs(); // refresh logs
+    } else {
+      alert("Gagal menyimpan aktivitas: " + res.error);
+    }
+  };
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8 font-inter">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 font-inter flex flex-col">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 order-1">
         <div className="space-y-1">
           <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <CalendarIcon className="w-7 h-7 text-indigo-600" />
@@ -354,7 +393,7 @@ export default function MonthlyMonitoring() {
       </div>
 
       {/* MONTH SUMMARY STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 order-2">
         <motion.div 
           whileHover={{ y: -3 }}
           className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all"
@@ -405,7 +444,7 @@ export default function MonthlyMonitoring() {
       </div>
 
       {/* MAIN LAYOUT: CALENDAR + DETAIL SIDEBAR */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start order-4">
         {/* LEFT & CENTER PANEL: THE CALENDAR */}
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
           {/* Calendar Header */}
@@ -476,6 +515,11 @@ export default function MonthlyMonitoring() {
                         setSelectedDate(cell.date);
                       }
                       setSearchTerm('');
+
+                      if (selectedLeadId) {
+                        setAdminActivityDate(cell.date);
+                        setShowAdminModal(true);
+                      }
                     }}
                     key={idx}
                     className={cn(
@@ -677,7 +721,7 @@ export default function MonthlyMonitoring() {
       </div>
 
       {/* NEW SECTION: REFERRAL PROGRESS MONITOR & RE-ASSIGNMENT PANEL */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden order-3">
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
           <div className="p-2.5 bg-pink-100 text-pink-600 rounded-xl">
             <Gift className="w-5 h-5" />
@@ -900,6 +944,105 @@ export default function MonthlyMonitoring() {
           </div>
         </div>
       </div>
+
+      {/* ADMIN INPUT ACTIVITY MODAL */}
+      <AnimatePresence>
+        {showAdminModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100"
+            >
+              <div className="flex justify-between items-center mb-5">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Input Aktivitas Staff</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Tercatat untuk tanggal: <strong className="text-indigo-600">{formatReadableDate(adminActivityDate)}</strong>
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowAdminModal(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600">Siswa / Leads</label>
+                  <input 
+                    type="text" 
+                    value={selectedLead?.student_name || ''} 
+                    disabled
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600">Tindakan Staff <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: Follow-up via WhatsApp"
+                    value={adminActivityForm.staff_action}
+                    onChange={(e) => setAdminActivityForm({...adminActivityForm, staff_action: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600">Respons Siswa</label>
+                  <select
+                    value={adminActivityForm.student_response}
+                    onChange={(e) => setAdminActivityForm({...adminActivityForm, student_response: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  >
+                    <option value="Tertarik">Tertarik</option>
+                    <option value="Pikir-pikir dulu">Pikir-pikir dulu</option>
+                    <option value="Tidak dapat dihubungi">Tidak dapat dihubungi</option>
+                    <option value="Menolak">Menolak</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600">Catatan (Hasil Interview) <span className="text-red-500">*</span></label>
+                  <textarea 
+                    rows={3}
+                    placeholder="Tuliskan keterangan detail dari hasil interview dengan staff..."
+                    value={adminActivityForm.notes}
+                    onChange={(e) => setAdminActivityForm({...adminActivityForm, notes: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowAdminModal(false)}
+                  className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  disabled={isSubmittingAdmin}
+                  onClick={handleSaveAdminActivity}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSubmittingAdmin ? 'Menyimpan...' : 'Simpan Aktivitas'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
