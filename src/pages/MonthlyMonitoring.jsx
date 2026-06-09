@@ -258,6 +258,33 @@ export default function MonthlyMonitoring() {
   const potentialSelectedCount = logsForSelectedDate.filter(l => l.student_response === 'Tertarik' || l.student_response === 'Pikir-pikir dulu').length;
   const othersSelectedCount = totalSelectedCount - potentialSelectedCount;
 
+  // Weekly Stats relative to selectedDate
+  const getWeeklyStats = () => {
+    const end = new Date(selectedDate);
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(selectedDate);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+
+    let weeklyLogs = referralLogs.filter(log => {
+      const logDate = new Date(log.activity_date);
+      return logDate >= start && logDate <= end;
+    });
+
+    if (selectedLeadId) {
+      weeklyLogs = weeklyLogs.filter(log => log.lead_id === selectedLeadId);
+    } else if (selectedStaff) {
+      weeklyLogs = weeklyLogs.filter(log => log.pic_staff === selectedStaff);
+    }
+
+    const weeklyClosings = weeklyLogs.filter(log => log.student_response === 'Closing Referal').length;
+    const weeklyInteractions = weeklyLogs.length - weeklyClosings;
+
+    return { weeklyInteractions, weeklyClosings };
+  };
+
+  const { weeklyInteractions, weeklyClosings } = getWeeklyStats();
+
   // Filter Active Referral candidates for selected staff
   // Criteria: Note contains 'PANGKAL LUNAS' and arrival_status is 'AKTIF'
   const activeReferralLeadsForStaff = selectedStaff
@@ -652,6 +679,32 @@ export default function MonthlyMonitoring() {
               <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">Berpotensi Closing</p>
               <h4 className="text-xl font-black text-emerald-600">{potentialSelectedCount}</h4>
             </div>
+          </div>
+
+          {/* Weekly Stats Accumulation */}
+          <div className="p-4 border-b border-slate-100 bg-slate-50/50 space-y-3">
+            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+              Akumulasi 7 Hari Terakhir
+              <span className="text-indigo-600 font-black">{weeklyInteractions + weeklyClosings} Total</span>
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-col items-center justify-center">
+                <p className="text-[10px] font-bold text-amber-600 uppercase mb-0.5 text-center leading-tight">Interaksi<br/>(Kuning)</p>
+                <h5 className="text-xl font-black text-amber-700">{weeklyInteractions}</h5>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col items-center justify-center">
+                <p className="text-[10px] font-bold text-emerald-600 uppercase mb-0.5 text-center leading-tight">Closing<br/>(Hijau)</p>
+                <h5 className="text-xl font-black text-emerald-700">{weeklyClosings}</h5>
+              </div>
+            </div>
+            {weeklyInteractions < 3 && (selectedLeadId || selectedStaff) && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex gap-2.5 items-start">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-red-700 font-semibold leading-relaxed">
+                  <strong>Rekomendasi:</strong> Interaksi sepekan di bawah 3 kali. Pertimbangkan pengalihan (re-assignment) Leads ke PIC lain guna mengoptimalkan follow-up.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Search bar */}
