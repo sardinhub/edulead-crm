@@ -198,11 +198,19 @@ export default function MonthlyMonitoring() {
   // Helper to check activity on a calendar cell
   const getCellStats = (date) => {
     const dateStr = formatDateString(date);
-    const cellLogs = referralLogs.filter(log => log.activity_date === dateStr);
+    let cellLogs = referralLogs.filter(log => log.activity_date === dateStr);
+
+    if (selectedLeadId) {
+      cellLogs = cellLogs.filter(log => log.lead_id === selectedLeadId);
+    }
+
     const total = cellLogs.length;
     const potential = cellLogs.filter(l => l.student_response === 'Tertarik' || l.student_response === 'Pikir-pikir dulu').length;
     const others = total - potential;
-    return { total, potential, others };
+    
+    const specificLog = selectedLeadId && cellLogs.length > 0 ? cellLogs[cellLogs.length - 1] : null;
+
+    return { total, potential, others, specificLog };
   };
 
   // Calculate statistics for the current month
@@ -342,8 +350,8 @@ export default function MonthlyMonitoring() {
   // Handle save admin note
   const handleSaveAdminActivity = async () => {
     if (!selectedLead || !adminActivityDate) return;
-    if (!adminActivityForm.staff_action || !adminActivityForm.notes) {
-      alert("Tindakan Staff dan Catatan wajib diisi.");
+    if (!adminActivityForm.notes) {
+      alert("Catatan wajib diisi.");
       return;
     }
 
@@ -354,8 +362,8 @@ export default function MonthlyMonitoring() {
       school: selectedLead.school || '',
       program: selectedLead.program || '',
       activity_date: formatDateString(adminActivityDate),
-      student_response: adminActivityForm.student_response,
-      staff_action: adminActivityForm.staff_action,
+      student_response: 'Catatan Aktivitas',
+      staff_action: 'Pembaruan Catatan',
       notes: adminActivityForm.notes,
       pic_staff: selectedLead.staff_name || 'System'
     });
@@ -502,6 +510,7 @@ export default function MonthlyMonitoring() {
                 const cellStats = getCellStats(cell.date);
                 const isSelected = formatDateString(cell.date) === selectedDateStr;
                 const isToday = formatDateString(cell.date) === formatDateString(new Date());
+                const hasSelectedLeadLog = selectedLeadId && cellStats.total > 0;
 
                 return (
                   <motion.div
@@ -527,8 +536,9 @@ export default function MonthlyMonitoring() {
                       cell.isCurrentMonth 
                         ? "bg-white border-slate-100 hover:shadow-md hover:border-indigo-100" 
                         : "bg-slate-50/50 border-slate-50 text-slate-300 cursor-not-allowed",
-                      isSelected && "ring-2 ring-indigo-500 border-transparent shadow-lg bg-indigo-50/30",
-                      isToday && !isSelected && "border-indigo-500 bg-slate-50"
+                      isSelected && "ring-2 ring-indigo-500 border-transparent shadow-lg",
+                      hasSelectedLeadLog ? "bg-blue-50 border-blue-200" : (isSelected ? "bg-indigo-50/30" : ""),
+                      isToday && !isSelected && !hasSelectedLeadLog && "border-indigo-500 bg-slate-50"
                     )}
                   >
                     {/* Day number & Today indicator */}
@@ -547,7 +557,11 @@ export default function MonthlyMonitoring() {
                     </div>
 
                     {/* Stats indicator inside cell */}
-                    {cellStats.total > 0 && (
+                    {hasSelectedLeadLog ? (
+                      <div className="text-[9px] text-blue-700 font-medium leading-tight overflow-hidden line-clamp-3 bg-blue-100/50 p-1.5 rounded-md border border-blue-200">
+                        {cellStats.specificLog.notes || 'Ada Aktivitas'}
+                      </div>
+                    ) : cellStats.total > 0 && (
                       <div className="space-y-1">
                         {cellStats.potential > 0 && (
                           <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-100">
@@ -986,30 +1000,7 @@ export default function MonthlyMonitoring() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600">Tindakan Staff <span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
-                    placeholder="Contoh: Follow-up via WhatsApp"
-                    value={adminActivityForm.staff_action}
-                    onChange={(e) => setAdminActivityForm({...adminActivityForm, staff_action: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600">Respons Siswa</label>
-                  <select
-                    value={adminActivityForm.student_response}
-                    onChange={(e) => setAdminActivityForm({...adminActivityForm, student_response: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  >
-                    <option value="Tertarik">Tertarik</option>
-                    <option value="Pikir-pikir dulu">Pikir-pikir dulu</option>
-                    <option value="Tidak dapat dihubungi">Tidak dapat dihubungi</option>
-                    <option value="Menolak">Menolak</option>
-                  </select>
-                </div>
+                {/* Tindakan Staff dan Respons Siswa telah disembunyikan sesuai kebutuhan */}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-600">Catatan (Hasil Interview) <span className="text-red-500">*</span></label>
