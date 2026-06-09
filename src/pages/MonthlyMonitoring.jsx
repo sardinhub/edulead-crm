@@ -357,6 +357,10 @@ export default function MonthlyMonitoring() {
     }
 
     setIsSubmittingAdmin(true);
+    
+    // Delete old log on this date to overwrite it if it exists
+    await deleteReferralLog(selectedLead.id, formatDateString(adminActivityDate));
+
     const res = await addReferralLog({
       lead_id: selectedLead.id,
       student_name: selectedLead.student_name,
@@ -554,6 +558,14 @@ export default function MonthlyMonitoring() {
 
                       if (selectedLeadId) {
                         setAdminActivityDate(cell.date);
+                        if (cellStats.specificLog) {
+                          setAdminActivityForm({
+                            student_response: cellStats.specificLog.student_response || 'Dalam Konfirmasi',
+                            notes: cellStats.specificLog.notes || ''
+                          });
+                        } else {
+                          setAdminActivityForm({ student_response: 'Dalam Konfirmasi', notes: '' });
+                        }
                         setShowAdminModal(true);
                       }
                     }}
