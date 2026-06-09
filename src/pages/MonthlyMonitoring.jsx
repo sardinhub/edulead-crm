@@ -115,7 +115,13 @@ export default function MonthlyMonitoring() {
 
   // Filter logs for selected date
   const selectedDateStr = formatDateString(selectedDate);
-  const logsForSelectedDate = referralLogs.filter(log => log.activity_date === selectedDateStr);
+  let logsForSelectedDate = referralLogs.filter(log => log.activity_date === selectedDateStr);
+  
+  if (selectedLeadId) {
+    logsForSelectedDate = logsForSelectedDate.filter(log => log.lead_id === selectedLeadId);
+  } else if (selectedStaff) {
+    logsForSelectedDate = logsForSelectedDate.filter(log => log.pic_staff === selectedStaff);
+  }
 
   // Filter logs by search term and tabs
   const filteredLogs = logsForSelectedDate.filter(log => {
@@ -203,6 +209,8 @@ export default function MonthlyMonitoring() {
 
     if (selectedLeadId) {
       cellLogs = cellLogs.filter(log => log.lead_id === selectedLeadId);
+    } else if (selectedStaff) {
+      cellLogs = cellLogs.filter(log => log.pic_staff === selectedStaff);
     }
 
     const total = cellLogs.length;
