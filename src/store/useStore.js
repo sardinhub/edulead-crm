@@ -611,6 +611,26 @@ export const useStore = create(
     return { success: true };
   },
 
+  deleteReferralLog: async (leadId, dateStr) => {
+    const { error } = await supabase
+      .from('referral_monitoring')
+      .delete()
+      .eq('lead_id', leadId)
+      .eq('activity_date', dateStr);
+
+    if (error) {
+      console.error('Gagal hapus referral log:', error);
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      referralLogs: state.referralLogs.filter(
+        log => !(log.lead_id === leadId && log.activity_date === dateStr)
+      )
+    }));
+    return { success: true };
+  },
+
   // ─── Leads Recap ───────────────────────────────────────────────────
   leadsRecap: [],
   

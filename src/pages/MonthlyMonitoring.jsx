@@ -35,7 +35,8 @@ export default function MonthlyMonitoring() {
     marketingStaff,
     fetchMarketingStaff,
     updateLeadRecapStatus,
-    addReferralLog
+    addReferralLog,
+    deleteReferralLog
   } = useStore();
   
   // Calendar View Month/Year
@@ -379,6 +380,24 @@ export default function MonthlyMonitoring() {
     }
   };
 
+  const handleResetAdminActivity = async () => {
+    if (!selectedLead || !adminActivityDate) return;
+    
+    if (window.confirm('Apakah Anda yakin ingin mereset aktivitas pada tanggal ini? Kotak tanggal akan kembali normal.')) {
+      setIsSubmittingAdmin(true);
+      const res = await deleteReferralLog(selectedLead.id, formatDateString(adminActivityDate));
+      setIsSubmittingAdmin(false);
+
+      if (res.success) {
+        alert("Aktivitas berhasil di-reset!");
+        setShowAdminModal(false);
+        setAdminActivityForm({ student_response: 'Dalam Konfirmasi', notes: '' });
+      } else {
+        alert("Gagal mereset aktivitas: " + res.error);
+      }
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 font-inter flex flex-col">
       {/* HEADER SECTION */}
@@ -514,11 +533,11 @@ export default function MonthlyMonitoring() {
                 
                 const isClosing = hasSelectedLeadLog && cellStats.specificLog.student_response === 'Closing Referal';
                 const cellBgClass = isClosing 
-                  ? "bg-emerald-50 border-emerald-300" 
-                  : (hasSelectedLeadLog ? "bg-amber-50 border-amber-300" : (isSelected ? "bg-indigo-50/30" : ""));
+                  ? "bg-emerald-500 border-emerald-600 text-white shadow-md" 
+                  : (hasSelectedLeadLog ? "bg-amber-400 border-amber-500 text-white shadow-md" : (isSelected ? "bg-indigo-50/30" : ""));
                 const cellTextClass = isClosing 
-                  ? "text-emerald-700 bg-emerald-100/50 border-emerald-200" 
-                  : "text-amber-700 bg-amber-100/50 border-amber-200";
+                  ? "text-white bg-emerald-600/50 border-emerald-400" 
+                  : "text-white bg-amber-500/50 border-amber-400";
 
                 return (
                   <motion.div
@@ -553,13 +572,14 @@ export default function MonthlyMonitoring() {
                     <div className="flex justify-between items-center">
                       <span className={cn(
                         "text-sm font-bold",
-                        cell.isCurrentMonth ? "text-slate-800" : "text-slate-300",
-                        isSelected && "text-indigo-600",
-                        isToday && "bg-indigo-600 text-white rounded-lg w-6 h-6 flex items-center justify-center"
+                        cell.isCurrentMonth ? (hasSelectedLeadLog ? "text-white" : "text-slate-800") : "text-slate-300",
+                        isSelected && !hasSelectedLeadLog && "text-indigo-600",
+                        isToday && "rounded-lg w-6 h-6 flex items-center justify-center",
+                        isToday && !hasSelectedLeadLog ? "bg-indigo-600 text-white" : (isToday && hasSelectedLeadLog ? "ring-2 ring-white" : "")
                       )}>
                         {cell.day}
                       </span>
-                      {isToday && !isSelected && (
+                      {isToday && !isSelected && !hasSelectedLeadLog && (
                         <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full" />
                       )}
                     </div>
@@ -1036,20 +1056,29 @@ export default function MonthlyMonitoring() {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  onClick={() => setShowAdminModal(false)}
-                  className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Batal
-                </button>
+              <div className="mt-6 flex justify-between items-center">
                 <button
                   disabled={isSubmittingAdmin}
-                  onClick={handleSaveAdminActivity}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  onClick={handleResetAdminActivity}
+                  className="px-5 py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
                 >
-                  {isSubmittingAdmin ? 'Menyimpan...' : 'Simpan Aktivitas'}
+                  Reset
                 </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowAdminModal(false)}
+                    className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    disabled={isSubmittingAdmin}
+                    onClick={handleSaveAdminActivity}
+                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSubmittingAdmin ? 'Menyimpan...' : 'Simpan Aktivitas'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
