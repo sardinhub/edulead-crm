@@ -103,7 +103,7 @@ export default function LeadsRecap() {
       setIsManualModalOpen(true);
       const referrer = params.get('referrer');
       if (referrer) {
-        setManualLead(prev => ({...prev, referred_by: referrer}));
+        setManualLead(prev => ({...prev, referred_by: referrer, note: 'PENDAFTARAN'}));
       }
     }
   }, [location.search]);
