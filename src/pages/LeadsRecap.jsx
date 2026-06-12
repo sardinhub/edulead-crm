@@ -103,7 +103,7 @@ export default function LeadsRecap() {
       setIsManualModalOpen(true);
       const referrer = params.get('referrer');
       if (referrer) {
-        setManualLead(prev => ({...prev, referred_by: referrer, note: 'PENDAFTARAN'}));
+        setManualLead(prev => ({...prev, referred_by: referrer, note: 'PENDAFTARAN', referral: user?.name || ''}));
       }
     }
   }, [location.search]);
@@ -695,7 +695,7 @@ export default function LeadsRecap() {
             Export Data
           </button>
           <button 
-            onClick={() => setIsManualModalOpen(true)}
+            onClick={() => { setManualLead(prev => ({...prev, referral: user?.name || ''})); setIsManualModalOpen(true); }}
             className="flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] active:scale-95 transition-all outline-none"
           >
             <UserPlus className="w-4 h-4" />
