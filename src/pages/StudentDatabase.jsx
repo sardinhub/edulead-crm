@@ -393,12 +393,12 @@ export default function StudentDatabase() {
                     </span>
                   </td>
                   <td className="px-8 py-5 text-right font-black text-indigo-600 text-base">
-                    Rp {Number(item.nominal_pembayaran).toLocaleString()}
+                    Rp {Math.round(Number(item.nominal_pembayaran || 0)).toLocaleString()}
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <a
-                        href={`https://wa.me/6285346540060?text=${encodeURIComponent(`Mohon dibantu untuk cetak kwitansi atas nama ${item.nama}, ${item.status_pembayaran || '-'}, Rp ${Number(item.nominal_pembayaran || 0).toLocaleString('id-ID')}`)}`}
+                        href={`https://wa.me/6285346540060?text=${encodeURIComponent(`Mohon dibantu untuk cetak kwitansi atas nama ${item.nama}, ${item.status_pembayaran || '-'}, Rp ${Math.round(Number(item.nominal_pembayaran || 0)).toLocaleString('id-ID')}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all hover:scale-110"

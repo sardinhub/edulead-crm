@@ -410,7 +410,7 @@ export const useStore = create(
       .eq('id', id);
 
     if (!error) {
-      get().logActivity(id, 'Pembayaran', `Pembayaran dicatat: ${newStatusPembayaran} (Total: Rp ${newTotalNominal.toLocaleString()})`);
+      get().logActivity(id, 'Pembayaran', `Pembayaran dicatat: ${newStatusPembayaran} (Total: Rp ${Math.round(newTotalNominal).toLocaleString()})`);
     } else {
       console.error("Gagal mencatat pembayaran:", error);
     }

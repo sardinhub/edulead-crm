@@ -74,8 +74,8 @@ export default function ReceiptModal({ student, onClose, picStaff }) {
 
     if (!student) return null;
 
-    const uangSebanyak = Number(form.uangSebanyak || 0);
-    const totalBiaya = Number(form.totalBiaya || 0);
+    const uangSebanyak = Math.round(Number(form.uangSebanyak || 0));
+    const totalBiaya = Math.round(Number(form.totalBiaya || 0));
     const sisaBayar = totalBiaya > 0 ? totalBiaya - uangSebanyak : 0;
     
     // Menentukan status lunas untuk mencantumkan watermark secara otomatis

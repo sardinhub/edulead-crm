@@ -173,7 +173,7 @@ export default function MonevRecap() {
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right font-black text-slate-900 text-sm">
-                    Rp {Number(item.nominal_pembayaran || 0).toLocaleString()}
+                    Rp {Math.round(Number(item.nominal_pembayaran || 0)).toLocaleString()}
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
