@@ -9,6 +9,25 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
+/** Target konversi bulanan per staff */
+const MONTHLY_TARGETS = {
+  'Fitri Alfani': 5,
+  'Shera': 5,
+  'Bella Sintia': 3,
+  'Salma': 3,
+  'Irfandi Nyondri': 3,
+  'Kasmira': 3,
+};
+
+function getMonthlyTarget(staffName) {
+  if (!staffName) return 3;
+  if (MONTHLY_TARGETS[staffName] !== undefined) return MONTHLY_TARGETS[staffName];
+  const key = Object.keys(MONTHLY_TARGETS).find(
+    k => staffName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(staffName.toLowerCase())
+  );
+  return key ? MONTHLY_TARGETS[key] : 3;
+}
+
 const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) => (
   <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
     <div className="flex items-start justify-between">
@@ -31,9 +50,10 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
   </div>
 );
 
-const TargetWidget = ({ current, target, userName }) => {
+const TargetWidget = ({ current, target, userName, monthName }) => {
   const percentage = Math.min(Math.round((current / target) * 100), 100);
   const remaining = Math.max(target - current, 0);
+  const isAchieved = current >= target;
 
   return (
     <div className="bg-indigo-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden h-full">
@@ -43,27 +63,38 @@ const TargetWidget = ({ current, target, userName }) => {
 
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div className="space-y-2">
-          <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Premium Incentive Tracker</p>
-          <h2 className="text-2xl font-bold">Halo, {userName}! 🚀</h2>
+          <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Target Pencapaian — {monthName}</p>
+          <h2 className="text-2xl font-bold">Halo, {userName?.toUpperCase()}! 🚀</h2>
           <p className="text-indigo-100/70 text-sm">
-            {remaining > 0 
-              ? `Tinggal ${remaining} "Pangkal Lunas" lagi untuk klaim bonus insentif premium Anda!` 
-              : "Selamat! Target tercapai. Ambil insentif premium Anda sekarang! 🔥"}
+            {isAchieved
+              ? '🎉 Selamat! Target bulan ini sudah tercapai. Pertahankan semangat Anda!'
+              : `Tinggal ${remaining} konversi lagi untuk mencapai target bulan ${monthName}!`}
           </p>
         </div>
 
         <div className="py-6">
           <div className="flex justify-between items-end mb-2">
             <span className="text-3xl font-bold">{percentage}%</span>
-            <span className="text-xs text-indigo-300 font-medium">{current} / {target} Lunas</span>
+            <span className="text-xs text-indigo-300 font-medium">{current} / {target} Konversi</span>
           </div>
           <div className="h-3 bg-white/10 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${percentage}%` }}
-              className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full"
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              className={cn(
+                'h-full rounded-full',
+                isAchieved
+                  ? 'bg-gradient-to-r from-emerald-400 to-teal-300'
+                  : percentage >= 66
+                    ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
+                    : 'bg-gradient-to-r from-indigo-400 to-violet-300'
+              )}
             />
           </div>
+          {isAchieved && (
+            <p className="text-emerald-300 text-xs font-bold mt-2 text-center">✅ TARGET TERCAPAI</p>
+          )}
         </div>
 
         <div className="pt-4 border-t border-white/10">
@@ -136,8 +167,11 @@ export default function Dashboard() {
 
   const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
-  // Perkembangan Target Pencapaian (Target: 15)
+  // Target & pencapaian bulan berjalan
+  const myMonthlyTarget = getMonthlyTarget(user?.name);
   const myLunasCount = user?.role === 'Manager' ? 0 : calculateACH(leadsRecap);
+  const now = new Date();
+  const monthName = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
   // Untuk Manager: Ringkasan Pencapaian Tim
   const teamAchievements = user?.role === 'Manager' ? leadsRecap.reduce((acc, lead) => {
@@ -311,30 +345,42 @@ export default function Dashboard() {
           <div className="lg:w-96 flex-shrink-0">
             <TargetWidget 
               current={myLunasCount} 
-              target={15} 
-              userName={user?.name} 
+              target={myMonthlyTarget}
+              userName={user?.name}
+              monthName={monthName}
             />
           </div>
         ) : (
           <div className="lg:w-96 flex-shrink-0 bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden flex flex-col">
              <div className="mb-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Achievement</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Achievement — {monthName}</p>
                 <h3 className="text-lg font-bold text-slate-900">Progres Target Staff</h3>
              </div>
              <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
                 {Object.entries(teamAchievements).length > 0 ? Object.entries(teamAchievements).map(([name, count]) => {
-                  const percentage = Math.min(Math.round((count / 15) * 100), 100);
+                  const staffTarget = getMonthlyTarget(name);
+                  const percentage = Math.min(Math.round((count / staffTarget) * 100), 100);
+                  const isStaffAchieved = count >= staffTarget;
                   return (
                     <div key={name} className="space-y-1">
                        <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-600 uppercase">{name}</span>
-                          <span className="text-indigo-600">{count} / 15</span>
+                          <span className="text-slate-600 uppercase truncate max-w-[60%]">{name}</span>
+                          <span className={cn(
+                            'font-black',
+                            isStaffAchieved ? 'text-emerald-600' : 'text-indigo-600'
+                          )}>
+                            {isStaffAchieved ? '✅ ' : ''}{count} / {staffTarget}
+                          </span>
                        </div>
                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}
-                            className="h-full bg-indigo-500 rounded-full"
+                            transition={{ duration: 1, ease: 'easeOut' }}
+                            className={cn(
+                              'h-full rounded-full',
+                              isStaffAchieved ? 'bg-emerald-500' : 'bg-indigo-500'
+                            )}
                           />
                        </div>
                     </div>
@@ -345,7 +391,7 @@ export default function Dashboard() {
              </div>
              <div className="mt-6 pt-4 border-t border-slate-50">
                 <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed">
-                   Target per staff: 15 leads (Self-Referral & Pangkal Lunas).
+                   Target bulan ini: Bella Sintia, Salma, Irfandi Nyondri, Kasmira = 3 konversi · Fitri Alfani, Shera = 5 konversi.
                 </p>
              </div>
           </div>
