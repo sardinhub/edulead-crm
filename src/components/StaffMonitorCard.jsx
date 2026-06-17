@@ -4,12 +4,49 @@ import {
   TrendingUp, TrendingDown, Users, MessageSquare, CheckCircle2,
   Lightbulb, Calendar, BarChart2, Radio, Phone, MessageCircle,
   Users2, ChevronDown, ChevronUp, FileText, Zap, Sunrise,
-  Target, Activity, Clock, Flame
+  Target, Activity, Clock, Flame, Trophy, Star
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs) { return twMerge(clsx(inputs)); }
+
+/** Konfigurasi target konversi bulanan per staff */
+const MONTHLY_TARGETS = {
+  // Target 5 konversi per bulan
+  'Fitri Alfani': 5,
+  'Shera': 5,
+  // Target 3 konversi per bulan (default untuk staff berikut)
+  'Bella Sintia': 3,
+  'Salma': 3,
+  'Irfandi Nyondri': 3,
+  'Kasmira': 3,
+};
+
+/** Mendapatkan target bulanan untuk staff tertentu */
+function getMonthlyTarget(staffName) {
+  if (!staffName) return 3;
+  // Cek exact match
+  if (MONTHLY_TARGETS[staffName] !== undefined) return MONTHLY_TARGETS[staffName];
+  // Cek partial match (case-insensitive)
+  const key = Object.keys(MONTHLY_TARGETS).find(
+    k => staffName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(staffName.toLowerCase())
+  );
+  return key ? MONTHLY_TARGETS[key] : 3;
+}
+
+/** Hitung total konversi pada bulan berjalan */
+function calcCurrentMonthConversions(reports) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  return reports
+    .filter(r => {
+      const d = new Date(r.report_date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    })
+    .reduce((sum, r) => sum + (r.leads_converted || 0), 0);
+}
 
 /** Hitung saran evaluasi otomatis berdasarkan metrik */
 function generateSuggestions(stats) {
@@ -271,6 +308,14 @@ export default function StaffMonitorCard({ staff, reports, index }) {
   const perfBg = perfScore >= 70 ? 'bg-emerald-50' : perfScore >= 40 ? 'bg-amber-50' : 'bg-red-50';
   const perfLabel = perfScore >= 70 ? 'Performa Baik' : perfScore >= 40 ? 'Performa Sedang' : 'Perlu Peningkatan';
 
+  // ── Target & pencapaian bulan berjalan ─────────────────────────────
+  const monthlyTarget = getMonthlyTarget(staff.name);
+  const currentMonthConversions = calcCurrentMonthConversions(reports);
+  const achievementPct = Math.min((currentMonthConversions / monthlyTarget) * 100, 100);
+  const isAchieved = currentMonthConversions >= monthlyTarget;
+  const now = new Date();
+  const monthName = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -323,6 +368,87 @@ export default function StaffMonitorCard({ staff, reports, index }) {
               {trendUp ? 'Tren Naik' : 'Tren Turun'}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* ── Target Pencapaian Bulan Berjalan ─────────── */}
+      <div className={cn(
+        'mx-4 mt-4 mb-2 rounded-2xl border p-3.5',
+        isAchieved
+          ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200'
+          : achievementPct >= 66
+            ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
+            : 'bg-gradient-to-r from-slate-50 to-indigo-50/30 border-slate-200'
+      )}>
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              'w-6 h-6 rounded-lg flex items-center justify-center',
+              isAchieved ? 'bg-emerald-500' : 'bg-indigo-500'
+            )}>
+              {isAchieved
+                ? <Trophy className="w-3.5 h-3.5 text-white" />
+                : <Star className="w-3.5 h-3.5 text-white" />}
+            </div>
+            <span className={cn(
+              'text-[10px] font-bold uppercase tracking-wider',
+              isAchieved ? 'text-emerald-700' : 'text-slate-500'
+            )}>
+              Target Pencapaian — {monthName}
+            </span>
+          </div>
+          <span className={cn(
+            'text-[10px] font-black px-2 py-0.5 rounded-full',
+            isAchieved
+              ? 'bg-emerald-500 text-white'
+              : achievementPct >= 66
+                ? 'bg-amber-400 text-white'
+                : 'bg-slate-200 text-slate-600'
+          )}>
+            {isAchieved ? '✅ TERCAPAI' : `${Math.round(achievementPct)}%`}
+          </span>
+        </div>
+
+        {/* Angka pencapaian */}
+        <div className="flex items-end justify-between mb-2">
+          <div className="flex items-baseline gap-1.5">
+            <span className={cn(
+              'text-3xl font-black leading-none',
+              isAchieved ? 'text-emerald-600'
+                : achievementPct >= 66 ? 'text-amber-600'
+                : 'text-indigo-700'
+            )}>
+              {currentMonthConversions}
+            </span>
+            <span className="text-sm font-bold text-slate-400">/ {monthlyTarget}</span>
+            <span className="text-xs text-slate-400 ml-0.5">konversi</span>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-slate-400">Sisa</p>
+            <p className={cn(
+              'text-sm font-black',
+              isAchieved ? 'text-emerald-600' : 'text-slate-700'
+            )}>
+              {isAchieved ? '🎉 Done!' : `${monthlyTarget - currentMonthConversions} lagi`}
+            </p>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-2.5 bg-white/70 rounded-full overflow-hidden border border-white/50">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${achievementPct}%` }}
+            transition={{ duration: 1.2, ease: 'easeOut', delay: index * 0.08 + 0.3 }}
+            className={cn(
+              'h-full rounded-full',
+              isAchieved
+                ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
+                : achievementPct >= 66
+                  ? 'bg-gradient-to-r from-amber-400 to-yellow-500'
+                  : 'bg-gradient-to-r from-indigo-400 to-violet-500'
+            )}
+          />
         </div>
       </div>
 
