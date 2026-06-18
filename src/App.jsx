@@ -19,6 +19,7 @@ import Leaderboard from './pages/Leaderboard';
 import ProgressReferral from './pages/ProgressReferral';
 import ReferralMonitoring from './pages/ReferralMonitoring';
 import MonthlyMonitoring from './pages/MonthlyMonitoring';
+import TeamNotes from './pages/TeamNotes';
 import { useStore } from './store/useStore';
 
 // ProtectedRoute Wrapper
@@ -54,6 +55,7 @@ function App() {
         <Route path="/progress-referral" element={<ProtectedRoute><ProgressReferral /></ProtectedRoute>} />
         <Route path="/referral-monitoring" element={<ProtectedRoute><ReferralMonitoring /></ProtectedRoute>} />
         <Route path="/monthly-monitoring" element={<ProtectedRoute><MonthlyMonitoring /></ProtectedRoute>} />
+        <Route path="/notes" element={<ProtectedRoute><TeamNotes /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

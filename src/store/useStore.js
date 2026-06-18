@@ -631,6 +631,95 @@ export const useStore = create(
     return { success: true };
   },
 
+  // ─── Team Notes (Catatan Tim) ──────────────────────────────────────
+  teamNotes: [],
+  isNotesLoading: false,
+
+  fetchTeamNotes: async () => {
+    set({ isNotesLoading: true });
+    const { data, error } = await supabase
+      .from('team_notes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      set({ teamNotes: data, isNotesLoading: false });
+    } else {
+      console.error('Gagal fetch team notes:', error);
+      set({ isNotesLoading: false });
+    }
+  },
+
+  addTeamNote: async (payload) => {
+    set({ isNotesLoading: true });
+    const { user } = get();
+    const newNote = {
+      ...payload,
+      author_id: user?.id || null,
+      author_name: user?.name || 'System'
+    };
+
+    const { data, error } = await supabase
+      .from('team_notes')
+      .insert([newNote])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Gagal tambah team note:', error);
+      set({ isNotesLoading: false });
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      teamNotes: [data, ...state.teamNotes],
+      isNotesLoading: false
+    }));
+    return { success: true, data };
+  },
+
+  updateTeamNote: async (id, updates) => {
+    set({ isNotesLoading: true });
+    const { data, error } = await supabase
+      .from('team_notes')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Gagal update team note:', error);
+      set({ isNotesLoading: false });
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      teamNotes: state.teamNotes.map(n => n.id === id ? data : n),
+      isNotesLoading: false
+    }));
+    return { success: true, data };
+  },
+
+  deleteTeamNote: async (id) => {
+    set({ isNotesLoading: true });
+    const { error } = await supabase
+      .from('team_notes')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Gagal hapus team note:', error);
+      set({ isNotesLoading: false });
+      return { success: false, error: error.message };
+    }
+
+    set((state) => ({
+      teamNotes: state.teamNotes.filter(n => n.id !== id),
+      isNotesLoading: false
+    }));
+    return { success: true };
+  },
+
   // ─── Leads Recap ───────────────────────────────────────────────────
   leadsRecap: [],
   
