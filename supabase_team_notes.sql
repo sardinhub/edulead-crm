@@ -6,11 +6,15 @@ CREATE TABLE IF NOT EXISTS team_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
+  note_date DATE,
   author_id UUID REFERENCES system_users(id) ON DELETE SET NULL,
   author_name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migrasi untuk tabel yang sudah ada (menambahkan kolom note_date)
+ALTER TABLE team_notes ADD COLUMN IF NOT EXISTS note_date DATE;
 
 -- RLS
 ALTER TABLE team_notes ENABLE ROW LEVEL SECURITY;

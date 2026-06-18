@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, Plus, Search, Trash2, Edit2, X, Check, Clock, User } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, Edit2, X, Check, Clock, User, CalendarDays } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -16,6 +16,7 @@ export default function TeamNotes() {
   const [editingNote, setEditingNote] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [noteDate, setNoteDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -27,10 +28,12 @@ export default function TeamNotes() {
       setEditingNote(note);
       setTitle(note.title);
       setContent(note.content);
+      setNoteDate(note.note_date || new Date().toISOString().split('T')[0]);
     } else {
       setEditingNote(null);
       setTitle('');
       setContent('');
+      setNoteDate(new Date().toISOString().split('T')[0]);
     }
     setIsModalOpen(true);
   };
@@ -40,15 +43,16 @@ export default function TeamNotes() {
     setEditingNote(null);
     setTitle('');
     setContent('');
+    setNoteDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleSaveNote = async () => {
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || !content.trim() || !noteDate) return;
 
     if (editingNote) {
-      await updateTeamNote(editingNote.id, { title, content });
+      await updateTeamNote(editingNote.id, { title, content, note_date: noteDate });
     } else {
-      await addTeamNote({ title, content });
+      await addTeamNote({ title, content, note_date: noteDate });
     }
     handleCloseModal();
   };
@@ -161,9 +165,17 @@ export default function TeamNotes() {
                       <User className="w-3.5 h-3.5" />
                       {note.author_name}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      {dateStr}
+                    <div className="flex flex-col items-end gap-1">
+                      {note.note_date && (
+                        <div className="flex items-center gap-1.5 font-medium text-slate-600">
+                          <CalendarDays className="w-3.5 h-3.5" />
+                          {new Date(note.note_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5 opacity-75">
+                        <Clock className="w-3.5 h-3.5" />
+                        {dateStr}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -204,15 +216,26 @@ export default function TeamNotes() {
               </div>
               
               <div className="p-6 overflow-y-auto flex-1 space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Judul</label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Contoh: Hasil Rapat Mingguan 12 Juni"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors font-medium text-slate-900"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Judul</label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Contoh: Hasil Rapat Mingguan 12 Juni"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors font-medium text-slate-900"
+                    />
+                  </div>
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tanggal</label>
+                    <input
+                      type="date"
+                      value={noteDate}
+                      onChange={(e) => setNoteDate(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors font-medium text-slate-900"
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex-1 flex flex-col h-full">
@@ -235,7 +258,7 @@ export default function TeamNotes() {
                 </button>
                 <button
                   onClick={handleSaveNote}
-                  disabled={!title.trim() || !content.trim() || isNotesLoading}
+                  disabled={!title.trim() || !content.trim() || !noteDate || isNotesLoading}
                   className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
                 >
                   {isNotesLoading ? 'Menyimpan...' : (
