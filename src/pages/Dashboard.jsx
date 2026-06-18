@@ -227,26 +227,40 @@ export default function Dashboard() {
   // ── All-time ACH (target keseluruhan = 15) ──
   const myLunasCount = user?.role === 'Manager' ? 0 : calculateACH(leadsRecap);
 
-  // ── Pencapaian bulan berjalan (filter created_at bulan & tahun sekarang) ──
+  // ── Pencapaian bulan berjalan (filter berdasarkan students tanggal_daftar/created_at bulan & tahun sekarang) ──
   const now = new Date();
   const monthName = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const curYear  = now.getFullYear();
   const curMonth = now.getMonth(); // 0-indexed
 
-  const calcMonthlyPangkal = (leads, staffName) => leads.filter(l => {
-    const isLunas = l.note?.toUpperCase().includes('PANGKAL LUNAS');
-    const createdAt = l.created_at ? new Date(l.created_at) : null;
-    const isThisMonth = createdAt &&
-      createdAt.getFullYear() === curYear &&
-      createdAt.getMonth()    === curMonth;
+  const calcMonthlyPangkal = (studentsList, leadsList, staffName) => studentsList.filter(s => {
+    // 1. Cek apakah status pembayarannya Pangkal
+    const isLunas = s.status_pembayaran === 'Pangkal Full' || s.status_pembayaran === 'Pendaftaran+Pangkal Full';
+    if (!isLunas) return false;
+
+    // 2. Cek apakah pembayaran dilakukan bulan ini
+    const dateObj = s.tanggal_daftar ? new Date(s.tanggal_daftar) : (s.created_at ? new Date(s.created_at) : null);
+    const isThisMonth = dateObj &&
+      dateObj.getFullYear() === curYear &&
+      dateObj.getMonth()    === curMonth;
+    if (!isThisMonth) return false;
+
+    // 3. Cek apakah milik staff yang bersangkutan
     const matchStaff = staffName
-      ? l.staff_name?.trim().toUpperCase() === staffName.trim().toUpperCase()
+      ? s.pic_staff?.trim().toUpperCase() === staffName.trim().toUpperCase()
       : true;
-    return isLunas && isThisMonth && matchStaff;
+    if (!matchStaff) return false;
+
+    // 4. Verifikasi bahwa ini adalah Self-Referral dari data leads_recap
+    const matchedLead = leadsList.find(l => l.student_name?.trim().toUpperCase() === s.nama?.trim().toUpperCase());
+    const isSelfReferral = matchedLead && matchedLead.referral && s.pic_staff &&
+      matchedLead.referral.trim().toUpperCase() === s.pic_staff.trim().toUpperCase();
+
+    return isSelfReferral;
   }).length;
 
   const myMonthlyTarget = getMonthlyTarget(user?.name);
-  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcMonthlyPangkal(leadsRecap, user?.name);
+  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcMonthlyPangkal(students, leadsRecap, user?.name);
 
   // ── Untuk Manager: Ringkasan Tim ──
   // all-time ACH
@@ -262,7 +276,7 @@ export default function Dashboard() {
   // monthly per staff
   const teamMonthlyAch = user?.role === 'Manager'
     ? Object.keys(MONTHLY_TARGETS).reduce((acc, name) => {
-        acc[name] = calcMonthlyPangkal(leadsRecap, name);
+        acc[name] = calcMonthlyPangkal(students, leadsRecap, name);
         return acc;
       }, {})
     : {};
