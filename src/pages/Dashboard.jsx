@@ -50,10 +50,16 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, colorClass }) =
   </div>
 );
 
-const TargetWidget = ({ current, target, userName, monthName }) => {
+const TargetWidget = ({ current, target, userName, monthlyCount, monthlyTarget, monthName }) => {
+  // ── Tracker keseluruhan (all-time, target 15) ──
   const percentage = Math.min(Math.round((current / target) * 100), 100);
   const remaining = Math.max(target - current, 0);
   const isAchieved = current >= target;
+
+  // ── Tracker bulan berjalan ──
+  const monthlyPct = Math.min(Math.round((monthlyCount / monthlyTarget) * 100), 100);
+  const monthlyRemaining = Math.max(monthlyTarget - monthlyCount, 0);
+  const isMonthlyAchieved = monthlyCount >= monthlyTarget;
 
   return (
     <div className="bg-indigo-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden h-full">
@@ -61,43 +67,94 @@ const TargetWidget = ({ current, target, userName, monthName }) => {
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/20 rounded-full -ml-12 -mb-12 blur-xl" />
 
-      <div className="relative z-10 flex flex-col h-full justify-between">
-        <div className="space-y-2">
-          <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Target Pencapaian — {monthName}</p>
+      <div className="relative z-10 flex flex-col h-full justify-between gap-5">
+        {/* ── Header ── */}
+        <div className="space-y-1.5">
+          <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Premium Incentive Tracker</p>
           <h2 className="text-2xl font-bold">Halo, {userName?.toUpperCase()}! 🚀</h2>
           <p className="text-indigo-100/70 text-sm">
             {isAchieved
-              ? '🎉 Selamat! Target bulan ini sudah tercapai. Pertahankan semangat Anda!'
-              : `Tinggal ${remaining} konversi lagi untuk mencapai target bulan ${monthName}!`}
+              ? '🔥 Target keseluruhan tercapai! Ambil insentif premium Anda sekarang!'
+              : `Tinggal ${remaining} "Pangkal Lunas" lagi untuk klaim bonus insentif premium Anda!`}
           </p>
         </div>
 
-        <div className="py-6">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-3xl font-bold">{percentage}%</span>
-            <span className="text-xs text-indigo-300 font-medium">{current} / {target} Konversi</span>
+        {/* ── Tracker Keseluruhan (All-time · Target 15) ── */}
+        <div>
+          <div className="flex justify-between items-end mb-1.5">
+            <div>
+              <span className="text-3xl font-black">{percentage}%</span>
+              <span className="text-indigo-300 text-xs font-semibold ml-2">Target Keseluruhan</span>
+            </div>
+            <span className="text-xs text-indigo-300 font-medium">{current} / {target} Lunas</span>
           </div>
           <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${percentage}%` }}
               transition={{ duration: 1.2, ease: 'easeOut' }}
-              className={cn(
-                'h-full rounded-full',
-                isAchieved
-                  ? 'bg-gradient-to-r from-emerald-400 to-teal-300'
-                  : percentage >= 66
-                    ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
-                    : 'bg-gradient-to-r from-indigo-400 to-violet-300'
-              )}
+              className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full"
             />
           </div>
           {isAchieved && (
-            <p className="text-emerald-300 text-xs font-bold mt-2 text-center">✅ TARGET TERCAPAI</p>
+            <p className="text-emerald-300 text-[10px] font-bold mt-1 text-right">✅ TARGET TERCAPAI</p>
           )}
         </div>
 
-        <div className="pt-4 border-t border-white/10">
+        {/* ── Divider ── */}
+        <div className="border-t border-white/10" />
+
+        {/* ── Tracker Bulan Berjalan ── */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                'w-5 h-5 rounded-md flex items-center justify-center text-[10px]',
+                isMonthlyAchieved ? 'bg-emerald-400/30' : 'bg-white/10'
+              )}>
+                {isMonthlyAchieved ? '🏆' : '📅'}
+              </div>
+              <span className="text-indigo-200 text-xs font-bold uppercase tracking-wider">Target Bulan {monthName}</span>
+            </div>
+            <span className={cn(
+              'text-[10px] font-black px-2 py-0.5 rounded-full',
+              isMonthlyAchieved ? 'bg-emerald-400/30 text-emerald-300' : 'bg-white/10 text-indigo-300'
+            )}>
+              {isMonthlyAchieved ? '✅ TERCAPAI' : `${monthlyPct}%`}
+            </span>
+          </div>
+          <div className="flex justify-between items-end mb-1.5">
+            <div className="flex items-baseline gap-1.5">
+              <span className={cn(
+                'text-2xl font-black',
+                isMonthlyAchieved ? 'text-emerald-300' : monthlyPct >= 66 ? 'text-amber-300' : 'text-white'
+              )}>{monthlyCount}</span>
+              <span className="text-indigo-300 text-sm font-bold">/ {monthlyTarget}</span>
+              <span className="text-indigo-400 text-xs">pangkal bulan ini</span>
+            </div>
+            <span className="text-indigo-300 text-xs">
+              {isMonthlyAchieved ? '🎉 Done!' : `${monthlyRemaining} lagi`}
+            </span>
+          </div>
+          <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${monthlyPct}%` }}
+              transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
+              className={cn(
+                'h-full rounded-full',
+                isMonthlyAchieved
+                  ? 'bg-gradient-to-r from-emerald-400 to-teal-300'
+                  : monthlyPct >= 66
+                    ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
+                    : 'bg-gradient-to-r from-violet-400 to-indigo-300'
+              )}
+            />
+          </div>
+        </div>
+
+        {/* ── Quote ── */}
+        <div className="pt-3 border-t border-white/10">
           <p className="text-[11px] italic text-indigo-200 leading-relaxed">
             "Keberuntungan adalah titik temu antara persiapan dan kesempatan. Teruslah mengetuk pintu kesuksesan!"
           </p>
@@ -167,21 +224,48 @@ export default function Dashboard() {
 
   const pendingFollowUps = leadsRecap.filter(l => l.status === 'Belum Dihubungi' || !l.status).length;
 
-  // Target & pencapaian bulan berjalan
-  const myMonthlyTarget = getMonthlyTarget(user?.name);
+  // ── All-time ACH (target keseluruhan = 15) ──
   const myLunasCount = user?.role === 'Manager' ? 0 : calculateACH(leadsRecap);
+
+  // ── Pencapaian bulan berjalan (filter created_at bulan & tahun sekarang) ──
   const now = new Date();
   const monthName = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  const curYear  = now.getFullYear();
+  const curMonth = now.getMonth(); // 0-indexed
 
-  // Untuk Manager: Ringkasan Pencapaian Tim
+  const calcMonthlyPangkal = (leads, staffName) => leads.filter(l => {
+    const isLunas = l.note?.toUpperCase().includes('PANGKAL LUNAS');
+    const createdAt = l.created_at ? new Date(l.created_at) : null;
+    const isThisMonth = createdAt &&
+      createdAt.getFullYear() === curYear &&
+      createdAt.getMonth()    === curMonth;
+    const matchStaff = staffName
+      ? l.staff_name?.trim().toUpperCase() === staffName.trim().toUpperCase()
+      : true;
+    return isLunas && isThisMonth && matchStaff;
+  }).length;
+
+  const myMonthlyTarget = getMonthlyTarget(user?.name);
+  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcMonthlyPangkal(leadsRecap, user?.name);
+
+  // ── Untuk Manager: Ringkasan Tim ──
+  // all-time ACH
   const teamAchievements = user?.role === 'Manager' ? leadsRecap.reduce((acc, lead) => {
-    if (lead.staff_name && lead.referral && 
+    if (lead.staff_name && lead.referral &&
         lead.staff_name.trim().toUpperCase() === lead.referral.trim().toUpperCase() &&
         lead.note?.toUpperCase().includes('PANGKAL LUNAS')) {
       acc[lead.staff_name] = (acc[lead.staff_name] || 0) + 1;
     }
     return acc;
   }, {}) : {};
+
+  // monthly per staff
+  const teamMonthlyAch = user?.role === 'Manager'
+    ? Object.keys(MONTHLY_TARGETS).reduce((acc, name) => {
+        acc[name] = calcMonthlyPangkal(leadsRecap, name);
+        return acc;
+      }, {})
+    : {};
 
   const handlePhoneCall = (studentId, telepon) => {
     logActivity(studentId, 'Telepon', 'Melakukan panggilan darurat (Hot Lead)');
@@ -343,57 +427,96 @@ export default function Dashboard() {
         
         {user?.role !== 'Manager' ? (
           <div className="lg:w-96 flex-shrink-0">
-            <TargetWidget 
-              current={myLunasCount} 
-              target={myMonthlyTarget}
+            <TargetWidget
+              current={myLunasCount}
+              target={15}
+              monthlyCount={myMonthlyCount}
+              monthlyTarget={myMonthlyTarget}
               userName={user?.name}
               monthName={monthName}
             />
           </div>
         ) : (
-          <div className="lg:w-96 flex-shrink-0 bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-             <div className="mb-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Achievement — {monthName}</p>
-                <h3 className="text-lg font-bold text-slate-900">Progres Target Staff</h3>
-             </div>
-             <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
+          <div className="lg:w-96 flex-shrink-0 bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden flex flex-col gap-5">
+            {/* ── Header ── */}
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Achievement</p>
+              <h3 className="text-lg font-bold text-slate-900">Progres Target Staff</h3>
+            </div>
+
+            {/* ── All-time ACH (Target 15) ── */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Keseluruhan (ACH · Target 15)</p>
+              <div className="space-y-3">
                 {Object.entries(teamAchievements).length > 0 ? Object.entries(teamAchievements).map(([name, count]) => {
-                  const staffTarget = getMonthlyTarget(name);
-                  const percentage = Math.min(Math.round((count / staffTarget) * 100), 100);
-                  const isStaffAchieved = count >= staffTarget;
+                  const pct = Math.min(Math.round((count / 15) * 100), 100);
+                  const done = count >= 15;
                   return (
                     <div key={name} className="space-y-1">
-                       <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-600 uppercase truncate max-w-[60%]">{name}</span>
-                          <span className={cn(
-                            'font-black',
-                            isStaffAchieved ? 'text-emerald-600' : 'text-indigo-600'
-                          )}>
-                            {isStaffAchieved ? '✅ ' : ''}{count} / {staffTarget}
-                          </span>
-                       </div>
-                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 1, ease: 'easeOut' }}
-                            className={cn(
-                              'h-full rounded-full',
-                              isStaffAchieved ? 'bg-emerald-500' : 'bg-indigo-500'
-                            )}
-                          />
-                       </div>
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-slate-600 uppercase truncate max-w-[60%]">{name}</span>
+                        <span className={cn('font-black', done ? 'text-emerald-600' : 'text-indigo-600')}>
+                          {done ? '✅ ' : ''}{count} / 15
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 1, ease: 'easeOut' }}
+                          className={cn('h-full rounded-full', done ? 'bg-emerald-500' : 'bg-indigo-500')}
+                        />
+                      </div>
                     </div>
                   );
                 }) : (
-                   <div className="text-center py-8 text-slate-400 italic text-sm">Belum ada pencapaian dari tim.</div>
+                  <div className="text-center py-4 text-slate-400 italic text-xs">Belum ada pencapaian ACH.</div>
                 )}
-             </div>
-             <div className="mt-6 pt-4 border-t border-slate-50">
-                <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed">
-                   Target bulan ini: Bella Sintia, Salma, Irfandi Nyondri, Kasmira = 3 konversi · Fitri Alfani, Shera = 5 konversi.
-                </p>
-             </div>
+              </div>
+            </div>
+
+            {/* ── Divider ── */}
+            <div className="border-t border-slate-100" />
+
+            {/* ── Target Bulan Berjalan ── */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Target Bulan {monthName}</p>
+              <div className="space-y-3">
+                {Object.entries(MONTHLY_TARGETS).map(([name, staffTarget]) => {
+                  const monthlyCount = teamMonthlyAch[name] ?? 0;
+                  const pct = Math.min(Math.round((monthlyCount / staffTarget) * 100), 100);
+                  const done = monthlyCount >= staffTarget;
+                  return (
+                    <div key={name} className="space-y-1">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-slate-600 uppercase truncate max-w-[60%]">{name}</span>
+                        <span className={cn('font-black', done ? 'text-emerald-600' : 'text-amber-600')}>
+                          {done ? '✅ ' : ''}{monthlyCount} / {staffTarget}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 1, ease: 'easeOut', delay: 0.1 }}
+                          className={cn(
+                            'h-full rounded-full',
+                            done ? 'bg-emerald-500' : pct >= 66 ? 'bg-amber-400' : 'bg-violet-500'
+                          )}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Footer ── */}
+            <div className="pt-3 border-t border-slate-100">
+              <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed">
+                Target Juni: Bella Sintia, Salma, Irfandi Nyondri, Kasmira = 3 · Fitri Alfani, Shera = 5 pangkal lunas.
+              </p>
+            </div>
           </div>
         )}
       </div>
