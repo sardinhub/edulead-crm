@@ -97,9 +97,16 @@ export default function TeamNotes() {
       {isNotesLoading ? (
         <div className="flex items-center justify-center h-64 text-slate-400">Loading...</div>
       ) : filteredNotes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
-          <FileText className="w-12 h-12 mb-4 text-slate-300" />
-          <p>Belum ada catatan.</p>
+        <div className="flex flex-col items-center justify-center h-96 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400 mt-8 shadow-sm">
+          <FileText className="w-16 h-16 mb-4 text-slate-300" />
+          <p className="text-lg mb-6 font-medium text-slate-500">Belum ada catatan tim.</p>
+          <button 
+            onClick={() => handleOpenModal()}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            <Plus className="w-5 h-5" />
+            Buat Catatan Baru
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
