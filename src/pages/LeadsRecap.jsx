@@ -469,6 +469,30 @@ export default function LeadsRecap() {
     }
   };
 
+  const handleEditLeadName = async (lead) => {
+    const newName = window.prompt(`Edit Nama Siswa:\nSaat ini: ${lead.student_name}`, lead.student_name);
+    if (newName && newName.trim() !== '' && newName !== lead.student_name) {
+      await updateLeadRecapStatus(lead.id, { student_name: newName.toUpperCase() });
+    }
+  };
+
+  const handleEditLeadDate = async (lead) => {
+    const currentDate = lead.created_at ? new Date(lead.created_at).toISOString().split('T')[0] : '';
+    const newDate = window.prompt(`Edit Tanggal Daftar (YYYY-MM-DD):\nSaat ini: ${currentDate || 'Belum ada'}`, currentDate);
+    if (newDate !== null && newDate !== currentDate) {
+      if (newDate.trim() === '') {
+        // Optional: clear date if allowed, but we usually want a valid date.
+        return;
+      }
+      const parsedDate = new Date(newDate);
+      if (isNaN(parsedDate.getTime())) {
+        alert("Format tanggal tidak valid. Gunakan format YYYY-MM-DD.");
+        return;
+      }
+      await updateLeadRecapStatus(lead.id, { created_at: parsedDate.toISOString() });
+    }
+  };
+
   const handleOpenEditPic = (lead) => {
     setEditPicTarget(lead);
     const matched = marketingStaff.find(s => s.name === lead.staff_name);
@@ -920,12 +944,30 @@ export default function LeadsRecap() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-xs font-medium text-slate-500 whitespace-nowrap">
-                      {lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                    </p>
+                    <div className="flex items-center gap-2 group/date">
+                      <p className="text-xs font-medium text-slate-500 whitespace-nowrap">
+                        {lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </p>
+                      <button
+                        onClick={() => handleEditLeadDate(lead)}
+                        className="opacity-0 group-hover/date:opacity-100 p-1 text-slate-400 hover:text-amber-500 transition-colors bg-white hover:bg-amber-50 rounded shadow-sm shrink-0"
+                        title="Edit Tanggal Daftar"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className={cn("font-bold", isLunas ? "text-slate-400" : "text-slate-900")}>{lead.student_name}</p>
+                    <div className="flex items-center gap-2 group/name">
+                      <p className={cn("font-bold", isLunas ? "text-slate-400" : "text-slate-900")}>{lead.student_name}</p>
+                      <button
+                        onClick={() => handleEditLeadName(lead)}
+                        className="opacity-0 group-hover/name:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-colors bg-white hover:bg-indigo-50 rounded shadow-sm shrink-0"
+                        title="Edit Nama Siswa"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1.5">
