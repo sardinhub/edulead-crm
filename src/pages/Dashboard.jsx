@@ -165,12 +165,20 @@ const TargetWidget = ({ current, target, userName, monthlyCount, monthlyTarget, 
 };
 
 export default function Dashboard() {
-  const { user, students, leadsRecap, fetchLeadsRecap, logActivity } = useStore();
+  const { 
+    user, students, leadsRecap, fetchLeadsRecap, logActivity,
+    marketingStaff, fetchMarketingStaff,
+    activityReports, fetchActivityReports,
+    referralLogs, fetchReferralLogs
+  } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
   const [arrivalPanel, setArrivalPanel] = useState(null); // null | 'AKTIF' | 'PROSES' | 'BATAL' | 'GELOMBANG_2'
 
   React.useEffect(() => {
     fetchLeadsRecap();
+    fetchMarketingStaff();
+    fetchActivityReports();
+    fetchReferralLogs();
   }, []);
 
   // Leads yang sudah PANGKAL LUNAS
@@ -233,34 +241,35 @@ export default function Dashboard() {
   const curYear  = now.getFullYear();
   const curMonth = now.getMonth(); // 0-indexed
 
-  const calcMonthlyPangkal = (studentsList, leadsList, staffName) => studentsList.filter(s => {
-    // 1. Cek apakah status pembayarannya Pangkal
-    const isLunas = s.status_pembayaran === 'Pangkal Full' || s.status_pembayaran === 'Pendaftaran+Pangkal Full';
-    if (!isLunas) return false;
+  const calcCurrentMonthConversions = (staffName) => {
+    const staff = marketingStaff.find(s => s.name?.toUpperCase() === staffName?.toUpperCase());
+    // Jika tidak ditemukan di tabel marketingStaff, kita bisa fallback berdasarkan nama saja (untuk referralLogs)
+    const staffId = staff ? staff.id : null;
+    
+    // 1. Konversi dari activity_reports
+    const reportConversions = activityReports
+      .filter(r => {
+        const d = new Date(r.report_date);
+        return d.getFullYear() === curYear && d.getMonth() === curMonth && r.staff_id === staffId;
+      })
+      .reduce((sum, r) => sum + (r.leads_converted || 0), 0);
 
-    // 2. Cek apakah pembayaran dilakukan bulan ini
-    const dateObj = s.tanggal_daftar ? new Date(s.tanggal_daftar) : (s.created_at ? new Date(s.created_at) : null);
-    const isThisMonth = dateObj &&
-      dateObj.getFullYear() === curYear &&
-      dateObj.getMonth()    === curMonth;
-    if (!isThisMonth) return false;
+    // 2. Konversi dari Referral Logs
+    const referralClosings = (referralLogs || []).filter(log => {
+      const d = new Date(log.activity_date);
+      return d.getFullYear() === curYear && 
+             d.getMonth() === curMonth && 
+             log.pic_staff?.toUpperCase() === staffName?.toUpperCase() &&
+             log.student_response === 'Closing Referal';
+    });
 
-    // 3. Cek apakah milik staff yang bersangkutan
-    const matchStaff = staffName
-      ? s.pic_staff?.trim().toUpperCase() === staffName.trim().toUpperCase()
-      : true;
-    if (!matchStaff) return false;
+    const uniqueReferralClosings = new Set(referralClosings.map(log => log.lead_id)).size;
 
-    // 4. Verifikasi bahwa ini adalah Self-Referral dari data leads_recap
-    const matchedLead = leadsList.find(l => l.student_name?.trim().toUpperCase() === s.nama?.trim().toUpperCase());
-    const isSelfReferral = matchedLead && matchedLead.referral && s.pic_staff &&
-      matchedLead.referral.trim().toUpperCase() === s.pic_staff.trim().toUpperCase();
-
-    return isSelfReferral;
-  }).length;
+    return reportConversions + uniqueReferralClosings;
+  };
 
   const myMonthlyTarget = getMonthlyTarget(user?.name);
-  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcMonthlyPangkal(students, leadsRecap, user?.name);
+  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcCurrentMonthConversions(user?.name);
 
   // ── Untuk Manager: Ringkasan Tim ──
   // all-time ACH
@@ -276,7 +285,7 @@ export default function Dashboard() {
   // monthly per staff
   const teamMonthlyAch = user?.role === 'Manager'
     ? Object.keys(MONTHLY_TARGETS).reduce((acc, name) => {
-        acc[name] = calcMonthlyPangkal(students, leadsRecap, name);
+        acc[name] = calcCurrentMonthConversions(name);
         return acc;
       }, {})
     : {};
