@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useStore } from '../store/useStore';
 
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
@@ -36,16 +37,29 @@ function getMonthlyTarget(staffName) {
 }
 
 /** Hitung total konversi pada bulan berjalan */
-function calcCurrentMonthConversions(reports) {
+function calcCurrentMonthConversions(reports, referralLogs, staffName) {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-indexed
-  return reports
+  
+  const reportConversions = reports
     .filter(r => {
       const d = new Date(r.report_date);
       return d.getFullYear() === year && d.getMonth() === month;
     })
     .reduce((sum, r) => sum + (r.leads_converted || 0), 0);
+
+  const referralClosings = (referralLogs || []).filter(log => {
+    const d = new Date(log.activity_date);
+    return d.getFullYear() === year && 
+           d.getMonth() === month && 
+           log.pic_staff === staffName &&
+           log.student_response === 'Closing Referal';
+  });
+
+  const uniqueReferralClosings = new Set(referralClosings.map(log => log.lead_id)).size;
+
+  return reportConversions + uniqueReferralClosings;
 }
 
 /** Hitung saran evaluasi otomatis berdasarkan metrik */
@@ -264,6 +278,7 @@ function MiniTrendChart({ days }) {
 
 export default function StaffMonitorCard({ staff, reports, index }) {
   const [showDetail, setShowDetail] = useState(false);
+  const referralLogs = useStore(state => state.referralLogs);
 
   const totalFollowUp = reports.reduce((s, r) => s + (r.leads_followed_up || 0), 0);
   const totalResponded = reports.reduce((s, r) => s + (r.leads_responded || 0), 0);
@@ -310,7 +325,7 @@ export default function StaffMonitorCard({ staff, reports, index }) {
 
   // ── Target & pencapaian bulan berjalan ─────────────────────────────
   const monthlyTarget = getMonthlyTarget(staff.name);
-  const currentMonthConversions = calcCurrentMonthConversions(reports);
+  const currentMonthConversions = calcCurrentMonthConversions(reports, referralLogs, staff.name);
   const achievementPct = Math.min((currentMonthConversions / monthlyTarget) * 100, 100);
   const isAchieved = currentMonthConversions >= monthlyTarget;
   const now = new Date();

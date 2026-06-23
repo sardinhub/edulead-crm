@@ -40,7 +40,8 @@ export default function MonitoringList() {
     marketingStaff, fetchMarketingStaff,
     activityReports, fetchActivityReports,
     deleteReportById, deleteAllReports,
-    isMarketingLoading
+    isMarketingLoading,
+    fetchReferralLogs
   } = useStore();
 
   const [actionLoading, setActionLoading] = useState(null);
@@ -142,6 +143,7 @@ export default function MonitoringList() {
   useEffect(() => {
     fetchMarketingStaff();
     fetchActivityReports();
+    fetchReferralLogs();
   }, []);
 
   // ── Filter by period ───────────────────────────────────────────────────
@@ -246,7 +248,7 @@ export default function MonitoringList() {
           </span>
 
           <button
-            onClick={() => { fetchMarketingStaff(); fetchActivityReports(); }}
+            onClick={() => { fetchMarketingStaff(); fetchActivityReports(); fetchReferralLogs(); }}
             disabled={isMarketingLoading}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
           >
