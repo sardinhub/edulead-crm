@@ -114,7 +114,13 @@ const TargetWidget = ({ current, target, userName, monthlyCount, monthlyTarget, 
               )}>
                 {isMonthlyAchieved ? '🏆' : '📅'}
               </div>
-              <span className="text-indigo-200 text-xs font-bold uppercase tracking-wider">Target Bulan {monthName}</span>
+              <button 
+                onClick={() => onShowDetail && onShowDetail()}
+                className="text-indigo-200 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors text-left"
+                title="Lihat Detail Siswa"
+              >
+                Target Bulan {monthName}
+              </button>
             </div>
             <span className={cn(
               'text-[10px] font-black px-2 py-0.5 rounded-full',
@@ -170,6 +176,7 @@ export default function Dashboard() {
   } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
   const [arrivalPanel, setArrivalPanel] = useState(null); // null | 'AKTIF' | 'PROSES' | 'BATAL' | 'GELOMBANG_2'
+  const [selectedStaffDetail, setSelectedStaffDetail] = useState(null);
 
   React.useEffect(() => {
     fetchLeadsRecap();
@@ -269,11 +276,15 @@ export default function Dashboard() {
       if (l.student_name) uniqueNames.add(l.student_name.trim().toUpperCase());
     });
 
-    return uniqueNames.size;
+    return {
+      count: uniqueNames.size,
+      students: Array.from(uniqueNames).sort()
+    };
   };
 
   const myMonthlyTarget = getMonthlyTarget(user?.name);
-  const myMonthlyCount  = user?.role === 'Manager' ? 0 : calcCurrentMonthConversions(user?.name);
+  const myMonthlyData = user?.role === 'Manager' ? { count: 0, students: [] } : calcCurrentMonthConversions(user?.name);
+  const myMonthlyCount = myMonthlyData.count;
 
   // ── Untuk Manager: Ringkasan Tim ──
   // all-time ACH
@@ -461,6 +472,7 @@ export default function Dashboard() {
               monthlyTarget={myMonthlyTarget}
               userName={user?.name}
               monthName={monthName}
+              onShowDetail={() => setSelectedStaffDetail({ staff: user?.name, students: myMonthlyData.students })}
             />
           </div>
         ) : (
@@ -510,13 +522,20 @@ export default function Dashboard() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Target Bulan {monthName}</p>
               <div className="space-y-3">
                 {Object.entries(MONTHLY_TARGETS).map(([name, staffTarget]) => {
-                  const monthlyCount = teamMonthlyAch[name] ?? 0;
+                  const monthlyData = teamMonthlyAch[name] ?? { count: 0, students: [] };
+                  const monthlyCount = monthlyData.count;
                   const pct = Math.min(Math.round((monthlyCount / staffTarget) * 100), 100);
                   const done = monthlyCount >= staffTarget;
                   return (
                     <div key={name} className="space-y-1">
                       <div className="flex justify-between text-xs font-bold">
-                        <span className="text-slate-600 uppercase truncate max-w-[60%]">{name}</span>
+                        <button
+                          onClick={() => setSelectedStaffDetail({ staff: name, students: monthlyData.students })}
+                          className="text-slate-600 uppercase truncate max-w-[60%] hover:text-indigo-600 transition-colors text-left"
+                          title="Klik untuk melihat nama siswa"
+                        >
+                          {name}
+                        </button>
                         <span className={cn('font-black', done ? 'text-emerald-600' : 'text-amber-600')}>
                           {done ? '✅ ' : ''}{monthlyCount} / {staffTarget}
                         </span>
@@ -622,6 +641,66 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Student Details Modal ── */}
+      <AnimatePresence>
+        {selectedStaffDetail && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedStaffDetail(null)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-lg leading-tight">Daftar Pangkal Lunas</h3>
+                  <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-1">
+                    {selectedStaffDetail.staff}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedStaffDetail(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 hover:text-slate-700 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {/* Modal Body */}
+              <div className="p-6 max-h-[60vh] overflow-y-auto">
+                {selectedStaffDetail.students.length > 0 ? (
+                  <ul className="space-y-3">
+                    {selectedStaffDetail.students.map((studentName, idx) => (
+                      <li key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
+                          {idx + 1}
+                        </div>
+                        <span className="font-bold text-slate-700">{studentName}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-8 h-8 text-slate-300" />
+                    </div>
+                    <p className="text-sm text-slate-500 font-medium">Belum ada siswa yang lunas uang pangkal bulan ini.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
