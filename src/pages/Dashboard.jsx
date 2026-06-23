@@ -166,19 +166,14 @@ const TargetWidget = ({ current, target, userName, monthlyCount, monthlyTarget, 
 
 export default function Dashboard() {
   const { 
-    user, students, leadsRecap, fetchLeadsRecap, logActivity,
-    marketingStaff, fetchMarketingStaff,
-    activityReports, fetchActivityReports,
-    referralLogs, fetchReferralLogs
+    user, students, leadsRecap, fetchLeadsRecap, fetchStudents, logActivity,
   } = useStore();
   const hotLeads = students.filter(s => s.priority_level === 'High');
   const [arrivalPanel, setArrivalPanel] = useState(null); // null | 'AKTIF' | 'PROSES' | 'BATAL' | 'GELOMBANG_2'
 
   React.useEffect(() => {
     fetchLeadsRecap();
-    fetchMarketingStaff();
-    fetchActivityReports();
-    fetchReferralLogs();
+    fetchStudents();
   }, []);
 
   // Leads yang sudah PANGKAL LUNAS
@@ -242,30 +237,39 @@ export default function Dashboard() {
   const curMonth = now.getMonth(); // 0-indexed
 
   const calcCurrentMonthConversions = (staffName) => {
-    const staff = marketingStaff.find(s => s.name?.toUpperCase() === staffName?.toUpperCase());
-    // Jika tidak ditemukan di tabel marketingStaff, kita bisa fallback berdasarkan nama saja (untuk referralLogs)
-    const staffId = staff ? staff.id : null;
-    
-    // 1. Konversi dari activity_reports
-    const reportConversions = activityReports
-      .filter(r => {
-        const d = new Date(r.report_date);
-        return d.getFullYear() === curYear && d.getMonth() === curMonth && r.staff_id === staffId;
-      })
-      .reduce((sum, r) => sum + (r.leads_converted || 0), 0);
+    const uniqueNames = new Set();
 
-    // 2. Konversi dari Referral Logs
-    const referralClosings = (referralLogs || []).filter(log => {
-      const d = new Date(log.activity_date);
-      return d.getFullYear() === curYear && 
-             d.getMonth() === curMonth && 
-             log.pic_staff?.toUpperCase() === staffName?.toUpperCase() &&
-             log.student_response === 'Closing Referal';
+    // 1. Ambil dari studentsList (Pangkal Full + bulan ini + staff cocok)
+    students.filter(s => {
+      const isLunas = s.status_pembayaran === 'Pangkal Full' || s.status_pembayaran === 'Pendaftaran+Pangkal Full';
+      if (!isLunas) return false;
+
+      const dateObj = s.tanggal_daftar ? new Date(s.tanggal_daftar) : (s.created_at ? new Date(s.created_at) : null);
+      if (!dateObj) return false;
+      if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+
+      if (staffName && s.pic_staff?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
+      return true;
+    }).forEach(s => {
+      if (s.nama) uniqueNames.add(s.nama.trim().toUpperCase());
     });
 
-    const uniqueReferralClosings = new Set(referralClosings.map(log => log.lead_id)).size;
+    // 2. Ambil dari leadsRecap (PANGKAL LUNAS + dibuat bulan ini + staff cocok)
+    leadsRecap.filter(l => {
+      const isLunas = l.note?.toUpperCase().includes('PANGKAL LUNAS');
+      if (!isLunas) return false;
 
-    return reportConversions + uniqueReferralClosings;
+      const dateObj = l.created_at ? new Date(l.created_at) : null;
+      if (!dateObj) return false;
+      if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+
+      if (staffName && l.staff_name?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
+      return true;
+    }).forEach(l => {
+      if (l.student_name) uniqueNames.add(l.student_name.trim().toUpperCase());
+    });
+
+    return uniqueNames.size;
   };
 
   const myMonthlyTarget = getMonthlyTarget(user?.name);

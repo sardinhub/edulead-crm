@@ -36,30 +36,42 @@ function getMonthlyTarget(staffName) {
   return key ? MONTHLY_TARGETS[key] : 3;
 }
 
-/** Hitung total konversi pada bulan berjalan */
-function calcCurrentMonthConversions(reports, referralLogs, staffName) {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-  
-  const reportConversions = reports
-    .filter(r => {
-      const d = new Date(r.report_date);
-      return d.getFullYear() === year && d.getMonth() === month;
-    })
-    .reduce((sum, r) => sum + (r.leads_converted || 0), 0);
+function calcCurrentMonthConversions(studentsList, leadsList, staffName) {
+  const curYear = new Date().getFullYear();
+  const curMonth = new Date().getMonth(); // 0-indexed
+  const uniqueNames = new Set();
 
-  const referralClosings = (referralLogs || []).filter(log => {
-    const d = new Date(log.activity_date);
-    return d.getFullYear() === year && 
-           d.getMonth() === month && 
-           log.pic_staff === staffName &&
-           log.student_response === 'Closing Referal';
+  // 1. Ambil dari studentsList (Pangkal Full + bulan ini + staff cocok)
+  (studentsList || []).filter(s => {
+    const isLunas = s.status_pembayaran === 'Pangkal Full' || s.status_pembayaran === 'Pendaftaran+Pangkal Full';
+    if (!isLunas) return false;
+
+    const dateObj = s.tanggal_daftar ? new Date(s.tanggal_daftar) : (s.created_at ? new Date(s.created_at) : null);
+    if (!dateObj) return false;
+    if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+
+    if (staffName && s.pic_staff?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
+    return true;
+  }).forEach(s => {
+    if (s.nama) uniqueNames.add(s.nama.trim().toUpperCase());
   });
 
-  const uniqueReferralClosings = new Set(referralClosings.map(log => log.lead_id)).size;
+  // 2. Ambil dari leadsList (PANGKAL LUNAS + dibuat bulan ini + staff cocok)
+  (leadsList || []).filter(l => {
+    const isLunas = l.note?.toUpperCase().includes('PANGKAL LUNAS');
+    if (!isLunas) return false;
 
-  return reportConversions + uniqueReferralClosings;
+    const dateObj = l.created_at ? new Date(l.created_at) : null;
+    if (!dateObj) return false;
+    if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+
+    if (staffName && l.staff_name?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
+    return true;
+  }).forEach(l => {
+    if (l.student_name) uniqueNames.add(l.student_name.trim().toUpperCase());
+  });
+
+  return uniqueNames.size;
 }
 
 /** Hitung saran evaluasi otomatis berdasarkan metrik */
@@ -278,7 +290,8 @@ function MiniTrendChart({ days }) {
 
 export default function StaffMonitorCard({ staff, reports, index }) {
   const [showDetail, setShowDetail] = useState(false);
-  const referralLogs = useStore(state => state.referralLogs);
+  const students = useStore(state => state.students);
+  const leadsRecap = useStore(state => state.leadsRecap);
 
   const totalFollowUp = reports.reduce((s, r) => s + (r.leads_followed_up || 0), 0);
   const totalResponded = reports.reduce((s, r) => s + (r.leads_responded || 0), 0);
@@ -325,7 +338,7 @@ export default function StaffMonitorCard({ staff, reports, index }) {
 
   // ── Target & pencapaian bulan berjalan ─────────────────────────────
   const monthlyTarget = getMonthlyTarget(staff.name);
-  const currentMonthConversions = calcCurrentMonthConversions(reports, referralLogs, staff.name);
+  const currentMonthConversions = calcCurrentMonthConversions(students, leadsRecap, staff.name);
   const achievementPct = Math.min((currentMonthConversions / monthlyTarget) * 100, 100);
   const isAchieved = currentMonthConversions >= monthlyTarget;
   const now = new Date();
