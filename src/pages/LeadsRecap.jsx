@@ -48,7 +48,7 @@ export default function LeadsRecap() {
     program: 'AVSEC',
     referral: '',
     referred_by: '',
-    note: 'BELUM DIHUBUNGI'
+    note: 'PENDAFTARAN'
   });
   const [selectedManualStaff, setSelectedManualStaff] = useState('');
   const [staffToClear, setStaffToClear] = useState('all');
