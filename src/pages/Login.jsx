@@ -46,7 +46,7 @@ export default function Login() {
         <div className="flex flex-col items-center mb-8">
           <div className="w-full max-w-[280px] h-24 mb-6 flex items-center justify-center">
             <img 
-              src="/logo.png" 
+              src="/logo-trisakti.png" 
               alt="Triesakti Institute of Airlines" 
               className="w-full h-full object-contain"
               onError={(e) => {
