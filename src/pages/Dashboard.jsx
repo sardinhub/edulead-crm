@@ -12,11 +12,11 @@ function cn(...inputs) {
 /** Target konversi bulanan per staff */
 const MONTHLY_TARGETS = {
   'Fitri Alfani': 5,
-  'Shera': 5,
-  'Bella Sintia': 3,
-  'Salma': 3,
-  'Irfandi Nyondri': 3,
-  'Kasmira': 3,
+  'Shera': 10,
+  'Bella Sintia': 5,
+  'Salma': 6,
+  'Irfandi Nyondri': 4,
+  'Kasmira': 5,
 };
 
 function getMonthlyTarget(staffName) {
@@ -573,7 +573,7 @@ export default function Dashboard() {
             {/* ── Footer ── */}
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[10px] text-slate-400 italic font-medium leading-relaxed">
-                Target Juni: Bella Sintia, Salma, Irfandi Nyondri, Kasmira = 3 · Fitri Alfani, Shera = 5 pangkal lunas.
+                Target Juli: Irfandi Nyondri = 4, Kasmira = 5, Bella Sintia = 5, Salma = 6, Fitri Alfani = 5, Shera = 10 pangkal lunas.
               </p>
             </div>
           </div>
