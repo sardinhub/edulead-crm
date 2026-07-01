@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane, XCircle, ChevronDown, X, MessageCircle } from 'lucide-react';
+import { TrendingUp, Users, Clock, Phone, CheckCircle2, Plane, XCircle, ChevronDown, X, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -177,6 +177,7 @@ export default function Dashboard() {
   const hotLeads = students.filter(s => s.priority_level === 'High');
   const [arrivalPanel, setArrivalPanel] = useState(null); // null | 'AKTIF' | 'PROSES' | 'BATAL' | 'GELOMBANG_2'
   const [selectedStaffDetail, setSelectedStaffDetail] = useState(null);
+  const [targetDate, setTargetDate] = useState(new Date());
 
   React.useEffect(() => {
     fetchLeadsRecap();
@@ -238,10 +239,9 @@ export default function Dashboard() {
   const myLunasCount = user?.role === 'Manager' ? 0 : calculateACH(leadsRecap);
 
   // ── Pencapaian bulan berjalan (filter berdasarkan students tanggal_daftar/created_at bulan & tahun sekarang) ──
-  const now = new Date();
-  const monthName = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-  const curYear  = now.getFullYear();
-  const curMonth = now.getMonth(); // 0-indexed
+  const monthName = targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  const targetYear  = targetDate.getFullYear();
+  const targetMonth = targetDate.getMonth(); // 0-indexed
 
   const calcCurrentMonthConversions = (staffName) => {
     const uniqueNames = new Set();
@@ -253,7 +253,7 @@ export default function Dashboard() {
 
       const dateObj = s.tanggal_daftar ? new Date(s.tanggal_daftar) : (s.created_at ? new Date(s.created_at) : null);
       if (!dateObj) return false;
-      if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+      if (dateObj.getFullYear() !== targetYear || dateObj.getMonth() !== targetMonth) return false;
 
       if (staffName && s.pic_staff?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
       return true;
@@ -268,7 +268,7 @@ export default function Dashboard() {
 
       const dateObj = l.created_at ? new Date(l.created_at) : null;
       if (!dateObj) return false;
-      if (dateObj.getFullYear() !== curYear || dateObj.getMonth() !== curMonth) return false;
+      if (dateObj.getFullYear() !== targetYear || dateObj.getMonth() !== targetMonth) return false;
 
       if (staffName && l.staff_name?.trim().toUpperCase() !== staffName.trim().toUpperCase()) return false;
       return true;
@@ -519,7 +519,20 @@ export default function Dashboard() {
 
             {/* ── Target Bulan Berjalan ── */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Target Bulan {monthName}</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target Bulan {monthName}</p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setTargetDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => setTargetDate(new Date())} className="px-2 py-1 rounded-md text-[9px] font-bold text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all uppercase">
+                    Bulan Ini
+                  </button>
+                  <button onClick={() => setTargetDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
               <div className="space-y-3">
                 {Object.entries(MONTHLY_TARGETS).map(([name, staffTarget]) => {
                   const monthlyData = teamMonthlyAch[name] ?? { count: 0, students: [] };
