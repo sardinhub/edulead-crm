@@ -196,6 +196,17 @@ export default function ActivityForm() {
         }
       }
       if (['broadcast', 'telepon', 'whatsapp'].includes(method)) {
+        let contacted = 0;
+        if (method === 'broadcast') contacted = Number(form.method_data.broadcast.total_sent) || 0;
+        if (method === 'telepon') contacted = Number(form.method_data.telepon.total_called) || 0;
+        if (method === 'whatsapp') contacted = Number(form.method_data.whatsapp.total_contacted) || 0;
+        
+        const responded = Number(form.method_data[method].total_responded) || 0;
+        
+        if (responded > contacted) {
+          e[`${method}_responded`] = `Jumlah merespon tidak boleh lebih dari yang dihubungi (${contacted})`;
+        }
+        
         const respondents = form.method_data[method].respondents || [];
         const hasEmpty = respondents.some(r => !r.name || !r.phone || !r.school || !r.response);
         if (hasEmpty) {
@@ -713,6 +724,10 @@ export default function ActivityForm() {
                         {errors.broadcast_content && <p className="mt-1 text-xs text-red-600">⚠ {errors.broadcast_content}</p>}
                       </div>
 
+                      {errors.broadcast_responded && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.broadcast_responded}</p>
+                      )}
+
                       {errors.broadcast_respondents && (
                         <p className="mb-2 text-xs text-red-600">⚠ {errors.broadcast_respondents}</p>
                       )}
@@ -785,6 +800,10 @@ export default function ActivityForm() {
                           />
                         </div>
                       </div>
+
+                      {errors.telepon_responded && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.telepon_responded}</p>
+                      )}
 
                       {errors.telepon_respondents && (
                         <p className="mb-2 text-xs text-red-600">⚠ {errors.telepon_respondents}</p>
@@ -870,6 +889,10 @@ export default function ActivityForm() {
                         />
                         {errors.whatsapp_content && <p className="mt-1 text-xs text-red-600">⚠ {errors.whatsapp_content}</p>}
                       </div>
+
+                      {errors.whatsapp_responded && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.whatsapp_responded}</p>
+                      )}
 
                       {errors.whatsapp_respondents && (
                         <p className="mb-2 text-xs text-red-600">⚠ {errors.whatsapp_respondents}</p>
