@@ -85,9 +85,9 @@ const textFields = [
 
 // Initial state untuk setiap metode
 const initialMethodData = {
-  broadcast: { total_sent: '', total_responded: '' },
-  telepon: { total_called: '', total_responded: '' },
-  whatsapp: { total_contacted: '', total_responded: '' },
+  broadcast: { total_sent: '', total_responded: '', content: '', respondents: [] },
+  telepon: { total_called: '', total_responded: '', respondents: [] },
+  whatsapp: { total_contacted: '', total_responded: '', content: '', respondents: [] },
   bertemu: {
     meetings: [{ name: '', phone: '', location: '' }],
   },
@@ -188,6 +188,22 @@ export default function ActivityForm() {
       if (hasEmpty) e.bertemu = 'Mohon lengkapi Nama, No. HP, dan Lokasi untuk setiap pertemuan.';
     }
 
+    // Validasi broadcast, telepon, whatsapp respondents & content
+    form.follow_up_methods.forEach(method => {
+      if (method === 'broadcast' || method === 'whatsapp') {
+        if (!form.method_data[method].content?.trim()) {
+           e[`${method}_content`] = `Isi ${method === 'broadcast' ? 'Broadcast' : 'WhatsApp'} wajib diisi`;
+        }
+      }
+      if (['broadcast', 'telepon', 'whatsapp'].includes(method)) {
+        const respondents = form.method_data[method].respondents || [];
+        const hasEmpty = respondents.some(r => !r.name || !r.phone || !r.school || !r.response);
+        if (hasEmpty) {
+          e[`${method}_respondents`] = 'Mohon lengkapi semua data responden (Nama, No HP, Sekolah, Respon).';
+        }
+      }
+    });
+
     // Validasi field teks wajib
     if (!form.follow_up_actions?.trim()) e.follow_up_actions = 'Tindakan Lanjutan wajib diisi';
     if (!form.obstacles?.trim()) e.obstacles = 'Aktivitas hari ini wajib diisi';
@@ -226,16 +242,50 @@ export default function ActivityForm() {
 
   // Update data numerik untuk metode broadcast/telepon/whatsapp
   const handleMethodDataChange = (methodKey, field, value) => {
-    setForm(f => ({
-      ...f,
-      method_data: {
+    setForm(f => {
+      const newMethodData = {
         ...f.method_data,
         [methodKey]: {
           ...f.method_data[methodKey],
           [field]: value,
         },
-      },
-    }));
+      };
+
+      if (field === 'total_responded') {
+        const count = parseInt(value, 10) || 0;
+        const currentRespondents = newMethodData[methodKey].respondents || [];
+        const newRespondents = [...currentRespondents];
+        
+        if (count > newRespondents.length) {
+          for (let i = newRespondents.length; i < count; i++) {
+            newRespondents.push({ name: '', phone: '', school: '', response: '' });
+          }
+        } else if (count < newRespondents.length) {
+          newRespondents.length = count;
+        }
+        
+        newMethodData[methodKey].respondents = newRespondents;
+      }
+
+      return {
+        ...f,
+        method_data: newMethodData,
+      };
+    });
+  };
+
+  const handleRespondentChange = (methodKey, idx, field, value) => {
+    setForm(f => {
+      const respondents = [...f.method_data[methodKey].respondents];
+      respondents[idx] = { ...respondents[idx], [field]: value };
+      return {
+        ...f,
+        method_data: {
+          ...f.method_data,
+          [methodKey]: { ...f.method_data[methodKey], respondents },
+        },
+      };
+    });
   };
 
   // Update data pertemuan langsung
@@ -322,13 +372,13 @@ export default function ActivityForm() {
   function buildMethodSummary(methods, methodData) {
     const parts = [];
     if (methods.includes('broadcast')) {
-      parts.push(`[Broadcast] Terkirim: ${methodData.broadcast.total_sent || 0}, Merespon: ${methodData.broadcast.total_responded || 0}`);
+      parts.push(`[Broadcast] Terkirim: ${methodData.broadcast.total_sent || 0}, Merespon: ${methodData.broadcast.total_responded || 0}\nIsi Broadcast: ${methodData.broadcast.content || '-'}`);
     }
     if (methods.includes('telepon')) {
       parts.push(`[Telepon] Ditelepon: ${methodData.telepon.total_called || 0}, Merespon: ${methodData.telepon.total_responded || 0}`);
     }
     if (methods.includes('whatsapp')) {
-      parts.push(`[WhatsApp] Dihubungi: ${methodData.whatsapp.total_contacted || 0}, Merespon: ${methodData.whatsapp.total_responded || 0}`);
+      parts.push(`[WhatsApp] Dihubungi: ${methodData.whatsapp.total_contacted || 0}, Merespon: ${methodData.whatsapp.total_responded || 0}\nIsi WhatsApp: ${methodData.whatsapp.content || '-'}`);
     }
     if (methods.includes('bertemu')) {
       const meetings = methodData.bertemu.meetings || [];
@@ -340,10 +390,20 @@ export default function ActivityForm() {
 
   // Build responded_leads_details dari meetings (untuk backward compat)
   function buildRespondedLeadsDetails(methods, methodData) {
-    if (!methods.includes('bertemu')) return [];
-    return (methodData.bertemu.meetings || [])
-      .filter(m => m.name)
-      .map(m => ({ name: m.name, phone: m.phone, school: m.location, konversi: [], note: '' }));
+    const details = [];
+    if (methods.includes('bertemu')) {
+      (methodData.bertemu.meetings || []).forEach(m => {
+        if (m.name) details.push({ name: m.name, phone: m.phone, school: m.location, konversi: [], note: '' });
+      });
+    }
+    ['broadcast', 'telepon', 'whatsapp'].forEach(method => {
+      if (methods.includes(method)) {
+        (methodData[method].respondents || []).forEach(r => {
+          if (r.name) details.push({ name: r.name, phone: r.phone, school: r.school, konversi: [], note: r.response });
+        });
+      }
+    });
+    return details;
   }
 
   const responseRate = form.leads_followed_up > 0
@@ -618,7 +678,7 @@ export default function ActivityForm() {
                         <Radio className="w-4 h-4 text-sky-600" />
                         <span className="text-xs font-bold text-sky-700 uppercase tracking-wide">Hanya Broadcast</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Dibroadcast</label>
                           <input
@@ -640,6 +700,53 @@ export default function ActivityForm() {
                           />
                         </div>
                       </div>
+
+                      <div className="mb-3">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Isi Broadcast <span className="text-red-400">*</span></label>
+                        <textarea
+                          rows={2}
+                          value={form.method_data.broadcast.content}
+                          onChange={e => handleMethodDataChange('broadcast', 'content', e.target.value)}
+                          placeholder="Tuliskan isi pesan broadcast..."
+                          className="w-full px-3 py-2.5 rounded-xl border border-sky-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none"
+                        />
+                        {errors.broadcast_content && <p className="mt-1 text-xs text-red-600">⚠ {errors.broadcast_content}</p>}
+                      </div>
+
+                      {errors.broadcast_respondents && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.broadcast_respondents}</p>
+                      )}
+
+                      {form.method_data.broadcast.respondents.length > 0 && (
+                        <div className="space-y-3 mt-4 border-t border-sky-200 pt-3">
+                          <p className="text-[10px] font-bold text-sky-700 uppercase">Data Responden</p>
+                          {form.method_data.broadcast.respondents.map((r, idx) => (
+                            <div key={idx} className="bg-white rounded-xl border border-sky-200 p-3 space-y-2">
+                              <span className="text-[10px] font-black text-sky-600 uppercase mb-1 block">Responden #{idx + 1}</span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.name} onChange={e => handleRespondentChange('broadcast', idx, 'name', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. HP <span className="text-red-400">*</span></label>
+                                  <input type="tel" value={r.phone} onChange={e => handleRespondentChange('broadcast', idx, 'phone', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Asal Sekolah <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.school} onChange={e => handleRespondentChange('broadcast', idx, 'school', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Isi Respon <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.response} onChange={e => handleRespondentChange('broadcast', idx, 'response', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
@@ -656,7 +763,7 @@ export default function ActivityForm() {
                         <Phone className="w-4 h-4 text-violet-600" />
                         <span className="text-xs font-bold text-violet-700 uppercase tracking-wide">Telepon</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Ditelepon</label>
                           <input
@@ -678,6 +785,41 @@ export default function ActivityForm() {
                           />
                         </div>
                       </div>
+
+                      {errors.telepon_respondents && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.telepon_respondents}</p>
+                      )}
+
+                      {form.method_data.telepon.respondents.length > 0 && (
+                        <div className="space-y-3 mt-4 border-t border-violet-200 pt-3">
+                          <p className="text-[10px] font-bold text-violet-700 uppercase">Data Responden</p>
+                          {form.method_data.telepon.respondents.map((r, idx) => (
+                            <div key={idx} className="bg-white rounded-xl border border-violet-200 p-3 space-y-2">
+                              <span className="text-[10px] font-black text-violet-600 uppercase mb-1 block">Responden #{idx + 1}</span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.name} onChange={e => handleRespondentChange('telepon', idx, 'name', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. HP <span className="text-red-400">*</span></label>
+                                  <input type="tel" value={r.phone} onChange={e => handleRespondentChange('telepon', idx, 'phone', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Asal Sekolah <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.school} onChange={e => handleRespondentChange('telepon', idx, 'school', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Isi Respon <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.response} onChange={e => handleRespondentChange('telepon', idx, 'response', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
@@ -694,7 +836,7 @@ export default function ActivityForm() {
                         <MessageSquare className="w-4 h-4 text-emerald-600" />
                         <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Komunikasi WhatsApp</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Jumlah Leads Dihubungi WA</label>
                           <input
@@ -716,6 +858,53 @@ export default function ActivityForm() {
                           />
                         </div>
                       </div>
+
+                      <div className="mb-3">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Isi WhatsApp <span className="text-red-400">*</span></label>
+                        <textarea
+                          rows={2}
+                          value={form.method_data.whatsapp.content}
+                          onChange={e => handleMethodDataChange('whatsapp', 'content', e.target.value)}
+                          placeholder="Tuliskan isi pesan WhatsApp..."
+                          className="w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
+                        />
+                        {errors.whatsapp_content && <p className="mt-1 text-xs text-red-600">⚠ {errors.whatsapp_content}</p>}
+                      </div>
+
+                      {errors.whatsapp_respondents && (
+                        <p className="mb-2 text-xs text-red-600">⚠ {errors.whatsapp_respondents}</p>
+                      )}
+
+                      {form.method_data.whatsapp.respondents.length > 0 && (
+                        <div className="space-y-3 mt-4 border-t border-emerald-200 pt-3">
+                          <p className="text-[10px] font-bold text-emerald-700 uppercase">Data Responden</p>
+                          {form.method_data.whatsapp.respondents.map((r, idx) => (
+                            <div key={idx} className="bg-white rounded-xl border border-emerald-200 p-3 space-y-2">
+                              <span className="text-[10px] font-black text-emerald-600 uppercase mb-1 block">Responden #{idx + 1}</span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.name} onChange={e => handleRespondentChange('whatsapp', idx, 'name', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. HP <span className="text-red-400">*</span></label>
+                                  <input type="tel" value={r.phone} onChange={e => handleRespondentChange('whatsapp', idx, 'phone', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Asal Sekolah <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.school} onChange={e => handleRespondentChange('whatsapp', idx, 'school', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Isi Respon <span className="text-red-400">*</span></label>
+                                  <input type="text" value={r.response} onChange={e => handleRespondentChange('whatsapp', idx, 'response', e.target.value)} className="w-full px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
