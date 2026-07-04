@@ -262,21 +262,33 @@ export default function ActivityForm() {
         },
       };
 
-      if (field === 'total_responded') {
-        const count = parseInt(value, 10) || 0;
-        const currentRespondents = newMethodData[methodKey].respondents || [];
-        const newRespondents = [...currentRespondents];
-        
-        if (count > newRespondents.length) {
-          for (let i = newRespondents.length; i < count; i++) {
-            newRespondents.push({ name: '', phone: '', school: '', response: '' });
-          }
-        } else if (count < newRespondents.length) {
-          newRespondents.length = count;
-        }
-        
-        newMethodData[methodKey].respondents = newRespondents;
+      // Validasi dinamis: merespon tidak boleh melebihi contacted
+      let contacted = 0;
+      if (methodKey === 'broadcast') contacted = parseInt(newMethodData.broadcast.total_sent, 10) || 0;
+      if (methodKey === 'telepon') contacted = parseInt(newMethodData.telepon.total_called, 10) || 0;
+      if (methodKey === 'whatsapp') contacted = parseInt(newMethodData.whatsapp.total_contacted, 10) || 0;
+      
+      let responded = parseInt(newMethodData[methodKey].total_responded, 10) || 0;
+
+      if (responded > contacted) {
+        responded = contacted;
+        newMethodData[methodKey].total_responded = responded > 0 ? responded.toString() : '';
       }
+
+      // Sesuaikan jumlah form responden
+      const count = responded;
+      const currentRespondents = newMethodData[methodKey].respondents || [];
+      const newRespondents = [...currentRespondents];
+      
+      if (count > newRespondents.length) {
+        for (let i = newRespondents.length; i < count; i++) {
+          newRespondents.push({ name: '', phone: '', school: '', response: '' });
+        }
+      } else if (count < newRespondents.length) {
+        newRespondents.length = count;
+      }
+      
+      newMethodData[methodKey].respondents = newRespondents;
 
       return {
         ...f,
