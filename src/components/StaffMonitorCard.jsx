@@ -656,6 +656,23 @@ export default function StaffMonitorCard({ staff, reports, index }) {
                     <p className="text-xs text-indigo-800 leading-relaxed whitespace-pre-line">{lastReport.response_notes}</p>
                   </div>
                 )}
+                {lastReport.responded_leads_details && lastReport.responded_leads_details.length > 0 && (
+                  <div className="p-2.5 bg-fuchsia-50 rounded-xl border border-fuchsia-100">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Users className="w-3 h-3 text-fuchsia-600" />
+                      <p className="text-[10px] font-bold text-fuchsia-700 uppercase tracking-wide">Rincian Leads Merespon</p>
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {lastReport.responded_leads_details.map((lead, idx) => (
+                        <div key={idx} className="bg-white p-2.5 rounded-lg border border-fuchsia-100 text-xs">
+                          <p className="font-bold text-slate-800">{lead.name || 'Tanpa Nama'} <span className="text-slate-500 font-normal">{lead.phone ? `(${lead.phone})` : ''}</span></p>
+                          {lead.school && <p className="text-[10px] text-fuchsia-600 font-semibold mb-1">{lead.school}</p>}
+                          {lead.note && <p className="text-slate-600 italic">"{lead.note}"</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
